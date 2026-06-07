@@ -1,0 +1,12 @@
+# Config Cloudflare Worker — permet le déploiement automatique depuis GitHub.
+# Remplacez l'id du KV namespace par le vôtre (Cloudflare → Storage & Databases → KV).
+# Les jetons WRITE_TOKEN / READ_TOKEN ne se mettent PAS ici : ce sont des Secrets
+# à définir dans le tableau de bord Cloudflare (Settings → Variables and Secrets).
+
+name = "vitalis-sync"
+main = "vitalis-worker.js"
+compatibility_date = "2026-01-01"
+
+[[kv_namespaces]]
+binding = "HEALTH"
+id = "REMPLACER_PAR_VOTRE_KV_NAMESPACE_ID"
