@@ -1,0 +1,9 @@
+# Fichiers système / éditeur
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+node_modules/
+
+# Sauvegardes locales de données Vitalis (ne pas committer de données perso)
+vitalis-sauvegarde-*.json
