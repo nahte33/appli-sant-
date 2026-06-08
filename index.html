@@ -4,216 +4,235 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Vitalis">
-<meta name="theme-color" content="#0a0b0f">
+<meta name="theme-color" content="#eceef3">
 <title>Vitalis — Santé & Forme</title>
 <style>
 :root{
-  --bg:#0a0b0f; --bg2:#0e1016; --surface:rgba(255,255,255,.035); --surface2:rgba(255,255,255,.06);
-  --border:rgba(255,255,255,.08); --border2:rgba(255,255,255,.14);
-  --txt:#f3f5f8; --txt2:#aeb4c2; --txt3:#6b7280;
-  --acc:#5eead4; --acc2:#818cf8; --acc3:#f0abfc;
-  --good:#34d399; --warn:#fbbf24; --bad:#f87171;
-  --grad:linear-gradient(135deg,#5eead4 0%,#818cf8 55%,#f0abfc 100%);
-  --r:20px; --r2:14px; --sh:0 10px 40px rgba(0,0,0,.45);
+  --bg:#eceef3; --bg2:#ffffff; --surface:#ffffff; --surface2:#f1f3f8;
+  --border:rgba(18,22,40,.09); --border2:rgba(18,22,40,.16);
+  --txt:#15171f; --txt2:#565d70; --txt3:#929aac;
+  --track:rgba(18,22,40,.08); --grid:rgba(18,22,40,.07);
+  --acc:#0ea5a4; --acc2:#6366f1; --acc3:#d946ef;
+  --good:#10b981; --warn:#f59e0b; --bad:#ef4444;
+  --grad:linear-gradient(135deg,#2dd4bf 0%,#6366f1 55%,#d946ef 100%);
+  --r:22px; --r2:16px; --sh:0 10px 34px rgba(20,25,55,.10); --sh2:0 4px 16px rgba(20,25,55,.07);
   --safe-b:env(safe-area-inset-bottom,0px); --safe-t:env(safe-area-inset-top,0px);
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%}
 body{
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Inter,system-ui,sans-serif;
-  background:radial-gradient(1200px 800px at 75% -10%,#16182280 0%,transparent 60%),radial-gradient(900px 700px at 10% 110%,#1a1c2a80 0%,transparent 55%),var(--bg);
-  color:var(--txt); -webkit-font-smoothing:antialiased; overflow:hidden; letter-spacing:-.01em;
+  background:radial-gradient(1100px 720px at 82% -12%,rgba(99,102,241,.12) 0%,transparent 58%),radial-gradient(900px 650px at 2% 112%,rgba(45,212,191,.13) 0%,transparent 55%),var(--bg);
+  color:var(--txt);-webkit-font-smoothing:antialiased;overflow:hidden;letter-spacing:-.01em;
 }
-.app{display:flex;flex-direction:column;height:100vh;height:100dvh;max-width:760px;margin:0 auto;position:relative}
-/* Header */
-header{padding:calc(var(--safe-t) + 18px) 22px 10px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh;width:100%;max-width:820px;margin:0 auto;position:relative}
+header{padding:calc(var(--safe-t) + 16px) 22px 10px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0}
 .brand{display:flex;align-items:center;gap:11px}
-.logo{width:34px;height:34px;border-radius:11px;background:var(--grad);display:grid;place-items:center;box-shadow:0 6px 18px rgba(129,140,248,.4)}
-.logo svg{width:19px;height:19px}
-.brand h1{font-size:19px;font-weight:680;letter-spacing:-.02em}
+.logo{width:36px;height:36px;border-radius:12px;background:var(--grad);display:grid;place-items:center;box-shadow:0 6px 18px rgba(99,102,241,.35)}
+.logo svg{width:20px;height:20px}
+.brand h1{font-size:20px;font-weight:720;letter-spacing:-.02em}
 .brand span{display:block;font-size:11px;color:var(--txt3);font-weight:500;margin-top:1px}
 .hbtns{display:flex;gap:8px}
-.iconbtn{width:38px;height:38px;border-radius:12px;background:var(--surface);border:1px solid var(--border);color:var(--txt2);display:grid;place-items:center;cursor:pointer;transition:.18s}
-.iconbtn:hover{background:var(--surface2);color:var(--txt)}
+.iconbtn{width:39px;height:39px;border-radius:13px;background:var(--surface);border:1px solid var(--border);color:var(--txt2);display:grid;place-items:center;cursor:pointer;transition:.18s;box-shadow:var(--sh2)}
+.iconbtn:hover{color:var(--txt);transform:translateY(-1px)}
 .iconbtn svg{width:18px;height:18px}
-.iconbtn.synced{color:var(--good);border-color:rgba(52,211,153,.3)}
-/* Content */
-.scroll{flex:1;overflow-y:auto;overflow-x:hidden;padding:6px 16px 130px;scroll-behavior:smooth}
-.scroll::-webkit-scrollbar{width:0}
-.tab{display:none;animation:fade .35s ease}
+.iconbtn.synced{color:var(--good);border-color:rgba(16,185,129,.35)}
+.shell{flex:1;display:flex;min-height:0}
+.sidebar{display:none}
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;padding:6px 16px 130px}
+.scroll::-webkit-scrollbar{width:8px}.scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:8px}
+.content{width:100%}
+.tab{display:none;animation:fade .3s ease}
 .tab.active{display:block}
 @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-/* Cards */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;backdrop-filter:blur(12px);margin-bottom:14px}
-.card.glass{background:linear-gradient(160deg,rgba(255,255,255,.06),rgba(255,255,255,.02))}
-.card h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--txt2);font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+@media(min-width:1000px){
+  .app{max-width:100%;}
+  header{padding:18px 30px 12px}
+  .sidebar{display:flex;flex-direction:column;gap:5px;width:240px;padding:14px 16px 20px;border-right:1px solid var(--border);flex-shrink:0}
+  .navbtn{display:flex;align-items:center;gap:13px;padding:12px 15px;border-radius:14px;border:none;background:none;color:var(--txt2);cursor:pointer;font-family:inherit;font-size:14.5px;font-weight:600;transition:.16s;text-align:left}
+  .navbtn svg{width:21px;height:21px;flex-shrink:0}
+  .navbtn:hover{background:var(--surface)}
+  .navbtn.on{background:var(--surface);color:var(--txt);box-shadow:var(--sh2)}
+  .navbtn.on svg{color:var(--acc2)}
+  .navbtn.ainav{margin-top:auto;background:var(--grad);color:#fff;box-shadow:0 8px 22px rgba(99,102,241,.32)}
+  .navbtn.ainav svg{color:#fff}
+  .tabbar{display:none!important}
+  .fab{display:none!important}
+  .scroll{padding:18px 36px 50px}
+  .content{max-width:1160px;margin:0 auto}
+}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:14px;box-shadow:var(--sh)}
+.card.glass{background:linear-gradient(160deg,#ffffff,#f7f8fc)}
+.card h2{font-size:12.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--txt2);font-weight:680;margin-bottom:14px;display:flex;align-items:center;gap:8px}
 .card h2 .dot{width:6px;height:6px;border-radius:50%;background:var(--acc)}
 .muted{color:var(--txt3);font-size:13px}
-/* Recovery ring */
-.rechero{display:flex;flex-direction:column;align-items:center;text-align:center;padding:8px 0 4px}
-.ring{position:relative;width:220px;height:220px}
+.clickable{cursor:pointer;transition:.16s}.clickable:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(20,25,55,.13)}
+.herorow{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:620px){.herorow{grid-template-columns:1.15fr .85fr}}
+.rechero{display:flex;flex-direction:column;align-items:center;text-align:center;padding:4px 0}
+.ring{position:relative;width:190px;height:190px}
 .ring svg{transform:rotate(-90deg)}
 .ring .ctr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.ring .score{font-size:62px;font-weight:720;line-height:1;letter-spacing:-.04em;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-.ring .lbl{font-size:12px;color:var(--txt2);text-transform:uppercase;letter-spacing:.12em;margin-top:6px}
-.recstate{font-size:15px;font-weight:600;margin-top:14px}
-.recsub{font-size:13px;color:var(--txt2);margin-top:4px;max-width:300px;line-height:1.5}
-/* metric grid */
-.mgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:14px 15px;position:relative;overflow:hidden;cursor:pointer;transition:.18s}
-.metric:hover{border-color:var(--border2)}
+.ring .score{font-size:56px;font-weight:760;line-height:1;letter-spacing:-.04em;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.ring .lbl{font-size:11px;color:var(--txt2);text-transform:uppercase;letter-spacing:.12em;margin-top:5px;font-weight:600}
+.recdate{font-size:12px;color:var(--txt3);margin-top:10px;font-weight:500}
+.recstate{font-size:15px;font-weight:680;margin-top:4px}
+.recsub{font-size:12.5px;color:var(--txt2);margin-top:4px;max-width:300px;line-height:1.5}
+.trendtag{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:20px;margin-top:8px}
+.seelink{font-size:12px;color:var(--acc2);font-weight:650;margin-top:12px;display:inline-flex;align-items:center;gap:4px}
+.otcard{display:flex;flex-direction:column;justify-content:center;height:100%}
+.otlabel{font-size:22px;font-weight:740;letter-spacing:-.02em}
+.otsub{font-size:12px;color:var(--txt2);margin-top:4px;line-height:1.5}
+.zonebar{position:relative;height:9px;border-radius:6px;margin:16px 0 8px;background:linear-gradient(90deg,#10b981 0%,#10b981 40%,#f59e0b 65%,#ef4444 100%)}
+.zonemarker{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid var(--txt);transform:translate(-50%,-50%);box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.zoneticks{display:flex;justify-content:space-between;font-size:9.5px;color:var(--txt3);font-weight:600}
+.otmetric{display:flex;align-items:baseline;gap:6px;margin-top:12px}
+.otmetric b{font-size:20px;font-weight:720}
+.otmetric span{font-size:11.5px;color:var(--txt3)}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:12px}
+.metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:14px 15px;position:relative;overflow:hidden;cursor:pointer;transition:.16s;box-shadow:var(--sh2)}
+.metric:hover{transform:translateY(-2px);box-shadow:var(--sh)}
 .metric .mtop{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
-.metric .mname{font-size:12px;color:var(--txt2);font-weight:600;display:flex;align-items:center;gap:6px}
+.metric .mname{font-size:12px;color:var(--txt2);font-weight:650;display:flex;align-items:center;gap:6px}
 .metric .mname i{width:7px;height:7px;border-radius:2px;display:inline-block}
-.metric .mval{font-size:26px;font-weight:680;letter-spacing:-.03em}
+.metric .mval{font-size:25px;font-weight:720;letter-spacing:-.03em}
 .metric .mval small{font-size:13px;color:var(--txt3);font-weight:500;margin-left:3px}
-.metric .mtrend{font-size:11px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--surface2)}
+.metric .mtrend{font-size:11px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--surface2)}
 .metric .spark{margin-top:8px;height:34px;width:100%}
-.up{color:var(--good)} .down{color:var(--bad)} .flat{color:var(--txt3)}
-/* period chips */
+.bg-up{background:rgba(16,185,129,.13)!important;color:var(--good)} .bg-down{background:rgba(239,68,68,.13)!important;color:var(--bad)} .bg-flat{background:var(--surface2)!important;color:var(--txt3)}
 .chips{display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap}
-.chip{padding:7px 14px;border-radius:20px;background:var(--surface);border:1px solid var(--border);color:var(--txt2);font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s}
-.chip.on{background:var(--txt);color:#0a0b0f;border-color:var(--txt)}
-/* big chart */
+.chip{padding:7px 13px;border-radius:20px;background:var(--surface);border:1px solid var(--border);color:var(--txt2);font-size:12.5px;font-weight:650;cursor:pointer;transition:.15s;box-shadow:var(--sh2)}
+.chip.on{background:var(--txt);color:#fff;border-color:var(--txt)}
 .bigchart{width:100%;height:180px}
 .chartlbls{display:flex;justify-content:space-between;font-size:11px;color:var(--txt3);margin-top:8px}
-/* buttons */
-.btn{border:none;border-radius:13px;padding:12px 18px;font-size:14px;font-weight:620;cursor:pointer;font-family:inherit;transition:.16s;display:inline-flex;align-items:center;gap:8px;justify-content:center}
-.btn.primary{background:var(--grad);color:#0a0b0f}
-.btn.primary:hover{filter:brightness(1.08)}
-.btn.ghost{background:var(--surface);border:1px solid var(--border);color:var(--txt)}
+.btn{border:none;border-radius:14px;padding:12px 18px;font-size:14px;font-weight:650;cursor:pointer;font-family:inherit;transition:.16s;display:inline-flex;align-items:center;gap:8px;justify-content:center}
+.btn.primary{background:var(--grad);color:#fff;box-shadow:0 8px 20px rgba(99,102,241,.3)}
+.btn.primary:hover{filter:brightness(1.05)}
+.btn.ghost{background:var(--surface);border:1px solid var(--border);color:var(--txt);box-shadow:var(--sh2)}
 .btn.ghost:hover{background:var(--surface2)}
-.btn.sm{padding:8px 13px;font-size:12.5px;border-radius:10px}
 .btn.full{width:100%}
 .btn svg{width:16px;height:16px}
-/* load tab */
 .loadrow{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
-.loadbox{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:15px 14px;text-align:center}
-.loadbox .lv{font-size:30px;font-weight:700;letter-spacing:-.03em}
-.loadbox .ll{font-size:11px;color:var(--txt2);text-transform:uppercase;letter-spacing:.07em;margin-top:3px;font-weight:600}
-.loadbox .ld{font-size:11px;margin-top:4px;font-weight:600}
-.formbadge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:650;margin-top:2px}
-/* calendar */
+.loadbox{background:var(--surface2);border-radius:var(--r2);padding:15px 12px;text-align:center}
+.loadbox .lv{font-size:28px;font-weight:740;letter-spacing:-.03em}
+.loadbox .ll{font-size:10.5px;color:var(--txt2);text-transform:uppercase;letter-spacing:.06em;margin-top:3px;font-weight:700}
+.loadbox .ld{font-size:10.5px;margin-top:4px;font-weight:600}
 .calhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.calhead .mlabel{font-size:16px;font-weight:650;text-transform:capitalize}
+.calhead .mlabel{font-size:16px;font-weight:700;text-transform:capitalize}
 .calnav{display:flex;gap:7px}
 .calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
-.caldow{text-align:center;font-size:10.5px;color:var(--txt3);font-weight:600;padding-bottom:4px;text-transform:uppercase}
-.calday{aspect-ratio:1;border-radius:11px;background:var(--surface);border:1px solid transparent;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:5px 2px 2px;cursor:pointer;position:relative;transition:.15s;min-height:0}
+.caldow{text-align:center;font-size:10.5px;color:var(--txt3);font-weight:700;padding-bottom:4px;text-transform:uppercase}
+.calday{aspect-ratio:.92;border-radius:12px;background:var(--surface2);border:1.5px solid transparent;display:flex;flex-direction:column;align-items:center;padding:5px 3px 4px;cursor:pointer;position:relative;transition:.15s;overflow:hidden}
 .calday:hover{border-color:var(--border2)}
 .calday.empty{background:transparent;cursor:default}
-.calday.today{border-color:var(--acc2)}
-.calday .dn{font-size:12px;font-weight:600;color:var(--txt2)}
-.calday.today .dn{color:var(--acc)}
-.calday .wdots{display:flex;gap:2px;margin-top:3px;flex-wrap:wrap;justify-content:center}
-.calday .wdot{width:5px;height:5px;border-radius:50%;background:var(--acc2)}
-.calday .wmin{font-size:9px;color:var(--txt3);position:absolute;bottom:3px;font-weight:600}
-.calday.hasw{background:var(--surface2)}
-/* workout list item */
-.wkitem{display:flex;align-items:center;gap:13px;padding:13px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);margin-bottom:9px;cursor:pointer;transition:.15s}
-.wkitem:hover{background:var(--surface2);border-color:var(--border2)}
-.wkitem .wko{width:42px;height:42px;border-radius:12px;background:var(--surface2);display:grid;place-items:center;flex-shrink:0;font-size:20px}
+.calday.today{border-color:var(--acc2);box-shadow:0 0 0 2px rgba(99,102,241,.15)}
+.calday .dn{font-size:12px;font-weight:700;color:var(--txt2)}
+.calday.today .dn{color:var(--acc2)}
+.calday .wbars{display:flex;flex-direction:column;gap:2.5px;width:100%;align-items:center;margin-top:4px}
+.calday .wbar{height:4px;width:78%;border-radius:3px}
+.calday .wmin{font-size:9px;color:var(--txt2);font-weight:700;margin-top:auto}
+.wkitem{display:flex;align-items:center;gap:13px;padding:13px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);margin-bottom:9px;cursor:pointer;transition:.15s;box-shadow:var(--sh2)}
+.wkitem:hover{transform:translateY(-2px);box-shadow:var(--sh)}
+.wkitem .wko{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;flex-shrink:0;font-size:21px}
 .wkitem .wkmeta{flex:1;min-width:0}
-.wkitem .wkn{font-size:14.5px;font-weight:620;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wkitem .wkn{font-size:14.5px;font-weight:680;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wkitem .wks{font-size:12px;color:var(--txt3);margin-top:2px}
 .wkitem .wkload{text-align:right;flex-shrink:0}
-.wkitem .wkload b{font-size:16px;font-weight:700}
+.wkitem .wkload b{font-size:17px;font-weight:740}
 .wkitem .wkload span{font-size:10px;color:var(--txt3);display:block}
-/* notes */
-.notegrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.note{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:14px;display:flex;flex-direction:column;cursor:pointer;transition:.15s;position:relative;min-height:120px}
-.note:hover{border-color:var(--border2)}
-.note.pin{background:linear-gradient(160deg,rgba(129,140,248,.13),rgba(255,255,255,.02));border-color:rgba(129,140,248,.25)}
-.note .nt{font-size:14.5px;font-weight:650;margin-bottom:6px;padding-right:20px}
+.wvhead{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.wvhead .ic{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;font-size:27px;flex-shrink:0}
+.wvhead .t{font-size:20px;font-weight:740}
+.wvhead .d{font-size:13px;color:var(--txt3);margin-top:2px;text-transform:capitalize}
+.statgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(95px,1fr));gap:10px}
+.stat{background:var(--surface2);border-radius:14px;padding:12px;text-align:center}
+.stat .sv{font-size:20px;font-weight:740;letter-spacing:-.02em}
+.stat .sl{font-size:10.5px;color:var(--txt2);text-transform:uppercase;letter-spacing:.04em;margin-top:3px;font-weight:650}
+.detailbox{background:var(--surface2);border-radius:14px;padding:14px;margin-top:14px;font-size:13.5px;line-height:1.6;white-space:pre-wrap;color:var(--txt2)}
+.notegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.note{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);border-left:4px solid var(--txt3);padding:14px 15px;display:flex;flex-direction:column;cursor:pointer;transition:.15s;position:relative;min-height:120px;box-shadow:var(--sh2)}
+.note:hover{transform:translateY(-2px);box-shadow:var(--sh)}
+.note .ntag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px}
+.note .nt{font-size:14.5px;font-weight:700;margin-bottom:6px;padding-right:22px}
 .note .nb{font-size:12.5px;color:var(--txt2);line-height:1.5;flex:1;white-space:pre-wrap;overflow:hidden}
 .note .nd{font-size:10.5px;color:var(--txt3);margin-top:8px}
-.note .pinbtn{position:absolute;top:11px;right:11px;color:var(--txt3);width:18px;height:18px;cursor:pointer}
+.note .pinbtn{position:absolute;top:12px;right:12px;color:var(--txt3);width:18px;height:18px;cursor:pointer}
+.note.pin{box-shadow:0 8px 24px rgba(99,102,241,.15)}
 .note.pin .pinbtn{color:var(--acc2)}
-/* supplements */
-.supitem{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:14px 15px;margin-bottom:10px;display:flex;align-items:center;gap:14px}
+.supitem{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:14px 15px;margin-bottom:10px;display:flex;align-items:center;gap:14px;box-shadow:var(--sh2)}
 .supcheck{width:46px;height:46px;border-radius:14px;border:2px solid var(--border2);display:grid;place-items:center;cursor:pointer;flex-shrink:0;transition:.18s;color:transparent}
-.supcheck.done{background:var(--grad);border-color:transparent;color:#0a0b0f}
+.supcheck.done{background:var(--grad);border-color:transparent;color:#fff}
 .supcheck svg{width:22px;height:22px}
-.supmeta{flex:1;min-width:0}
-.supmeta .sn{font-size:15px;font-weight:620}
-.supmeta .ss{font-size:12px;color:var(--txt3);margin-top:2px}
-.supstreak{font-size:11px;color:var(--txt2);text-align:right;flex-shrink:0}
-.supstreak b{font-size:18px;display:block;color:var(--acc)}
-.deldot{color:var(--txt3);cursor:pointer;padding:6px}
-.deldot:hover{color:var(--bad)}
-.deldot svg{width:16px;height:16px;display:block}
-/* tab bar */
-.tabbar{position:absolute;left:0;right:0;bottom:0;padding:8px 14px calc(8px + var(--safe-b));background:linear-gradient(to top,var(--bg) 55%,transparent);display:flex;justify-content:center;z-index:40}
-.tabbar .inner{display:flex;gap:4px;background:rgba(20,22,30,.82);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:22px;padding:6px;box-shadow:var(--sh)}
-.tabbtn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 16px;border-radius:16px;color:var(--txt3);cursor:pointer;transition:.18s;border:none;background:none;font-family:inherit}
-.tabbtn svg{width:21px;height:21px}
-.tabbtn span{font-size:10px;font-weight:600}
-.tabbtn.on{color:var(--txt);background:var(--surface2)}
-.tabbtn.on svg{color:var(--acc)}
-/* FAB AI */
-.fab{position:absolute;right:18px;bottom:calc(86px + var(--safe-b));width:56px;height:56px;border-radius:18px;background:var(--grad);display:grid;place-items:center;cursor:pointer;box-shadow:0 10px 30px rgba(129,140,248,.5);z-index:45;transition:.2s}
-.fab:hover{transform:scale(1.06)}
-.fab svg{width:26px;height:26px;color:#0a0b0f}
-/* modal */
-.overlay{position:fixed;inset:0;background:rgba(5,6,10,.6);backdrop-filter:blur(6px);z-index:100;display:none;align-items:flex-end;justify-content:center}
+.supmeta{flex:1;min-width:0}.supmeta .sn{font-size:15px;font-weight:680}.supmeta .ss{font-size:12px;color:var(--txt3);margin-top:2px}
+.supstreak{font-size:11px;color:var(--txt2);text-align:right;flex-shrink:0}.supstreak b{font-size:18px;display:block;color:var(--acc)}
+.deldot{color:var(--txt3);cursor:pointer;padding:6px}.deldot:hover{color:var(--bad)}.deldot svg{width:16px;height:16px;display:block}
+.tabbar{position:absolute;left:0;right:0;bottom:0;padding:8px 14px calc(8px + var(--safe-b));background:linear-gradient(to top,var(--bg) 60%,transparent);display:flex;justify-content:center;z-index:40}
+.tabbar .inner{display:flex;gap:3px;background:rgba(255,255,255,.9);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:22px;padding:6px;box-shadow:var(--sh)}
+.tabbtn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 15px;border-radius:16px;color:var(--txt3);cursor:pointer;transition:.18s;border:none;background:none;font-family:inherit}
+.tabbtn svg{width:21px;height:21px}.tabbtn span{font-size:10px;font-weight:650}
+.tabbtn.on{color:var(--txt);background:var(--surface2)}.tabbtn.on svg{color:var(--acc2)}
+.fab{position:absolute;right:18px;bottom:calc(88px + var(--safe-b));width:56px;height:56px;border-radius:18px;background:var(--grad);display:grid;place-items:center;cursor:pointer;box-shadow:0 10px 30px rgba(99,102,241,.45);z-index:45;transition:.2s}
+.fab:hover{transform:scale(1.06)}.fab svg{width:26px;height:26px;color:#fff}
+.overlay{position:fixed;inset:0;background:rgba(20,25,50,.34);backdrop-filter:blur(7px);z-index:100;display:none;align-items:center;justify-content:center;padding:18px}
 .overlay.open{display:flex}
-.sheet{background:var(--bg2);border:1px solid var(--border);border-radius:26px 26px 0 0;width:100%;max-width:760px;max-height:92vh;overflow-y:auto;padding:8px 20px calc(28px + var(--safe-b));animation:slideup .32s cubic-bezier(.2,.8,.2,1)}
-@keyframes slideup{from{transform:translateY(100%)}to{transform:none}}
-.sheet::-webkit-scrollbar{width:0}
-.grab{width:40px;height:4px;border-radius:3px;background:var(--border2);margin:8px auto 16px}
-.sheet h3{font-size:19px;font-weight:680;margin-bottom:4px}
-.sheet .sub{font-size:13px;color:var(--txt3);margin-bottom:18px}
-label{display:block;font-size:12px;color:var(--txt2);font-weight:600;margin:14px 0 6px}
-input,textarea,select{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 14px;color:var(--txt);font-size:15px;font-family:inherit;transition:.15s}
-input:focus,textarea:focus,select:focus{outline:none;border-color:var(--acc2);background:var(--surface2)}
+.sheet{background:var(--bg2);border:1px solid var(--border);border-radius:24px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;padding:24px 22px 24px;box-shadow:0 30px 80px rgba(20,25,55,.3);animation:pop .26s cubic-bezier(.2,.8,.2,1);position:relative}
+@keyframes pop{from{opacity:0;transform:scale(.95) translateY(12px)}to{opacity:1;transform:none}}
+.sheet::-webkit-scrollbar{width:8px}.sheet::-webkit-scrollbar-thumb{background:var(--border2);border-radius:8px}
+.sheetclose{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:10px;border:none;background:var(--surface2);color:var(--txt2);cursor:pointer;display:grid;place-items:center;z-index:2}
+.sheetclose:hover{background:var(--border2)}.sheetclose svg{width:16px;height:16px}
+.sheet h3{font-size:19px;font-weight:740;margin-bottom:4px;padding-right:38px}
+.sheet .sub{font-size:13px;color:var(--txt3);margin-bottom:16px}
+label{display:block;font-size:12px;color:var(--txt2);font-weight:650;margin:14px 0 6px}
+input,textarea,select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:13px 14px;color:var(--txt);font-size:15px;font-family:inherit;transition:.15s}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--acc2);background:var(--surface)}
 textarea{resize:vertical;min-height:90px;line-height:1.5}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .rpe{display:flex;gap:6px;flex-wrap:wrap}
-.rpe button{flex:1;min-width:38px;padding:10px 0;border-radius:10px;background:var(--surface);border:1px solid var(--border);color:var(--txt2);font-weight:650;cursor:pointer;font-family:inherit}
-.rpe button.on{background:var(--acc2);color:#0a0b0f;border-color:var(--acc2)}
+.rpe button{flex:1;min-width:34px;padding:10px 0;border-radius:10px;background:var(--surface2);border:1px solid var(--border);color:var(--txt2);font-weight:700;cursor:pointer;font-family:inherit}
+.rpe button.on{background:var(--acc2);color:#fff;border-color:var(--acc2)}
+.catrow{display:flex;gap:8px;flex-wrap:wrap}
+.catrow button{padding:9px 14px;border-radius:11px;background:var(--surface2);border:1.5px solid var(--border);color:var(--txt2);font-weight:650;cursor:pointer;font-family:inherit;font-size:13px;display:flex;align-items:center;gap:7px}
+.catrow button i{width:8px;height:8px;border-radius:50%}
+.catrow button.on{border-color:currentColor}
 .sheetbtns{display:flex;gap:10px;margin-top:22px}
 .kv{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border);font-size:14px}
-.kv:last-child{border:none}
-.kv span{color:var(--txt2)}
-.kv b{font-weight:650}
-/* AI chat */
-.chatwrap{display:flex;flex-direction:column;height:88vh}
-.chatmsgs{flex:1;overflow-y:auto;padding:6px 2px 14px;display:flex;flex-direction:column;gap:12px}
-.chatmsgs::-webkit-scrollbar{width:0}
-.msg{max-width:84%;padding:12px 15px;border-radius:18px;font-size:14px;line-height:1.55;white-space:pre-wrap;word-wrap:break-word}
-.msg.u{align-self:flex-end;background:var(--grad);color:#0a0b0f;border-bottom-right-radius:5px;font-weight:500}
+.kv:last-child{border:none}.kv span{color:var(--txt2)}.kv b{font-weight:680}
+.aihead{display:flex;align-items:center;gap:12px;margin:-24px -22px 14px;padding:20px 22px 16px;background:var(--grad);border-radius:24px 24px 0 0}
+.aihead .av{width:42px;height:42px;border-radius:13px;background:rgba(255,255,255,.22);display:grid;place-items:center}
+.aihead .av svg{width:23px;height:23px;color:#fff}
+.aihead .t{color:#fff}.aihead .t b{font-size:17px;font-weight:740;display:block}.aihead .t span{font-size:11.5px;opacity:.9}
+.chatwrap{display:flex;flex-direction:column;height:min(72vh,620px)}
+.chatmsgs{flex:1;overflow-y:auto;padding:4px 2px 12px;display:flex;flex-direction:column;gap:11px}
+.chatmsgs::-webkit-scrollbar{width:6px}.chatmsgs::-webkit-scrollbar-thumb{background:var(--border2);border-radius:6px}
+.msg{max-width:86%;padding:12px 15px;border-radius:18px;font-size:14px;line-height:1.55;white-space:pre-wrap;word-wrap:break-word}
+.msg.u{align-self:flex-end;background:var(--grad);color:#fff;border-bottom-right-radius:5px}
 .msg.a{align-self:flex-start;background:var(--surface2);border:1px solid var(--border);border-bottom-left-radius:5px}
 .msg.sys{align-self:center;background:transparent;color:var(--txt3);font-size:12.5px;text-align:center;max-width:100%}
 .chatin{display:flex;gap:9px;padding-top:10px;border-top:1px solid var(--border)}
 .chatin input{flex:1}
 .chatin button{flex-shrink:0;width:48px;border-radius:13px;background:var(--grad);border:none;display:grid;place-items:center;cursor:pointer}
-.chatin button svg{width:20px;height:20px;color:#0a0b0f}
-.suggestions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
-.suggestions button{font-size:12px;padding:7px 12px;border-radius:14px;background:var(--surface);border:1px solid var(--border);color:var(--txt2);cursor:pointer;font-family:inherit}
+.chatin button svg{width:20px;height:20px;color:#fff}
 .typing{display:flex;gap:4px;padding:6px 0}
 .typing i{width:7px;height:7px;border-radius:50%;background:var(--txt3);animation:bounce 1.2s infinite}
 .typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
 @keyframes bounce{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
-/* empty state */
-.empty{text-align:center;padding:48px 20px;color:var(--txt3)}
-.empty svg{width:44px;height:44px;margin-bottom:14px;opacity:.5}
-.empty p{font-size:14px;line-height:1.6}
-.addbtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border:1.5px dashed var(--border2);border-radius:var(--r2);background:transparent;color:var(--txt2);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:14px;transition:.15s}
-.addbtn:hover{border-color:var(--acc2);color:var(--txt)}
-.sectiontitle{font-size:13px;font-weight:650;color:var(--txt2);margin:6px 2px 12px;text-transform:uppercase;letter-spacing:.06em}
-.toast{position:fixed;bottom:calc(150px + var(--safe-b));left:50%;transform:translateX(-50%);background:var(--txt);color:#0a0b0f;padding:11px 20px;border-radius:14px;font-size:13.5px;font-weight:600;z-index:200;opacity:0;transition:.25s;pointer-events:none}
+.empty{text-align:center;padding:44px 20px;color:var(--txt3)}
+.empty svg{width:44px;height:44px;margin-bottom:14px;opacity:.5}.empty p{font-size:14px;line-height:1.6}
+.addbtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border:1.5px dashed var(--border2);border-radius:var(--r2);background:transparent;color:var(--txt2);font-size:14px;font-weight:650;cursor:pointer;font-family:inherit;margin-bottom:14px;transition:.15s}
+.addbtn:hover{border-color:var(--acc2);color:var(--acc2)}
+.toast{position:fixed;bottom:calc(150px + var(--safe-b));left:50%;transform:translateX(-50%);background:var(--txt);color:#fff;padding:11px 20px;border-radius:14px;font-size:13.5px;font-weight:600;z-index:200;opacity:0;transition:.25s;pointer-events:none;box-shadow:var(--sh)}
 .toast.show{opacity:1}
-.pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 9px;border-radius:20px;background:var(--surface2);color:var(--txt2);font-weight:600}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 9px;border-radius:20px;background:var(--surface2);color:var(--txt2);font-weight:650}
 </style>
 </head>
 <body>
 <div class="app">
   <header>
     <div class="brand">
-      <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-4.5-9.5-9C1 9 2.5 5 6.5 5 9 5 12 8 12 8s3-3 5.5-3C21.5 5 23 9 21.5 12 19 16.5 12 21 12 21z" fill="#0a0b0f" opacity=".85"/><path d="M3 12h4l2-4 3 8 2-5 1.5 1H21" stroke="#0a0b0f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <div><h1>Vitalis</h1><span id="syncStatus">Aucune donnée — importez</span></div>
+      <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-4.5-9.5-9C1 9 2.5 5 6.5 5 9 5 12 8 12 8s3-3 5.5-3C21.5 5 23 9 21.5 12 19 16.5 12 21 12 21z" fill="#fff" opacity=".9"/><path d="M3 12h4l2-4 3 8 2-5 1.5 1H21" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div><h1>Vitalis</h1><span id="syncStatus">Aucune donnée</span></div>
     </div>
     <div class="hbtns">
       <div class="iconbtn" id="importBtn" title="Importer / Sync"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
@@ -221,20 +240,29 @@ textarea{resize:vertical;min-height:90px;line-height:1.5}
     </div>
   </header>
 
-  <div class="scroll">
-    <section class="tab active" id="tab-recovery"></section>
-    <section class="tab" id="tab-training"></section>
-    <section class="tab" id="tab-notes"></section>
-    <section class="tab" id="tab-supps"></section>
+  <div class="shell">
+    <nav class="sidebar">
+      <button class="navbtn on" data-tab="recovery"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Récupération</button>
+      <button class="navbtn" data-tab="training"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M3 3l1 1M21 21l-1-1M18 22l4-4M2 6l4-4M6 18l-4 4M22 18l-4 4"/></svg>Forme</button>
+      <button class="navbtn" data-tab="notes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/></svg>Notes</button>
+      <button class="navbtn" data-tab="supps"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5L3.5 13.5a5 5 0 0 1 7-7l7 7a5 5 0 0 1-7 7z"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg>Suppléments</button>
+      <button class="navbtn ainav" id="aiNav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.6 4.6L18 8.2l-4.4 1.6L12 14l-1.6-4.2L6 8.2l4.4-1.6z"/></svg>Assistant IA</button>
+    </nav>
+    <div class="scroll"><div class="content">
+      <section class="tab active" id="tab-recovery"></section>
+      <section class="tab" id="tab-training"></section>
+      <section class="tab" id="tab-notes"></section>
+      <section class="tab" id="tab-supps"></section>
+    </div></div>
   </div>
 
   <div class="fab" id="aiFab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.6 4.6L18 8.2l-4.4 1.6L12 14l-1.6-4.2L6 8.2l4.4-1.6z"/><circle cx="18" cy="17" r="1.2" fill="currentColor"/><circle cx="6" cy="16" r="1" fill="currentColor"/></svg></div>
 
   <nav class="tabbar"><div class="inner">
     <button class="tabbtn on" data-tab="recovery"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span>Récup</span></button>
-    <button class="tabbtn" data-tab="training"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5l11 11M21 21l-1-1M3 3l1 1M18 22l4-4M2 6l4-4M6 18l-4 4M22 18l-4 4"/><rect x="7" y="7" width="10" height="10" rx="2"/></svg><span>Forme</span></button>
-    <button class="tabbtn" data-tab="notes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg><span>Notes</span></button>
-    <button class="tabbtn" data-tab="supps"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5L3.5 13.5a5 5 0 0 1 7-7l7 7a5 5 0 0 1-7 7z"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg><span>Suppléments</span></button>
+    <button class="tabbtn" data-tab="training"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M3 3l1 1M21 21l-1-1M18 22l4-4M2 6l4-4M6 18l-4 4M22 18l-4 4"/></svg><span>Forme</span></button>
+    <button class="tabbtn" data-tab="notes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>Notes</span></button>
+    <button class="tabbtn" data-tab="supps"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5L3.5 13.5a5 5 0 0 1 7-7l7 7a5 5 0 0 1-7 7z"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg><span>Suppl.</span></button>
   </div></nav>
 </div>
 
@@ -260,291 +288,279 @@ function fmtKey(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getD
 function parseDate(s){if(!s)return null;if(s.length<=10)return new Date(s+"T12:00:00");const m=s.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})/);if(m)return new Date(+m[1],+m[2]-1,+m[3],+m[4],+m[5],+m[6]);const d=new Date(s);return isNaN(d)?null:d;}
 function dayKeyFrom(s){const d=parseDate(s);return d?fmtKey(d):null;}
 const round=(n,d=0)=>{const f=Math.pow(10,d);return Math.round(n*f)/f;};
+const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const fmtMin=m=>{m=Math.round(m);const h=Math.floor(m/60),mm=m%60;return h?h+"h"+(mm?pad(mm):""):mm+"min";};
+function fmtSleepH(h){if(h==null)return "—";const mins=Math.round(h*60);return Math.floor(mins/60)+"h"+pad(mins%60);}
+function hexA(h,a){const n=parseInt(h.slice(1),16);return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;}
 function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("show");clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove("show"),2200);}
 function lastNDays(n){const a=[];const d=new Date();for(let i=n-1;i>=0;i--){const x=new Date(d);x.setDate(d.getDate()-i);a.push(fmtKey(x));}return a;}
+function escapeHtml(s){return(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+
+const PERIODS=[[14,"2 sem"],[30,"1 mois"],[90,"3 mois"],[180,"6 mois"],[365,"1 an"]];
+function periodChips(cur,fn){return `<div class="chips">`+PERIODS.map(([d,l])=>`<div class="chip${cur===d?' on':''}" onclick="${fn}(${d})">${l}</div>`).join("")+`</div>`;}
 
 const METRICS=[
- {k:"hrv",label:"VFC (HRV)",unit:"ms",color:"#5eead4",hi:true,dec:0},
- {k:"rhr",label:"FC repos",unit:"bpm",color:"#f0abfc",hi:false,dec:0},
- {k:"sleep",label:"Sommeil",unit:"h",color:"#818cf8",hi:true,dec:1},
- {k:"resp",label:"Resp.",unit:"/min",color:"#34d399",hi:false,dec:1},
- {k:"spo2",label:"SpO₂",unit:"%",color:"#60a5fa",hi:true,dec:0},
- {k:"steps",label:"Pas",unit:"",color:"#fbbf24",hi:true,dec:0},
- {k:"energy",label:"Énergie active",unit:"kcal",color:"#fb923c",hi:true,dec:0},
- {k:"vo2",label:"VO₂ max",unit:"",color:"#a78bfa",hi:true,dec:1},
- {k:"weight",label:"Poids",unit:"kg",color:"#94a3b8",hi:false,dec:1},
- {k:"wristtemp",label:"Temp. poignet",unit:"°C",color:"#f87171",hi:false,dec:1}
+ {k:"hrv",label:"VFC (HRV)",unit:"ms",color:"#0ea5a4",hi:true,dec:0},
+ {k:"rhr",label:"FC repos",unit:"bpm",color:"#d946ef",hi:false,dec:0},
+ {k:"sleep",label:"Sommeil",unit:"",color:"#6366f1",hi:true,dec:1,sleep:true},
+ {k:"resp",label:"Resp.",unit:"/min",color:"#10b981",hi:false,dec:1},
+ {k:"spo2",label:"SpO₂",unit:"%",color:"#0ea5e9",hi:true,dec:0},
+ {k:"steps",label:"Pas",unit:"",color:"#f59e0b",hi:true,dec:0},
+ {k:"energy",label:"Énergie active",unit:"kcal",color:"#f97316",hi:true,dec:0},
+ {k:"vo2",label:"VO₂ max",unit:"",color:"#8b5cf6",hi:true,dec:1},
+ {k:"weight",label:"Poids",unit:"kg",color:"#64748b",hi:false,dec:1},
+ {k:"wristtemp",label:"Temp. poignet",unit:"°C",color:"#ef4444",hi:false,dec:1}
 ];
 const METRIC_MAP=Object.fromEntries(METRICS.map(m=>[m.k,m]));
+function fmtVal(k,v){if(v==null)return "—";const m=METRIC_MAP[k];if(m&&m.sleep)return fmtSleepH(v);return round(v,m?m.dec:0).toLocaleString("fr-FR");}
 
 function seriesFor(k,nDays){const keys=lastNDays(nDays);return keys.map(dk=>({date:dk,value:S.days[dk]&&S.days[dk][k]!=null?S.days[dk][k]:null}));}
 function latestVal(k){const keys=Object.keys(S.days).filter(d=>S.days[d]&&S.days[d][k]!=null).sort();return keys.length?{date:keys[keys.length-1],value:S.days[keys[keys.length-1]][k]}:null;}
-
 function baseline(k,endKey,win=30){const vals=[];const end=parseDate(endKey);for(let i=1;i<=win;i++){const d=new Date(end);d.setDate(end.getDate()-i);const dk=fmtKey(d);if(S.days[dk]&&S.days[dk][k]!=null)vals.push(S.days[dk][k]);}
  if(vals.length<3)return null;const m=vals.reduce((a,b)=>a+b,0)/vals.length;const sd=Math.sqrt(vals.reduce((a,b)=>a+(b-m)*(b-m),0)/vals.length)||1;return{mean:m,sd:sd,n:vals.length};}
 
-function recovery(dayKey){
-  const day=S.days[dayKey];if(!day)return null;
-  const comps={};
-  const W={hrv:.40,rhr:.25,sleep:.25,resp:.10};
-  function zComp(k,higherBetter){const b=baseline(k,dayKey);if(!b||day[k]==null)return null;let z=(day[k]-b.mean)/b.sd;if(!higherBetter)z=-z;return Math.max(0,Math.min(100,50+z*22));}
-  comps.hrv=zComp("hrv",true);
-  comps.rhr=zComp("rhr",false);
-  comps.resp=zComp("resp",false);
-  if(day.sleep!=null){const goal=S.settings.sleepGoal||8;let r=day.sleep/goal;comps.sleep=Math.max(0,Math.min(100,(r>=1?100:30+r*70)));}
-  let num=0,den=0;for(const k in W){if(comps[k]!=null){num+=comps[k]*W[k];den+=W[k];}}
-  if(den===0)return null;
-  let score=Math.round(num/den);
-  return{score,comps,covered:den};
-}
+function recovery(dayKey){const day=S.days[dayKey];if(!day)return null;const comps={};const W={hrv:.40,rhr:.25,sleep:.25,resp:.10};
+ function zComp(k,hb){const b=baseline(k,dayKey);if(!b||day[k]==null)return null;let z=(day[k]-b.mean)/b.sd;if(!hb)z=-z;return clamp(50+z*22,0,100);}
+ comps.hrv=zComp("hrv",true);comps.rhr=zComp("rhr",false);comps.resp=zComp("resp",false);
+ if(day.sleep!=null){const goal=S.settings.sleepGoal||8;let r=day.sleep/goal;comps.sleep=clamp(r>=1?100:30+r*70,0,100);}
+ let num=0,den=0;for(const k in W){if(comps[k]!=null){num+=comps[k]*W[k];den+=W[k];}}if(den===0)return null;return{score:Math.round(num/den),comps,covered:den};}
 function recState(s){if(s>=80)return{t:"Pleinement récupéré",c:"var(--good)",d:"Ton corps est prêt. Idéal pour une séance intense ou un test de force."};
  if(s>=60)return{t:"Bonne récupération",c:"var(--acc)",d:"Tu peux t'entraîner normalement. Charge modérée à élevée bien tolérée."};
  if(s>=40)return{t:"Récupération modérée",c:"var(--warn)",d:"Privilégie une séance technique ou à intensité contrôlée. Surveille la fatigue."};
  return{t:"Faible récupération",c:"var(--bad)",d:"Repos actif ou journée off recommandée. Priorise sommeil et hydratation."};}
+function recoveryHistory(nDays){return lastNDays(nDays).map(dk=>{const r=recovery(dk);return{date:dk,value:r?r.score:null};});}
+function recoveryTrend(){const h=recoveryHistory(28).filter(p=>p.value!=null);if(h.length<4)return null;
+ const recent=h.slice(-7),prev=h.slice(-14,-7);if(!prev.length||!recent.length)return null;
+ const avg=a=>a.reduce((s,p)=>s+p.value,0)/a.length;const d=avg(recent)-avg(prev);
+ return{delta:Math.round(d),dir:d>1.5?"up":d<-1.5?"down":"flat"};}
 
-function trimp(w){
-  const dur=w.durationMin||0;
-  const hrRest=S.settings.hrRest||60;
-  const hrMax=S.settings.hrMax||(220-(S.settings.age||30));
-  if(w.avgHr&&hrMax>hrRest&&w.avgHr>hrRest){
-    const ratio=Math.max(0,Math.min(1,(w.avgHr-hrRest)/(hrMax-hrRest)));
-    const k=S.settings.sex==="F"?1.67:1.92;const c=S.settings.sex==="F"?0.86:0.64;
-    return Math.round(dur*ratio*c*Math.exp(k*ratio));
-  }
-  if(w.rpe)return Math.round(w.rpe*dur);
-  return Math.round(dur*0.6);
-}
+function trimp(w){const dur=w.durationMin||0;const hrRest=S.settings.hrRest||60;const hrMax=S.settings.hrMax||(220-(S.settings.age||30));
+ if(w.avgHr&&hrMax>hrRest&&w.avgHr>hrRest){const ratio=clamp((w.avgHr-hrRest)/(hrMax-hrRest),0,1);const k=S.settings.sex==="F"?1.67:1.92;const c=S.settings.sex==="F"?0.86:0.64;return Math.round(dur*ratio*c*Math.exp(k*ratio));}
+ if(w.rpe)return Math.round(w.rpe*dur);return Math.round(dur*0.6);}
 function workoutsByDay(){const m={};S.workouts.forEach(w=>{(m[w.date]=m[w.date]||[]).push(w);});return m;}
 function dailyLoadMap(){const m={};S.workouts.forEach(w=>{m[w.date]=(m[w.date]||0)+(w.trimp||trimp(w));});return m;}
-function loadSeries(){
-  const lm=dailyLoadMap();const keys=Object.keys(lm);
-  let start=keys.length?keys.sort()[0]:todayKey();
-  const sD=parseDate(start),eD=new Date();
-  const kCtl=1-Math.exp(-1/42),kAtl=1-Math.exp(-1/7);
-  let ctl=0,atl=0;const out=[];
-  for(let d=new Date(sD);d<=eD;d.setDate(d.getDate()+1)){
-    const dk=fmtKey(d);const load=lm[dk]||0;
-    const tsb=ctl-atl;
-    ctl=ctl+(load-ctl)*kCtl;atl=atl+(load-atl)*kAtl;
-    out.push({date:dk,load,ctl:round(ctl,1),atl:round(atl,1),tsb:round(tsb,1)});
-  }
-  return out;
-}
-function formState(tsb){if(tsb>5)return{t:"Frais / affûté",c:"var(--good)"};if(tsb>=-10)return{t:"Optimal",c:"var(--acc)"};if(tsb>=-30)return{t:"Productif (charge)",c:"var(--warn)"};return{t:"Surcharge — fatigue",c:"var(--bad)"};}
+function loadSeries(){const lm=dailyLoadMap();const keys=Object.keys(lm);let start=keys.length?keys.sort()[0]:todayKey();
+ const sD=parseDate(start),eD=new Date();const kCtl=1-Math.exp(-1/42),kAtl=1-Math.exp(-1/7);let ctl=0,atl=0;const out=[];
+ for(let d=new Date(sD);d<=eD;d.setDate(d.getDate()+1)){const dk=fmtKey(d);const load=lm[dk]||0;const tsb=ctl-atl;ctl=ctl+(load-ctl)*kCtl;atl=atl+(load-atl)*kAtl;out.push({date:dk,load,ctl:round(ctl,1),atl:round(atl,1),tsb:round(tsb,1)});}return out;}
+function formState(tsb){if(tsb>5)return{t:"Frais / affûté",c:"var(--good)"};if(tsb>=-10)return{t:"Optimal",c:"var(--acc)"};if(tsb>=-30)return{t:"Productif",c:"var(--warn)"};return{t:"Surcharge",c:"var(--bad)"};}
+function overtraining(){const ser=loadSeries();const last=ser[ser.length-1];if(!last||last.ctl<1)return null;
+ const acwr=last.atl/last.ctl;let risk;
+ if(acwr<0.8)risk=22+(0.8-acwr)*25;else if(acwr<=1.3)risk=12+(acwr-0.8)*16;else risk=20+(acwr-1.3)*125;
+ if(last.tsb<-30)risk+=18;else if(last.tsb<-20)risk+=8;
+ const tr=recoveryTrend();if(tr&&tr.dir==="down")risk+=10;
+ risk=clamp(Math.round(risk),0,100);
+ let band;if(risk<35)band={t:"Faible",c:"var(--good)"};else if(risk<65)band={t:"Modéré",c:"var(--warn)"};else band={t:"Élevé",c:"var(--bad)"};
+ return{risk,acwr:round(acwr,2),tsb:last.tsb,band};}
 
-function spark(series,color,h=34){
-  const vals=series.map(p=>p.value);const has=vals.some(v=>v!=null);
-  const w=140;if(!has)return `<svg class="spark" viewBox="0 0 ${w} ${h}"></svg>`;
-  const nums=vals.filter(v=>v!=null);let mn=Math.min(...nums),mx=Math.max(...nums);if(mn===mx){mn-=1;mx+=1;}
-  const n=series.length;const x=i=>i/(n-1)*w;const y=v=>h-4-((v-mn)/(mx-mn))*(h-8);
-  let d="",started=false,lastPt=null;
-  series.forEach((p,i)=>{if(p.value==null)return;const px=x(i),py=y(p.value);d+=(started?"L":"M")+round(px,1)+" "+round(py,1)+" ";started=true;lastPt=[px,py];});
-  const id="g"+Math.random().toString(36).slice(2,7);
-  let area=d?d+`L ${round(x(n-1),1)} ${h} L ${round(x(0),1)} ${h} Z`:"";
-  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".28"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><path d="${area}" fill="url(#${id})"/><path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>${lastPt?`<circle cx="${round(lastPt[0],1)}" cy="${round(lastPt[1],1)}" r="2.6" fill="${color}"/>`:""}</svg>`;
-}
-function lineChart(series,color,h=180){
-  const w=600;const vals=series.map(p=>p.value).filter(v=>v!=null);
-  if(!vals.length)return `<div class="bigchart" style="display:grid;place-items:center;color:var(--txt3);font-size:13px">Pas de données sur cette période</div>`;
-  let mn=Math.min(...vals),mx=Math.max(...vals);const p=(mx-mn)*0.12||1;mn-=p;mx+=p;
-  const n=series.length;const x=i=>40+i/(n-1)*(w-50);const y=v=>h-24-((v-mn)/(mx-mn))*(h-44);
-  let d="",started=false;const pts=[];
-  series.forEach((pt,i)=>{if(pt.value==null)return;const px=x(i),py=y(pt.value);d+=(started?"L":"M")+round(px,1)+" "+round(py,1)+" ";started=true;pts.push([px,py]);});
-  const id="lg"+Math.random().toString(36).slice(2,7);
-  const area=d+`L ${round(x(n-1),1)} ${h-24} L ${round(x(0),1)} ${h-24} Z`;
-  let grid="";for(let g=0;g<=3;g++){const gy=24+g/3*(h-48);const gv=mx-(g/3)*(mx-mn);grid+=`<line x1="40" y1="${round(gy,1)}" x2="${w}" y2="${round(gy,1)}" stroke="rgba(255,255,255,.06)" stroke-width="1"/><text x="2" y="${round(gy+3,1)}" fill="var(--txt3)" font-size="10">${round(gv,Math.abs(mx)<10?1:0)}</text>`;}
-  return `<svg class="bigchart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".3"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>${grid}<path d="${area}" fill="url(#${id})"/><path d="${d}" fill="none" stroke="${color}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>${pts.length?`<circle cx="${round(pts[pts.length-1][0],1)}" cy="${round(pts[pts.length-1][1],1)}" r="3.5" fill="${color}"/>`:""}</svg>`;
-}
-function dualBarLine(ser,h=190){
-  const w=600;if(!ser.length)return "<div class='bigchart'></div>";
-  const maxLoad=Math.max(10,...ser.map(s=>Math.max(s.load,s.ctl,s.atl)));
-  const n=ser.length;const bw=Math.max(1.5,(w-50)/n*0.7);
-  const x=i=>40+i/(Math.max(1,n-1))*(w-50);const y=v=>h-22-(v/maxLoad)*(h-40);
-  let bars="",ctlP="",atlP="";
-  ser.forEach((s,i)=>{const px=x(i);bars+=`<rect x="${round(px-bw/2,1)}" y="${round(y(s.load),1)}" width="${round(bw,1)}" height="${round(h-22-y(s.load),1)}" rx="1" fill="rgba(129,140,248,.35)"/>`;
-   ctlP+=(i?"L":"M")+round(px,1)+" "+round(y(s.ctl),1)+" ";atlP+=(i?"L":"M")+round(px,1)+" "+round(y(s.atl),1)+" ";});
-  let grid="";for(let g=0;g<=3;g++){const gy=20+g/3*(h-40);grid+=`<line x1="40" y1="${round(gy,1)}" x2="${w}" y2="${round(gy,1)}" stroke="rgba(255,255,255,.06)"/><text x="2" y="${round(gy+3,1)}" fill="var(--txt3)" font-size="10">${round(maxLoad-(g/3)*maxLoad)}</text>`;}
-  return `<svg class="bigchart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${grid}${bars}<path d="${atlP}" fill="none" stroke="#f0abfc" stroke-width="2.2"/><path d="${ctlP}" fill="none" stroke="#5eead4" stroke-width="2.6"/></svg>`;
-}
+function spark(series,color,h=34){const vals=series.map(p=>p.value);const has=vals.some(v=>v!=null);const w=140;if(!has)return `<svg class="spark" viewBox="0 0 ${w} ${h}"></svg>`;
+ const nums=vals.filter(v=>v!=null);let mn=Math.min(...nums),mx=Math.max(...nums);if(mn===mx){mn-=1;mx+=1;}
+ const n=series.length;const x=i=>i/(n-1)*w;const y=v=>h-4-((v-mn)/(mx-mn))*(h-8);let d="",started=false,lastPt=null;
+ series.forEach((p,i)=>{if(p.value==null)return;const px=x(i),py=y(p.value);d+=(started?"L":"M")+round(px,1)+" "+round(py,1)+" ";started=true;lastPt=[px,py];});
+ const id="g"+Math.random().toString(36).slice(2,7);let area=d?d+`L ${round(x(n-1),1)} ${h} L ${round(x(0),1)} ${h} Z`:"";
+ return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".3"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><path d="${area}" fill="url(#${id})"/><path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>${lastPt?`<circle cx="${round(lastPt[0],1)}" cy="${round(lastPt[1],1)}" r="2.6" fill="${color}"/>`:""}</svg>`;}
+function lineChart(series,color,fmtFn,h=180){const w=600;const vals=series.map(p=>p.value).filter(v=>v!=null);
+ if(!vals.length)return `<div class="bigchart" style="display:grid;place-items:center;color:var(--txt3);font-size:13px">Pas de données sur cette période</div>`;
+ let mn=Math.min(...vals),mx=Math.max(...vals);const p=(mx-mn)*0.12||1;mn-=p;mx+=p;
+ const n=series.length;const x=i=>44+i/(n-1)*(w-54);const y=v=>h-24-((v-mn)/(mx-mn))*(h-44);let d="",started=false;const pts=[];
+ series.forEach((pt,i)=>{if(pt.value==null)return;const px=x(i),py=y(pt.value);d+=(started?"L":"M")+round(px,1)+" "+round(py,1)+" ";started=true;pts.push([px,py]);});
+ const id="lg"+Math.random().toString(36).slice(2,7);const area=d+`L ${round(x(n-1),1)} ${h-24} L ${round(x(0),1)} ${h-24} Z`;
+ let grid="";for(let g=0;g<=3;g++){const gy=24+g/3*(h-48);const gv=mx-(g/3)*(mx-mn);grid+=`<line x1="44" y1="${round(gy,1)}" x2="${w}" y2="${round(gy,1)}" stroke="var(--grid)" stroke-width="1"/><text x="2" y="${round(gy+3,1)}" fill="var(--txt3)" font-size="10">${fmtFn?fmtFn(gv):round(gv,Math.abs(mx)<10?1:0)}</text>`;}
+ return `<svg class="bigchart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".32"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>${grid}<path d="${area}" fill="url(#${id})"/><path d="${d}" fill="none" stroke="${color}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>${pts.length?`<circle cx="${round(pts[pts.length-1][0],1)}" cy="${round(pts[pts.length-1][1],1)}" r="3.5" fill="${color}"/>`:""}</svg>`;}
+function dualBarLine(ser,h=190){const w=600;if(!ser.length)return "<div class='bigchart'></div>";
+ const maxLoad=Math.max(10,...ser.map(s=>Math.max(s.load,s.ctl,s.atl)));const n=ser.length;const bw=Math.max(1.2,(w-54)/n*0.7);
+ const x=i=>44+i/(Math.max(1,n-1))*(w-54);const y=v=>h-22-(v/maxLoad)*(h-40);let bars="",ctlP="",atlP="";
+ ser.forEach((s,i)=>{const px=x(i);if(s.load>0)bars+=`<rect x="${round(px-bw/2,1)}" y="${round(y(s.load),1)}" width="${round(bw,1)}" height="${round(h-22-y(s.load),1)}" rx="1" fill="${hexA('#6366f1',.32)}"/>`;
+  ctlP+=(i?"L":"M")+round(px,1)+" "+round(y(s.ctl),1)+" ";atlP+=(i?"L":"M")+round(px,1)+" "+round(y(s.atl),1)+" ";});
+ let grid="";for(let g=0;g<=3;g++){const gy=20+g/3*(h-40);grid+=`<line x1="44" y1="${round(gy,1)}" x2="${w}" y2="${round(gy,1)}" stroke="var(--grid)"/><text x="2" y="${round(gy+3,1)}" fill="var(--txt3)" font-size="10">${round(maxLoad-(g/3)*maxLoad)}</text>`;}
+ return `<svg class="bigchart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${grid}${bars}<path d="${atlP}" fill="none" stroke="#d946ef" stroke-width="2.2"/><path d="${ctlP}" fill="none" stroke="#0ea5a4" stroke-width="2.6"/></svg>`;}
 
 let recPeriod=30;
+function setRecPeriod(d){recPeriod=d;renderRecovery();}
 function renderRecovery(){
   const root=$("#tab-recovery");root.innerHTML="";
   const hasData=Object.keys(S.days).length>0;
   const tk=latestVal("hrv")?latestVal("hrv").date:(Object.keys(S.days).sort().pop()||todayKey());
-  const rec=hasData?recovery(tk):null;
-  const heroCard=el("div","card glass");
-  if(rec){
-    const st=recState(rec.score);const C=2*Math.PI*92;const off=C*(1-rec.score/100);
-    heroCard.innerHTML=`<div class="rechero">
-      <div class="ring"><svg width="220" height="220" viewBox="0 0 220 220">
-        <circle cx="110" cy="110" r="92" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="14"/>
-        <circle cx="110" cy="110" r="92" fill="none" stroke="url(#rg)" stroke-width="14" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"/>
-        <defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5eead4"/><stop offset=".55" stop-color="#818cf8"/><stop offset="1" stop-color="#f0abfc"/></linearGradient></defs>
+  const rec=hasData?recovery(tk):null;const ot=hasData?overtraining():null;
+  const herorow=el("div","herorow");
+
+  const recCard=el("div","card glass clickable");
+  if(rec){const st=recState(rec.score);const C=2*Math.PI*80;const off=C*(1-rec.score/100);const tr=recoveryTrend();
+    const trHtml=tr?`<div class="trendtag ${tr.dir==="up"?"bg-up":tr.dir==="down"?"bg-down":"bg-flat"}">${tr.dir==="up"?"▲":tr.dir==="down"?"▼":"="} ${tr.delta>0?"+":""}${tr.delta} pts / 7j</div>`:"";
+    const dObj=parseDate(tk);const dStr=dObj?dObj.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}):tk;
+    recCard.innerHTML=`<div class="rechero">
+      <div class="ring"><svg width="190" height="190" viewBox="0 0 190 190">
+        <circle cx="95" cy="95" r="80" fill="none" stroke="var(--track)" stroke-width="13"/>
+        <circle cx="95" cy="95" r="80" fill="none" stroke="url(#rg)" stroke-width="13" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"/>
+        <defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2dd4bf"/><stop offset=".55" stop-color="#6366f1"/><stop offset="1" stop-color="#d946ef"/></linearGradient></defs>
       </svg><div class="ctr"><div class="score">${rec.score}</div><div class="lbl">Score récup</div></div></div>
+      <div class="recdate">📅 ${dStr}</div>
       <div class="recstate" style="color:${st.c}">${st.t}</div>
-      <div class="recsub">${st.d}</div>
-      <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center">${["hrv","rhr","sleep","resp"].filter(k=>rec.comps[k]!=null).map(k=>`<span class="pill">${METRIC_MAP[k].label} ${Math.round(rec.comps[k])}</span>`).join("")}</div>
-    </div>`;
+      <div class="recsub">${st.d}</div>${trHtml}
+      <div style="margin-top:10px;display:flex;gap:7px;flex-wrap:wrap;justify-content:center">${["hrv","rhr","sleep","resp"].filter(k=>rec.comps[k]!=null).map(k=>`<span class="pill">${METRIC_MAP[k].label} ${Math.round(rec.comps[k])}</span>`).join("")}</div>
+      <div class="seelink">Voir l'évolution du score →</div></div>`;
+    recCard.onclick=openRecoveryHistory;
   }else{
-    heroCard.innerHTML=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><p>Importez vos données Apple Santé via <b>Health Auto Export</b><br>ou saisissez vos chiffres pour générer votre score de récupération.</p><button class="btn primary" style="margin-top:16px" onclick="openImportHelp()">Comment importer</button></div>`;
+    recCard.classList.remove("clickable");
+    recCard.innerHTML=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><p>Importez vos données via la synchronisation, ou saisissez vos chiffres pour générer votre score de récupération.</p><button class="btn primary" style="margin-top:16px" onclick="openImportHelp()">Synchroniser / importer</button></div>`;
   }
-  root.appendChild(heroCard);
+  herorow.appendChild(recCard);
 
-  const qa=el("div","");
-  qa.innerHTML=`<button class="addbtn" onclick="openDayEntry()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Saisir / corriger mes données du jour</button>`;
-  root.appendChild(qa);
+  const otCard=el("div","card");
+  if(ot){const left=clamp(ot.acwr/2*100,2,98);
+    otCard.innerHTML=`<h2><span class="dot" style="background:${ot.band.c}"></span>Risque de surentraînement</h2>
+      <div class="otcard"><div class="otlabel" style="color:${ot.band.c}">${ot.band.t}</div>
+      <div class="otsub">Sur ta période d'entraînement actuelle, d'après le ratio charge aiguë/chronique (ACWR) et ton équilibre de fraîcheur.</div>
+      <div class="zonebar"><span class="zonemarker" style="left:${left}%"></span></div>
+      <div class="zoneticks"><span>0.8</span><span>zone optimale</span><span>1.5</span><span>+</span></div>
+      <div class="otmetric"><b style="color:${ot.band.c}">${ot.acwr}</b><span>ACWR (idéal 0,8–1,3)</span></div>
+      <div class="otmetric"><b>${ot.tsb>0?"+":""}${ot.tsb}</b><span>TSB · fraîcheur</span></div></div>`;
+  }else{
+    otCard.innerHTML=`<h2><span class="dot"></span>Risque de surentraînement</h2><p class="muted" style="padding:18px 0;text-align:center">Enregistre quelques entraînements pour activer l'indicateur (basé sur l'ACWR).</p>`;
+  }
+  herorow.appendChild(otCard);
+  root.appendChild(herorow);
 
-  const chips=el("div","chips");
-  [[7,"7 j"],[30,"30 j"],[90,"90 j"],[365,"1 an"]].forEach(([d,l])=>{const c=el("div","chip"+(recPeriod===d?" on":""),l);c.onclick=()=>{recPeriod=d;renderRecovery();};chips.appendChild(c);});
-  root.appendChild(chips);
+  root.appendChild(el("div","",`<button class="addbtn" onclick="openDayEntry()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Saisir / corriger mes données du jour</button>`));
+
+  root.insertAdjacentHTML("beforeend",periodChips(recPeriod,"setRecPeriod"));
 
   const grid=el("div","mgrid");
-  METRICS.forEach(m=>{
-    const ser=seriesFor(m.k,recPeriod);const lv=latestVal(m.k);
-    if(!lv&&!ser.some(p=>p.value!=null))return;
-    const vals=ser.filter(p=>p.value!=null);
-    let trend="",tcls="flat";
+  METRICS.forEach(m=>{const ser=seriesFor(m.k,recPeriod);const lv=latestVal(m.k);if(!lv&&!ser.some(p=>p.value!=null))return;
+    const vals=ser.filter(p=>p.value!=null);let trend="",tcls="bg-flat";
     if(vals.length>=2){const first=vals[0].value,last=vals[vals.length-1].value;const diff=last-first;const pct=first?diff/Math.abs(first)*100:0;
-      const improving=m.hi?diff>0:diff<0;tcls=Math.abs(pct)<2?"flat":(improving?"up":"down");
-      trend=(diff>0?"▲":diff<0?"▼":"=")+" "+Math.abs(round(pct,0))+"%";}
-    const card=el("div","metric");
-    card.onclick=()=>openMetricDetail(m.k);
+      const improving=m.hi?diff>0:diff<0;tcls=Math.abs(pct)<2?"bg-flat":(improving?"bg-up":"bg-down");trend=(diff>0?"▲":diff<0?"▼":"=")+" "+Math.abs(round(pct,0))+"%";}
+    const card=el("div","metric");card.onclick=()=>openMetricDetail(m.k);
     card.innerHTML=`<div class="mtop"><div class="mname"><i style="background:${m.color}"></i>${m.label}</div>${trend?`<div class="mtrend ${tcls}">${trend}</div>`:""}</div>
-      <div class="mval">${lv?round(lv.value,m.dec).toLocaleString("fr-FR"):"—"}<small>${m.unit}</small></div>
-      ${spark(ser,m.color)}`;
-    grid.appendChild(card);
-  });
+      <div class="mval">${lv?fmtVal(m.k,lv.value):"—"}${m.unit&&!m.sleep?`<small>${m.unit}</small>`:""}</div>${spark(ser,m.color)}`;
+    grid.appendChild(card);});
   root.appendChild(grid);
-  if(hasData){const info=el("div","muted");info.style.cssText="text-align:center;padding:8px 10px 0";info.innerHTML="Touchez une carte pour le détail. Le score combine VFC, FC repos, sommeil et fréquence respiratoire comparés à votre ligne de base personnelle.";root.appendChild(info);}
+  if(hasData)root.insertAdjacentHTML("beforeend",`<p class="muted" style="text-align:center;padding:10px 10px 0">Touchez une carte pour le détail. Le score combine VFC, FC repos, sommeil et fréquence respiratoire comparés à votre ligne de base personnelle.</p>`);
+}
+let recHistPeriod=90;
+function setRecHist(d){recHistPeriod=d;openRecoveryHistory();}
+function openRecoveryHistory(){const ser=recoveryHistory(recHistPeriod);const vals=ser.filter(p=>p.value!=null).map(p=>p.value);
+  const avg=vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):"—";const tr=recoveryTrend();
+  openSheet(`<h3>Évolution du score de récupération</h3><div class="sub">Tendance de ta récupération dans le temps</div>
+   ${periodChips(recHistPeriod,"setRecHist")}
+   ${lineChart(ser,"#6366f1",null)}
+   <div style="margin-top:16px"><div class="kv"><span>Score moyen</span><b>${avg}</b></div>
+   ${tr?`<div class="kv"><span>Tendance (7 derniers j)</span><b style="color:${tr.dir==="up"?"var(--good)":tr.dir==="down"?"var(--bad)":"var(--txt2)"}">${tr.dir==="up"?"▲ en hausse":tr.dir==="down"?"▼ en baisse":"= stable"} (${tr.delta>0?"+":""}${tr.delta} pts)</b></div>`:""}
+   <div class="kv"><span>Jours mesurés</span><b>${vals.length}</b></div></div>`);
 }
 
-let calMonth=new Date().getMonth(),calYear=new Date().getFullYear();
+let calMonth=new Date().getMonth(),calYear=new Date().getFullYear(),loadPeriod=90;
+function setLoadPeriod(d){loadPeriod=d;renderTraining();}
+function workoutColor(n){n=(n||"").toLowerCase();
+ if(/cours|run|jog|trail/.test(n))return"#f97316";if(/vélo|velo|cycl|bike/.test(n))return"#06b6d4";
+ if(/nage|swim|piscine/.test(n))return"#3b82f6";if(/muscu|force|strength|hiit|fonctionnel|functional|cross/.test(n))return"#6366f1";
+ if(/yoga|mobil|étire|etire|stretch|pilates/.test(n))return"#10b981";if(/marche|walk|rando/.test(n))return"#14b8a6";
+ if(/foot|tennis|basket|rugby|hand|sport|boxe/.test(n))return"#d946ef";return"#8b5cf6";}
+function workoutIcon(n){n=(n||"").toLowerCase();
+ if(/cours|run|jog|trail/.test(n))return"🏃";if(/vélo|velo|cycl|bike/.test(n))return"🚴";
+ if(/nage|swim|piscine/.test(n))return"🏊";if(/muscu|force|strength|hiit|fonctionnel|functional|cross/.test(n))return"🏋️";
+ if(/yoga|mobil|étire|etire|stretch|pilates/.test(n))return"🧘";if(/marche|walk|rando/.test(n))return"🚶";
+ if(/foot|tennis|basket|rugby|hand|sport|boxe/.test(n))return"⚽";return"💪";}
 function renderTraining(){
   const root=$("#tab-training");root.innerHTML="";
-  const ser=loadSeries();const last=ser[ser.length-1];
+  const ser=loadSeries();const last=ser[ser.length-1];const fs=last?formState(last.tsb):{t:"—",c:"var(--txt3)"};
   const sum=el("div","card glass");
-  const fs=last?formState(last.tsb):{t:"—",c:"var(--txt3)"};
   sum.innerHTML=`<h2><span class="dot"></span>Charge d'entraînement</h2>
    <div class="loadrow">
-     <div class="loadbox"><div class="lv" style="color:#5eead4">${last?round(last.ctl):0}</div><div class="ll">CTL · Forme</div><div class="ld muted">charge chronique 42j</div></div>
-     <div class="loadbox"><div class="lv" style="color:#f0abfc">${last?round(last.atl):0}</div><div class="ll">ATL · Fatigue</div><div class="ld muted">charge aiguë 7j</div></div>
+     <div class="loadbox"><div class="lv" style="color:#0ea5a4">${last?round(last.ctl):0}</div><div class="ll">CTL · Forme</div><div class="ld muted">chronique 42j</div></div>
+     <div class="loadbox"><div class="lv" style="color:#d946ef">${last?round(last.atl):0}</div><div class="ll">ATL · Fatigue</div><div class="ld muted">aiguë 7j</div></div>
      <div class="loadbox"><div class="lv" style="color:${fs.c}">${last?(last.tsb>0?"+":"")+round(last.tsb):0}</div><div class="ll">TSB · Fraîcheur</div><div class="ld" style="color:${fs.c}">${fs.t}</div></div>
    </div>
-   <div style="display:flex;gap:14px;align-items:center;font-size:11px;color:var(--txt2);margin-bottom:8px"><span style="color:#5eead4">━ CTL (forme)</span><span style="color:#f0abfc">━ ATL (fatigue)</span><span style="color:#818cf8">▮ charge/jour</span></div>
-   ${dualBarLine(ser.slice(-42))}
-   <div class="chartlbls"><span>${ser.length>42?ser[ser.length-42].date.slice(5):(ser[0]?ser[0].date.slice(5):"")}</span><span>aujourd'hui</span></div>`;
+   ${periodChips(loadPeriod,"setLoadPeriod")}
+   <div style="display:flex;gap:14px;align-items:center;font-size:11px;color:var(--txt2);margin-bottom:8px;flex-wrap:wrap"><span style="color:#0ea5a4">━ CTL (forme)</span><span style="color:#d946ef">━ ATL (fatigue)</span><span style="color:#6366f1">▮ charge/jour</span></div>
+   ${dualBarLine(ser.slice(-loadPeriod))}
+   <div class="chartlbls"><span>${ser.length>loadPeriod?ser[ser.length-loadPeriod].date.slice(5):(ser[0]?ser[0].date.slice(5):"")}</span><span>aujourd'hui</span></div>`;
   root.appendChild(sum);
 
-  const add=el("div","");
-  add.innerHTML=`<button class="addbtn" onclick="openWorkout()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ajouter un entraînement</button>`;
-  root.appendChild(add);
+  root.appendChild(el("div","",`<button class="addbtn" onclick="openWorkoutEdit()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ajouter un entraînement</button>`));
 
-  const cal=el("div","card");
-  const monthNames=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+  const cal=el("div","card");const monthNames=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
   cal.innerHTML=`<div class="calhead"><div class="mlabel">${monthNames[calMonth]} ${calYear}</div>
     <div class="calnav"><div class="iconbtn" onclick="calShift(-1)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></div><div class="iconbtn" onclick="calShift(1)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div></div>
     <div class="calgrid" id="calgrid"></div>`;
   root.appendChild(cal);
   const grid=cal.querySelector("#calgrid");
   ["L","M","M","J","V","S","D"].forEach(d=>grid.appendChild(el("div","caldow",d)));
-  const wbd=workoutsByDay();
-  const first=new Date(calYear,calMonth,1);let startDow=(first.getDay()+6)%7;
-  const dim=new Date(calYear,calMonth+1,0).getDate();
+  const wbd=workoutsByDay();const first=new Date(calYear,calMonth,1);let startDow=(first.getDay()+6)%7;const dim=new Date(calYear,calMonth+1,0).getDate();
   for(let i=0;i<startDow;i++)grid.appendChild(el("div","calday empty"));
-  for(let d=1;d<=dim;d++){
-    const dk=calYear+"-"+pad(calMonth+1)+"-"+pad(d);const ws=wbd[dk]||[];
-    const cell=el("div","calday"+(ws.length?" hasw":"")+(dk===todayKey()?" today":""));
+  for(let d=1;d<=dim;d++){const dk=calYear+"-"+pad(calMonth+1)+"-"+pad(d);const ws=wbd[dk]||[];
+    const cell=el("div","calday"+(dk===todayKey()?" today":""));
+    if(ws.length)cell.style.background=hexA(workoutColor(ws[0].name),.13);
     const totMin=ws.reduce((a,w)=>a+(w.durationMin||0),0);
-    cell.innerHTML=`<div class="dn">${d}</div>${ws.length?`<div class="wdots">${ws.slice(0,4).map(()=>'<span class="wdot"></span>').join("")}</div><div class="wmin">${totMin?Math.round(totMin)+"′":""}</div>`:""}`;
-    cell.onclick=()=>openDayWorkouts(dk);
-    grid.appendChild(cell);
-  }
+    cell.innerHTML=`<div class="dn">${d}</div>`+(ws.length?`<div class="wbars">${ws.slice(0,3).map(w=>`<span class="wbar" style="background:${workoutColor(w.name)}"></span>`).join("")}</div><div class="wmin">${totMin?Math.round(totMin)+"′":""}</div>`:"");
+    cell.onclick=()=>openDayWorkouts(dk);grid.appendChild(cell);}
 
   const recent=[...S.workouts].sort((a,b)=>b.date.localeCompare(a.date)||(b.created||0)-(a.created||0)).slice(0,8);
-  const rc=el("div","card");
-  rc.innerHTML=`<h2><span class="dot"></span>Entraînements récents</h2>`;
-  if(!recent.length){rc.innerHTML+=`<p class="muted" style="text-align:center;padding:14px">Aucun entraînement enregistré. Ajoutez-en un ou importez vos séances Apple Watch.</p>`;}
-  recent.forEach(w=>{
-    const tl=w.trimp||trimp(w);
-    const item=el("div","wkitem");item.onclick=()=>openWorkout(w.id);
-    item.innerHTML=`<div class="wko">${workoutIcon(w.name)}</div>
+  const rc=el("div","card");rc.innerHTML=`<h2><span class="dot"></span>Entraînements récents</h2>`;
+  if(!recent.length)rc.innerHTML+=`<p class="muted" style="text-align:center;padding:14px">Aucun entraînement enregistré. Ajoutez-en un ou importez vos séances Apple Watch.</p>`;
+  recent.forEach(w=>{const tl=w.trimp||trimp(w);const col=workoutColor(w.name);const item=el("div","wkitem");item.onclick=()=>openWorkoutView(w.id);
+    item.innerHTML=`<div class="wko" style="background:${hexA(col,.16)}">${workoutIcon(w.name)}</div>
       <div class="wkmeta"><div class="wkn">${escapeHtml(w.name||"Séance")}</div>
       <div class="wks">${w.date.split("-").reverse().join("/")} · ${fmtMin(w.durationMin||0)}${w.avgHr?" · "+w.avgHr+" bpm":""}${w.calories?" · "+w.calories+" kcal":""}${w.rpe?" · RPE "+w.rpe:""}</div></div>
-      <div class="wkload"><b>${tl}</b><span>charge</span></div>`;
-    rc.appendChild(item);
-  });
+      <div class="wkload"><b style="color:${col}">${tl}</b><span>charge</span></div>`;rc.appendChild(item);});
   root.appendChild(rc);
 }
-function workoutIcon(n){n=(n||"").toLowerCase();
-  if(/cours|run|jog/.test(n))return"🏃";if(/vélo|cycl|bike/.test(n))return"🚴";
-  if(/nage|swim|piscine/.test(n))return"🏊";if(/muscu|force|strength|hiit|fonctionnel|functional/.test(n))return"🏋️";
-  if(/yoga|mobil|étire|stretch/.test(n))return"🧘";if(/marche|walk|rando/.test(n))return"🚶";
-  if(/foot|tennis|basket|sport/.test(n))return"⚽";return"💪";}
 
+const NOTE_CATS=[{k:"cycle",label:"Cycle",color:"#6366f1"},{k:"idea",label:"Idée",color:"#0ea5a4"},{k:"advice",label:"Conseil",color:"#d946ef"},{k:"note",label:"Général",color:"#64748b"}];
+const NOTE_CAT_MAP=Object.fromEntries(NOTE_CATS.map(c=>[c.k,c]));
+let notesFilter="all",tmpNoteCat="note";
+function setNotesFilter(f){notesFilter=f;renderNotes();}
 function renderNotes(){
   const root=$("#tab-notes");root.innerHTML="";
-  const add=el("div","");
-  add.innerHTML=`<button class="addbtn" onclick="openNote()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nouvelle note</button>`;
-  root.appendChild(add);
-  if(!S.notes.length){root.appendChild(el("div","empty",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>Espace libre. Notez vos objectifs de séance, vos records de force, ou le détail de vos cycles d'entraînement.</p>`));return;}
-  const sorted=[...S.notes].sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.updated||0)-(a.updated||0));
+  root.appendChild(el("div","",`<button class="addbtn" onclick="openNote()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nouvelle note</button>`));
+  const filters=[["all","Toutes"]].concat(NOTE_CATS.map(c=>[c.k,c.label==="Général"?"Général":c.label+"s"]));
+  root.insertAdjacentHTML("beforeend",`<div class="chips">`+filters.map(([k,l])=>`<div class="chip${notesFilter===k?' on':''}" onclick="setNotesFilter('${k}')">${l}</div>`).join("")+`</div>`);
+  let list=S.notes.map(n=>Object.assign({category:"note"},n));
+  if(notesFilter!=="all")list=list.filter(n=>n.category===notesFilter);
+  if(!list.length){root.appendChild(el("div","empty",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>Espace libre. Crée des <b>cycles d'entraînement</b>, note tes <b>idées</b> de séances, ou garde des <b>remarques & conseils</b> — chaque catégorie a sa couleur.</p>`));return;}
+  const sorted=list.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.updated||0)-(a.updated||0));
   const grid=el("div","notegrid");
-  sorted.forEach(n=>{
-    const c=el("div","note"+(n.pinned?" pin":""));
+  sorted.forEach(n=>{const cat=NOTE_CAT_MAP[n.category]||NOTE_CAT_MAP.note;const c=el("div","note"+(n.pinned?" pin":""));c.style.borderLeftColor=cat.color;
     c.innerHTML=`<svg class="pinbtn" viewBox="0 0 24 24" fill="${n.pinned?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="M12 17v5M9 10.76V3h6v7.76l3 3.24v2H6v-2z"/></svg>
+      <div class="ntag" style="color:${cat.color}">${cat.label}</div>
       <div class="nt">${escapeHtml(n.title||"Sans titre")}</div>
-      <div class="nb">${escapeHtml((n.body||"").slice(0,260))}</div>
+      <div class="nb">${escapeHtml((n.body||"").slice(0,240))}</div>
       <div class="nd">${new Date(n.updated||n.created).toLocaleDateString("fr-FR",{day:"numeric",month:"short"})}</div>`;
-    c.querySelector(".pinbtn").onclick=e=>{e.stopPropagation();n.pinned=!n.pinned;n.updated=Date.now();save();renderNotes();};
-    c.onclick=()=>openNote(n.id);
-    grid.appendChild(c);
-  });
+    c.querySelector(".pinbtn").onclick=e=>{e.stopPropagation();const o=S.notes.find(x=>x.id===n.id);o.pinned=!o.pinned;o.updated=Date.now();save();renderNotes();};
+    c.onclick=()=>openNote(n.id);grid.appendChild(c);});
   root.appendChild(grid);
 }
 
 function renderSupps(){
-  const root=$("#tab-supps");root.innerHTML="";
-  const tk=todayKey();
-  const head=el("div","card glass");
-  const total=S.supps.length;const taken=S.supps.filter(s=>s.log&&s.log[tk]).length;
+  const root=$("#tab-supps");root.innerHTML="";const tk=todayKey();
+  const head=el("div","card glass");const total=S.supps.length;const taken=S.supps.filter(s=>s.log&&s.log[tk]).length;
   head.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between">
-    <div><div style="font-size:13px;color:var(--txt2);font-weight:600;text-transform:uppercase;letter-spacing:.06em">Aujourd'hui</div>
-    <div style="font-size:30px;font-weight:720;margin-top:4px">${taken}<span style="color:var(--txt3);font-size:20px">/${total}</span> <span style="font-size:14px;color:var(--txt2);font-weight:500">pris</span></div></div>
-    <div style="width:62px;height:62px"><svg width="62" height="62" viewBox="0 0 62 62"><circle cx="31" cy="31" r="26" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="7"/><circle cx="31" cy="31" r="26" fill="none" stroke="url(#rg2)" stroke-width="7" stroke-linecap="round" transform="rotate(-90 31 31)" stroke-dasharray="${(2*Math.PI*26).toFixed(1)}" stroke-dashoffset="${(2*Math.PI*26*(1-(total?taken/total:0))).toFixed(1)}"/><defs><linearGradient id="rg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5eead4"/><stop offset="1" stop-color="#818cf8"/></linearGradient></defs></svg></div>
-  </div>`;
+    <div><div style="font-size:12px;color:var(--txt2);font-weight:680;text-transform:uppercase;letter-spacing:.06em">Aujourd'hui</div>
+    <div style="font-size:30px;font-weight:740;margin-top:4px">${taken}<span style="color:var(--txt3);font-size:20px">/${total}</span> <span style="font-size:14px;color:var(--txt2);font-weight:500">pris</span></div></div>
+    <div style="width:62px;height:62px"><svg width="62" height="62" viewBox="0 0 62 62"><circle cx="31" cy="31" r="26" fill="none" stroke="var(--track)" stroke-width="7"/><circle cx="31" cy="31" r="26" fill="none" stroke="url(#rg2)" stroke-width="7" stroke-linecap="round" transform="rotate(-90 31 31)" stroke-dasharray="${(2*Math.PI*26).toFixed(1)}" stroke-dashoffset="${(2*Math.PI*26*(1-(total?taken/total:0))).toFixed(1)}"/><defs><linearGradient id="rg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2dd4bf"/><stop offset="1" stop-color="#6366f1"/></linearGradient></defs></svg></div></div>`;
   root.appendChild(head);
-  const add=el("div","");
-  add.innerHTML=`<button class="addbtn" onclick="openSupp()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ajouter un complément</button>`;
-  root.appendChild(add);
+  root.appendChild(el("div","",`<button class="addbtn" onclick="openSupp()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ajouter un complément</button>`));
   if(!S.supps.length){root.appendChild(el("div","empty",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10.5 20.5L3.5 13.5a5 5 0 0 1 7-7l7 7a5 5 0 0 1-7 7z"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg><p>Ajoutez vos compléments (dosage, fréquence) puis cochez-les chaque jour.</p>`));return;}
-  S.supps.forEach(s=>{
-    const done=s.log&&s.log[tk];const streak=suppStreak(s);
-    const item=el("div","supitem");
+  S.supps.forEach(s=>{const done=s.log&&s.log[tk];const streak=suppStreak(s);const item=el("div","supitem");
     item.innerHTML=`<div class="supcheck${done?" done":""}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
       <div class="supmeta"><div class="sn">${escapeHtml(s.name)}</div><div class="ss">${escapeHtml(s.dosage||"")}${s.dosage&&s.freq?" · ":""}${escapeHtml(s.freq||"")}</div></div>
       <div class="supstreak"><b>${streak}</b>jours</div>
       <div class="deldot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></div>`;
     item.querySelector(".supcheck").onclick=()=>{s.log=s.log||{};if(s.log[tk])delete s.log[tk];else s.log[tk]=true;save();renderSupps();};
     item.querySelector(".deldot").onclick=e=>{e.stopPropagation();if(confirm("Supprimer "+s.name+" ?")){S.supps=S.supps.filter(x=>x.id!==s.id);save();renderSupps();}};
-    item.querySelector(".supmeta").onclick=()=>openSupp(s.id);
-    root.appendChild(item);
-  });
+    item.querySelector(".supmeta").onclick=()=>openSupp(s.id);root.appendChild(item);});
 }
 function suppStreak(s){if(!s.log)return 0;let c=0;const d=new Date();for(;;){if(s.log[fmtKey(d)]){c++;d.setDate(d.getDate()-1);}else break;if(c>999)break;}return c;}
 
 const ov=$("#overlay"),sheet=$("#sheet");
-function openSheet(html){sheet.innerHTML='<div class="grab"></div>'+html;ov.classList.add("open");}
+function openSheet(html){sheet.innerHTML=`<button class="sheetclose" onclick="closeSheet()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>`+html;ov.classList.add("open");sheet.scrollTop=0;}
 function closeSheet(){ov.classList.remove("open");}
 ov.onclick=e=>{if(e.target===ov)closeSheet();};
-function escapeHtml(s){return(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 
 function openDayEntry(dk){dk=dk||todayKey();const d=S.days[dk]||{};
   openSheet(`<h3>Données santé</h3><div class="sub">${dk.split("-").reverse().join("/")}</div>
    <div class="row2"><div><label>VFC / HRV (ms)</label><input type="number" id="f_hrv" value="${d.hrv==null?"":d.hrv}" inputmode="decimal"></div>
    <div><label>FC repos (bpm)</label><input type="number" id="f_rhr" value="${d.rhr==null?"":d.rhr}" inputmode="decimal"></div></div>
-   <div class="row2"><div><label>Sommeil (h)</label><input type="number" step="0.1" id="f_sleep" value="${d.sleep==null?"":d.sleep}" inputmode="decimal"></div>
+   <div class="row2"><div><label>Sommeil (h, ex: 7.5)</label><input type="number" step="0.1" id="f_sleep" value="${d.sleep==null?"":d.sleep}" inputmode="decimal"></div>
    <div><label>Fréq. resp. (/min)</label><input type="number" step="0.1" id="f_resp" value="${d.resp==null?"":d.resp}" inputmode="decimal"></div></div>
    <div class="row2"><div><label>SpO₂ (%)</label><input type="number" id="f_spo2" value="${d.spo2==null?"":d.spo2}" inputmode="decimal"></div>
    <div><label>Poids (kg)</label><input type="number" step="0.1" id="f_weight" value="${d.weight==null?"":d.weight}" inputmode="decimal"></div></div>
@@ -556,25 +572,34 @@ function saveDayEntry(dk){const g=id=>{const v=$("#"+id).value;return v===""?nul
   const d=S.days[dk]||{};["hrv","rhr","sleep","resp","spo2","weight","steps","energy"].forEach(k=>{const v=g("f_"+k);if(v!=null)d[k]=v;});
   S.days[dk]=d;save();closeSheet();renderRecovery();toast("Données enregistrées");}
 
-let mdPeriod=90;
-function openMetricDetail(k){const m=METRIC_MAP[k];const ser=seriesFor(k,mdPeriod);const vals=ser.filter(p=>p.value!=null).map(p=>p.value);
-  const avg=vals.length?round(vals.reduce((a,b)=>a+b,0)/vals.length,m.dec):"—";
-  const mn=vals.length?round(Math.min(...vals),m.dec):"—";const mx=vals.length?round(Math.max(...vals),m.dec):"—";
-  const b=baseline(k,todayKey(),60);
-  openSheet(`<h3>${m.label}</h3><div class="sub">Évolution sur ${mdPeriod} jours</div>
-   <div class="chips" id="mdchips">${[[30,"30j"],[90,"90j"],[365,"1an"]].map(([d,l])=>`<div class="chip${mdPeriod===d?' on':''}" onclick="mdPeriod=${d};openMetricDetail('${k}')">${l}</div>`).join("")}</div>
-   ${lineChart(ser,m.color)}
-   <div style="margin-top:18px"><div class="kv"><span>Dernière valeur</span><b>${latestVal(k)?round(latestVal(k).value,m.dec)+" "+m.unit:"—"}</b></div>
-   <div class="kv"><span>Moyenne</span><b>${avg} ${m.unit}</b></div>
-   <div class="kv"><span>Min / Max</span><b>${mn} / ${mx} ${m.unit}</b></div>
-   ${b?`<div class="kv"><span>Ligne de base (60j)</span><b>${round(b.mean,m.dec)} ±${round(b.sd,m.dec)}</b></div>`:""}</div>
-   <div class="sheetbtns"><button class="btn primary full" onclick="closeSheet()">Fermer</button></div>`);
+let mdPeriod=90,mdKey=null;
+function setMdPeriod(d){mdPeriod=d;openMetricDetail(mdKey);}
+function openMetricDetail(k){mdKey=k;const m=METRIC_MAP[k];const ser=seriesFor(k,mdPeriod);const vals=ser.filter(p=>p.value!=null).map(p=>p.value);
+  const fmtFn=m.sleep?(v=>fmtSleepH(v)):null;
+  const avg=vals.length?(m.sleep?fmtSleepH(vals.reduce((a,b)=>a+b,0)/vals.length):round(vals.reduce((a,b)=>a+b,0)/vals.length,m.dec)):"—";
+  const mn=vals.length?fmtVal(k,Math.min(...vals)):"—";const mx=vals.length?fmtVal(k,Math.max(...vals)):"—";const b=baseline(k,todayKey(),60);const lv=latestVal(k);
+  openSheet(`<h3>${m.label}</h3><div class="sub">Évolution dans le temps</div>
+   ${periodChips(mdPeriod,"setMdPeriod")}
+   ${lineChart(ser,m.color,fmtFn)}
+   <div style="margin-top:16px"><div class="kv"><span>Dernière valeur</span><b>${lv?fmtVal(k,lv.value)+(m.unit&&!m.sleep?" "+m.unit:""):"—"}</b></div>
+   <div class="kv"><span>Moyenne</span><b>${avg}${m.unit&&!m.sleep?" "+m.unit:""}</b></div>
+   <div class="kv"><span>Min / Max</span><b>${mn} / ${mx}${m.unit&&!m.sleep?" "+m.unit:""}</b></div>
+   ${b?`<div class="kv"><span>Ligne de base (60j)</span><b>${m.sleep?fmtSleepH(b.mean):round(b.mean,m.dec)} ±${m.sleep?Math.round(b.sd*60)+"min":round(b.sd,m.dec)}</b></div>`:""}</div>`);
 }
 
 let tmpRpe=0,tmpPainD=0,tmpPainA=0;
-function openWorkout(id){const w=id?S.workouts.find(x=>x.id===id):null;
+function openWorkoutView(id){const w=S.workouts.find(x=>x.id===id);if(!w)return;const col=workoutColor(w.name);const tl=w.trimp||trimp(w);
+  const dObj=parseDate(w.date);const dStr=dObj?dObj.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}):w.date;
+  const tiles=[["Durée",fmtMin(w.durationMin||0)],["Charge",tl],w.avgHr?["FC moy.",w.avgHr+" bpm"]:null,w.maxHr?["FC max",w.maxHr+" bpm"]:null,
+    w.calories?["Calories",w.calories+" kcal"]:null,w.rpe?["RPE",w.rpe+"/10"]:null,["Douleur pdt",w.painDuring+"/10"],["Douleur après",w.painAfter+"/10"]].filter(Boolean);
+  openSheet(`<div class="wvhead"><div class="ic" style="background:${hexA(col,.16)}">${workoutIcon(w.name)}</div><div><div class="t">${escapeHtml(w.name||"Séance")}</div><div class="d">${dStr}</div></div></div>
+   <div class="statgrid">${tiles.map(([l,v])=>`<div class="stat"><div class="sv" style="color:${col}">${v}</div><div class="sl">${l}</div></div>`).join("")}</div>
+   ${w.detail?`<div class="detailbox">${escapeHtml(w.detail)}</div>`:""}
+   <div class="sheetbtns"><button class="btn ghost" onclick="delWorkout('${w.id}')">Supprimer</button><button class="btn primary full" onclick="openWorkoutEdit('${w.id}')">Modifier</button></div>`);
+}
+function openWorkoutEdit(id){const w=id?S.workouts.find(x=>x.id===id):null;
   tmpRpe=w?w.rpe||0:0;tmpPainD=w?w.painDuring||0:0;tmpPainA=w?w.painAfter||0:0;
-  openSheet(`<h3>${w?"Détail de l'entraînement":"Nouvel entraînement"}</h3><div class="sub">${w?"Modifiez les champs ci-dessous":"Renseignez les éléments clés"}</div>
+  openSheet(`<h3>${w?"Modifier l'entraînement":"Nouvel entraînement"}</h3><div class="sub">Renseignez les éléments clés</div>
    <label>Nom / type</label><input id="w_name" value="${w?escapeHtml(w.name||""):""}" placeholder="Ex: Muscu haut du corps, Course...">
    <div class="row2"><div><label>Date</label><input type="date" id="w_date" value="${w?w.date:todayKey()}"></div>
    <div><label>Durée (min)</label><input type="number" id="w_dur" value="${w?w.durationMin||"":""}" inputmode="numeric"></div></div>
@@ -585,35 +610,34 @@ function openWorkout(id){const w=id?S.workouts.find(x=>x.id===id):null;
    <label>Douleur pendant (0–10)</label><div class="rpe" id="pdRow">${[0,1,2,3,4,5,6,7,8,9,10].map(n=>`<button onclick="tmpPainD=${n};markRow('pdRow',${n})" class="${tmpPainD===n?'on':''}">${n}</button>`).join("")}</div>
    <label>Douleur après (0–10)</label><div class="rpe" id="paRow">${[0,1,2,3,4,5,6,7,8,9,10].map(n=>`<button onclick="tmpPainA=${n};markRow('paRow',${n})" class="${tmpPainA===n?'on':''}">${n}</button>`).join("")}</div>
    <label>Détail de la séance (exercices, séries, ressenti...)</label><textarea id="w_detail" placeholder="Ex: Développé couché 4x8 @70kg, tractions 3x10...">${w?escapeHtml(w.detail||""):""}</textarea>
-   <div class="sheetbtns">${w?`<button class="btn ghost" onclick="delWorkout('${w.id}')">Supprimer</button>`:`<button class="btn ghost" onclick="closeSheet()">Annuler</button>`}<button class="btn primary full" onclick="saveWorkout('${w?w.id:""}')">Enregistrer</button></div>`);
+   <div class="sheetbtns"><button class="btn ghost" onclick="closeSheet()">Annuler</button><button class="btn primary full" onclick="saveWorkout('${w?w.id:""}')">Enregistrer</button></div>`);
 }
 function markRow(rid,n){document.querySelectorAll("#"+rid+" button").forEach(b=>b.classList.toggle("on",b.textContent==String(n)));}
-function saveWorkout(id){const g=i=>$("#"+i).value;
-  const w=id?S.workouts.find(x=>x.id===id):{id:uid(),created:Date.now()};
-  w.name=g("w_name").trim()||"Séance";w.date=g("w_date")||todayKey();
-  w.durationMin=parseFloat(g("w_dur"))||0;w.avgHr=parseInt(g("w_avghr"))||null;w.maxHr=parseInt(g("w_maxhr"))||null;
-  w.calories=parseInt(g("w_cal"))||null;w.rpe=tmpRpe||null;w.painDuring=tmpPainD;w.painAfter=tmpPainA;w.detail=g("w_detail");
-  w.trimp=trimp(w);
+function saveWorkout(id){const g=i=>$("#"+i).value;const w=id?S.workouts.find(x=>x.id===id):{id:uid(),created:Date.now()};
+  w.name=g("w_name").trim()||"Séance";w.date=g("w_date")||todayKey();w.durationMin=parseFloat(g("w_dur"))||0;
+  w.avgHr=parseInt(g("w_avghr"))||null;w.maxHr=parseInt(g("w_maxhr"))||null;w.calories=parseInt(g("w_cal"))||null;
+  w.rpe=tmpRpe||null;w.painDuring=tmpPainD;w.painAfter=tmpPainA;w.detail=g("w_detail");w.trimp=trimp(w);
   if(!id)S.workouts.push(w);save();closeSheet();renderTraining();toast("Entraînement enregistré");}
 function delWorkout(id){if(confirm("Supprimer cet entraînement ?")){S.workouts=S.workouts.filter(x=>x.id!==id);save();closeSheet();renderTraining();}}
-function openDayWorkouts(dk){const ws=workoutsByDay()[dk]||[];
-  openSheet(`<h3>${dk.split("-").reverse().join("/")}</h3><div class="sub">${ws.length?ws.length+" entraînement(s)":"Aucun entraînement"}</div>
-   ${ws.map(w=>`<div class="wkitem" onclick="openWorkout('${w.id}')"><div class="wko">${workoutIcon(w.name)}</div><div class="wkmeta"><div class="wkn">${escapeHtml(w.name)}</div><div class="wks">${fmtMin(w.durationMin||0)}${w.avgHr?" · "+w.avgHr+" bpm":""}${w.calories?" · "+w.calories+" kcal":""}${w.rpe?" · RPE "+w.rpe:""}${w.painDuring||w.painAfter?" · douleur "+w.painDuring+"/"+w.painAfter:""}</div></div><div class="wkload"><b>${w.trimp||trimp(w)}</b><span>charge</span></div></div>`).join("")}
-   <div class="sheetbtns"><button class="btn ghost" onclick="closeSheet()">Fermer</button><button class="btn primary full" onclick="openWorkoutForDate('${dk}')">+ Ajouter ce jour</button></div>`);
+function openDayWorkouts(dk){const ws=workoutsByDay()[dk]||[];const dObj=parseDate(dk);const dStr=dObj?dObj.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}):dk;
+  openSheet(`<h3 style="text-transform:capitalize">${dStr}</h3><div class="sub">${ws.length?ws.length+" entraînement(s)":"Aucun entraînement"}</div>
+   ${ws.map(w=>{const col=workoutColor(w.name);return `<div class="wkitem" onclick="openWorkoutView('${w.id}')"><div class="wko" style="background:${hexA(col,.16)}">${workoutIcon(w.name)}</div><div class="wkmeta"><div class="wkn">${escapeHtml(w.name)}</div><div class="wks">${fmtMin(w.durationMin||0)}${w.avgHr?" · "+w.avgHr+" bpm":""}${w.rpe?" · RPE "+w.rpe:""}</div></div><div class="wkload"><b style="color:${col}">${w.trimp||trimp(w)}</b><span>charge</span></div></div>`;}).join("")}
+   <div class="sheetbtns"><button class="btn primary full" onclick="openWorkoutForDate('${dk}')">+ Ajouter ce jour</button></div>`);
 }
-function openWorkoutForDate(dk){openWorkout();setTimeout(()=>{const f=$("#w_date");if(f)f.value=dk;},60);}
+function openWorkoutForDate(dk){openWorkoutEdit();setTimeout(()=>{const f=$("#w_date");if(f)f.value=dk;},60);}
 
-function openNote(id){const n=id?S.notes.find(x=>x.id===id):null;
-  openSheet(`<h3>${n?"Modifier la note":"Nouvelle note"}</h3><div class="sub">Titre + contenu libre</div>
-   <label>Titre</label><input id="n_title" value="${n?escapeHtml(n.title||""):""}" placeholder="Ex: Records force, Cycle hypertrophie, À faire...">
-   <label>Contenu</label><textarea id="n_body" style="min-height:200px" placeholder="Notez ce que vous voulez...">${n?escapeHtml(n.body||""):""}</textarea>
+function openNote(id){const n=id?S.notes.find(x=>x.id===id):null;tmpNoteCat=n?(n.category||"note"):(notesFilter!=="all"?notesFilter:"note");
+  openSheet(`<h3>${n?"Modifier la note":"Nouvelle note"}</h3><div class="sub">Choisis une catégorie, un titre et le contenu</div>
+   <label>Catégorie</label><div class="catrow" id="catRow">${NOTE_CATS.map(c=>`<button class="${tmpNoteCat===c.k?'on':''}" style="${tmpNoteCat===c.k?'color:'+c.color:''}" onclick="tmpNoteCat='${c.k}';markCat('${c.k}')"><i style="background:${c.color}"></i>${c.label}</button>`).join("")}</div>
+   <label>Titre</label><input id="n_title" value="${n?escapeHtml(n.title||""):""}" placeholder="Ex: Bloc force 4 sem, Idée WOD, Conseil mobilité...">
+   <label>Contenu</label><textarea id="n_body" style="min-height:190px" placeholder="Notes libres...">${n?escapeHtml(n.body||""):""}</textarea>
    <label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" id="n_pin" ${n&&n.pinned?"checked":""} style="width:auto"> Épingler en haut</label>
    <div class="sheetbtns">${n?`<button class="btn ghost" onclick="delNote('${n.id}')">Supprimer</button>`:`<button class="btn ghost" onclick="closeSheet()">Annuler</button>`}<button class="btn primary full" onclick="saveNote('${n?n.id:""}')">Enregistrer</button></div>`);
 }
-function saveNote(id){const t=$("#n_title").value.trim(),b=$("#n_body").value,p=$("#n_pin").checked;
-  if(!t&&!b){closeSheet();return;}
-  if(id){const n=S.notes.find(x=>x.id===id);n.title=t;n.body=b;n.pinned=p;n.updated=Date.now();}
-  else S.notes.push({id:uid(),title:t,body:b,pinned:p,created:Date.now(),updated:Date.now()});
+function markCat(k){const cat=NOTE_CAT_MAP[k];document.querySelectorAll("#catRow button").forEach(b=>{const on=b.textContent.trim()===cat.label;b.classList.toggle("on",on);b.style.color=on?cat.color:"";});}
+function saveNote(id){const t=$("#n_title").value.trim(),b=$("#n_body").value,p=$("#n_pin").checked;if(!t&&!b){closeSheet();return;}
+  if(id){const n=S.notes.find(x=>x.id===id);n.title=t;n.body=b;n.pinned=p;n.category=tmpNoteCat;n.updated=Date.now();}
+  else S.notes.push({id:uid(),title:t,body:b,pinned:p,category:tmpNoteCat,created:Date.now(),updated:Date.now()});
   save();closeSheet();renderNotes();toast("Note enregistrée");}
 function delNote(id){if(confirm("Supprimer cette note ?")){S.notes=S.notes.filter(x=>x.id!==id);save();closeSheet();renderNotes();}}
 
@@ -624,15 +648,13 @@ function openSupp(id){const s=id?S.supps.find(x=>x.id===id):null;
    <div><label>Fréquence</label><input id="s_freq" value="${s?escapeHtml(s.freq||""):""}" placeholder="Ex: 1x/jour matin"></div></div>
    <div class="sheetbtns">${s?`<button class="btn ghost" onclick="delSupp('${s.id}')">Supprimer</button>`:`<button class="btn ghost" onclick="closeSheet()">Annuler</button>`}<button class="btn primary full" onclick="saveSupp('${s?s.id:""}')">Enregistrer</button></div>`);
 }
-function saveSupp(id){const n=$("#s_name").value.trim();if(!n){toast("Indiquez un nom");return;}
-  const dose=$("#s_dose").value.trim(),freq=$("#s_freq").value.trim();
-  if(id){const s=S.supps.find(x=>x.id===id);s.name=n;s.dosage=dose;s.freq=freq;}
-  else S.supps.push({id:uid(),name:n,dosage:dose,freq:freq,log:{},created:Date.now()});
+function saveSupp(id){const n=$("#s_name").value.trim();if(!n){toast("Indiquez un nom");return;}const dose=$("#s_dose").value.trim(),freq=$("#s_freq").value.trim();
+  if(id){const s=S.supps.find(x=>x.id===id);s.name=n;s.dosage=dose;s.freq=freq;}else S.supps.push({id:uid(),name:n,dosage:dose,freq:freq,log:{},created:Date.now()});
   save();closeSheet();renderSupps();toast("Complément enregistré");}
 function delSupp(id){if(confirm("Supprimer ?")){S.supps=S.supps.filter(x=>x.id!==id);save();closeSheet();renderSupps();}}
 
 function openSettings(){const s=S.settings;
-  openSheet(`<h3>Réglages</h3><div class="sub">Profil, zones FC et assistant IA</div>
+  openSheet(`<h3>Réglages</h3><div class="sub">Profil, zones FC, sync et assistant IA</div>
    <label>Prénom</label><input id="set_name" value="${escapeHtml(s.userName||"")}">
    <div class="row2"><div><label>Sexe</label><select id="set_sex"><option value="M" ${s.sex==="M"?"selected":""}>Homme</option><option value="F" ${s.sex==="F"?"selected":""}>Femme</option></select></div>
    <div><label>Âge</label><input type="number" id="set_age" value="${s.age||""}"></div></div>
@@ -640,172 +662,109 @@ function openSettings(){const s=S.settings;
    <div><label>FC repos (bpm)</label><input type="number" id="set_hrrest" value="${s.hrRest||""}" placeholder="ex: 55"></div></div>
    <label>Objectif sommeil (h)</label><input type="number" step="0.5" id="set_sleep" value="${s.sleepGoal||8}">
    <div style="height:1px;background:var(--border);margin:22px 0"></div>
-   <h3 style="font-size:16px">Sync automatique (Cloudflare)</h3><div class="sub">Vitalis récupère vos données à chaque ouverture depuis votre Worker. Health Auto Export y envoie automatiquement vos données Apple Watch.</div>
+   <h3 style="font-size:16px;padding-right:0">Sync automatique (Cloudflare)</h3><div class="sub">Vitalis récupère vos données à chaque ouverture.</div>
    <label>URL du Worker</label><input id="set_syncurl" value="${escapeHtml(s.syncUrl||"")}" placeholder="https://vitalis-sync.xxx.workers.dev">
    <label>Jeton de lecture (READ_TOKEN)</label><input id="set_synctoken" value="${escapeHtml(s.syncToken||"")}" placeholder="votre jeton de lecture">
    <button class="btn ghost full" style="margin-top:12px" onclick="saveSettings(true)">Tester la synchronisation</button>
    <div style="height:1px;background:var(--border);margin:22px 0"></div>
-   <h3 style="font-size:16px">Assistant IA</h3><div class="sub">Votre clé reste stockée uniquement sur cet appareil. Elle n'est jamais partagée.</div>
+   <h3 style="font-size:16px;padding-right:0">Assistant IA</h3><div class="sub">Votre clé reste stockée uniquement sur cet appareil.</div>
    <label>Fournisseur</label><select id="set_provider"><option value="anthropic" ${s.apiProvider==="anthropic"?"selected":""}>Anthropic (Claude)</option><option value="openai" ${s.apiProvider==="openai"?"selected":""}>OpenAI (GPT)</option></select>
    <label>Modèle (optionnel)</label><input id="set_model" value="${escapeHtml(s.apiModel||"")}" placeholder="auto: claude-sonnet-4 / gpt-4o">
    <label>Clé API</label><input id="set_apikey" type="password" value="${escapeHtml(s.apiKey||"")}" placeholder="sk-... / sk-ant-...">
    <div style="height:1px;background:var(--border);margin:22px 0"></div>
-   <div class="row2"><button class="btn ghost" onclick="exportData()">Exporter mes données</button><button class="btn ghost" onclick="$('#fileInput2').click()">Importer sauvegarde</button></div>
+   <div class="row2"><button class="btn ghost" onclick="exportData()">Exporter</button><button class="btn ghost" onclick="$('#fileInput2').click()">Importer sauvegarde</button></div>
    <input type="file" id="fileInput2" accept=".json" style="display:none" onchange="importBackup(this)">
    <div class="sheetbtns"><button class="btn ghost" onclick="closeSheet()">Annuler</button><button class="btn primary full" onclick="saveSettings()">Enregistrer</button></div>`);
 }
 function saveSettings(testSync){const g=i=>$("#"+i).value;const s=S.settings;
-  s.userName=g("set_name").trim();s.sex=g("set_sex");s.age=parseInt(g("set_age"))||30;
-  s.hrMax=parseInt(g("set_hrmax"))||0;s.hrRest=parseInt(g("set_hrrest"))||0;s.sleepGoal=parseFloat(g("set_sleep"))||8;
-  s.apiProvider=g("set_provider");s.apiModel=g("set_model").trim();s.apiKey=g("set_apikey").trim();
-  s.syncUrl=g("set_syncurl").trim();s.syncToken=g("set_synctoken").trim();
-  save();
-  if(testSync){fetchSync(false);return;}
-  closeSheet();renderAll();toast("Réglages enregistrés");}
-async function fetchSync(silent){
-  const u=S.settings.syncUrl,t=S.settings.syncToken;
-  if(!u){if(!silent)toast("Renseignez l'URL du Worker");return;}
+  s.userName=g("set_name").trim();s.sex=g("set_sex");s.age=parseInt(g("set_age"))||30;s.hrMax=parseInt(g("set_hrmax"))||0;s.hrRest=parseInt(g("set_hrrest"))||0;s.sleepGoal=parseFloat(g("set_sleep"))||8;
+  s.syncUrl=g("set_syncurl").trim();s.syncToken=g("set_synctoken").trim();s.apiProvider=g("set_provider");s.apiModel=g("set_model").trim();s.apiKey=g("set_apikey").trim();
+  save();if(testSync){fetchSync(false);return;}closeSheet();renderAll();toast("Réglages enregistrés");}
+async function fetchSync(silent){const u=S.settings.syncUrl,t=S.settings.syncToken;if(!u){if(!silent)toast("Renseignez l'URL du Worker");return;}
   if(!silent)toast("Synchronisation...");
-  try{
-    const sep=u.includes("?")?"&":"?";
-    const r=await fetch(u+sep+"token="+encodeURIComponent(t),{cache:"no-store"});
-    if(!r.ok)throw new Error("HTTP "+r.status);
-    const j=await r.json();
-    const a=ingestHAE(j);
-    renderAll();
-    if(!silent)closeSheet();
+  try{const sep=u.includes("?")?"&":"?";const r=await fetch(u+sep+"token="+encodeURIComponent(t),{cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status);
+    const j=await r.json();const a=ingestHAE(j);renderAll();if(!silent)closeSheet();
     toast(a.metrics||a.workouts?`Sync OK · ${a.days.size} jour(s), ${a.workouts} séance(s)`:"Sync OK · à jour");
-  }catch(err){if(!silent)toast("Échec : "+err.message);}
-}
+  }catch(err){if(!silent)toast("Échec : "+err.message);}}
 function exportData(){const blob=new Blob([JSON.stringify(S,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="vitalis-sauvegarde-"+todayKey()+".json";a.click();}
 function importBackup(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);if(d.days&&d.settings){S=Object.assign({},DEFAULT,d);save();closeSheet();renderAll();toast("Sauvegarde restaurée");}else throw 0;}catch(err){toast("Fichier invalide");}};r.readAsText(f);}
 
-const HAE_MAP=[
- {k:"hrv",match:["heart_rate_variability"]},
- {k:"rhr",match:["resting_heart_rate"]},
- {k:"resp",match:["respiratory_rate"]},
- {k:"spo2",match:["blood_oxygen_saturation","oxygen_saturation"]},
- {k:"steps",match:["step_count"]},
- {k:"energy",match:["active_energy"]},
- {k:"vo2",match:["vo2_max"]},
- {k:"weight",match:["weight_body_mass","body_mass"]},
- {k:"wristtemp",match:["apple_sleeping_wrist_temperature","wrist_temperature"]},
- {k:"rhr2",match:["walking_heart_rate_average"]}
-];
-function ingestHAE(json){
-  let data=json.data||json;let metrics=data.metrics||[];let workouts=data.workouts||[];
-  let added={metrics:0,days:new Set(),workouts:0};
-  metrics.forEach(m=>{
-    const name=(m.name||"").toLowerCase();
+const HAE_MAP=[{k:"hrv",match:["heart_rate_variability"]},{k:"rhr",match:["resting_heart_rate"]},{k:"resp",match:["respiratory_rate"]},
+ {k:"spo2",match:["blood_oxygen_saturation","oxygen_saturation"]},{k:"steps",match:["step_count"]},{k:"energy",match:["active_energy"]},
+ {k:"vo2",match:["vo2_max"]},{k:"weight",match:["weight_body_mass","body_mass"]},{k:"wristtemp",match:["apple_sleeping_wrist_temperature","wrist_temperature"]},
+ {k:"rhr2",match:["walking_heart_rate_average"]}];
+function ingestHAE(json){let data=json.data||json;let metrics=data.metrics||[];let workouts=data.workouts||[];let added={metrics:0,days:new Set(),workouts:0};
+  metrics.forEach(m=>{const name=(m.name||"").toLowerCase();
     if(name.includes("sleep")){(m.data||[]).forEach(pt=>{const dk=dayKeyFrom(pt.date||pt.sleepEnd||pt.endDate);if(!dk)return;let hrs=pt.totalSleep!=null?pt.totalSleep:(pt.asleep!=null?pt.asleep:(pt.qty!=null?pt.qty:null));
-       if(hrs!=null){if(hrs>30)hrs=hrs/60;S.days[dk]=S.days[dk]||{};S.days[dk].sleep=round(hrs,2);
-        if(pt.deep!=null)S.days[dk].sleepDeep=round(pt.deep>30?pt.deep/60:pt.deep,2);
-        if(pt.rem!=null)S.days[dk].sleepRem=round(pt.rem>30?pt.rem/60:pt.rem,2);added.days.add(dk);added.metrics++;}});return;}
-    const def=HAE_MAP.find(d=>d.match.some(x=>name===x||name.includes(x)));
-    if(!def)return;const key=def.k==="rhr2"?"rhr":def.k;
+       if(hrs!=null){if(hrs>30)hrs=hrs/60;S.days[dk]=S.days[dk]||{};S.days[dk].sleep=round(hrs,2);added.days.add(dk);added.metrics++;}});return;}
+    const def=HAE_MAP.find(d=>d.match.some(x=>name===x||name.includes(x)));if(!def)return;const key=def.k==="rhr2"?"rhr":def.k;
     const byDay={};(m.data||[]).forEach(pt=>{const dk=dayKeyFrom(pt.date);if(!dk)return;let v=pt.qty!=null?pt.qty:(pt.Avg!=null?pt.Avg:null);if(v==null)return;(byDay[dk]=byDay[dk]||[]).push(v);});
-    for(const dk in byDay){const arr=byDay[dk];let v=arr.reduce((a,b)=>a+b,0)/arr.length;
-      if(def.k==="rhr2"&&S.days[dk]&&S.days[dk].rhr!=null)continue;
-      S.days[dk]=S.days[dk]||{};S.days[dk][key]=round(v,2);added.days.add(dk);added.metrics++;}
-  });
-  workouts.forEach(w=>{
-    const dk=dayKeyFrom(w.start)||dayKeyFrom(w.date);if(!dk)return;
+    for(const dk in byDay){const arr=byDay[dk];let v=arr.reduce((a,b)=>a+b,0)/arr.length;if(def.k==="rhr2"&&S.days[dk]&&S.days[dk].rhr!=null)continue;S.days[dk]=S.days[dk]||{};S.days[dk][key]=round(v,2);added.days.add(dk);added.metrics++;}});
+  workouts.forEach(w=>{const dk=dayKeyFrom(w.start)||dayKeyFrom(w.date);if(!dk)return;
     const dur=w.duration?w.duration/60:(w.start&&w.end?(parseDate(w.end)-parseDate(w.start))/60000:0);
     const avgHr=w.avgHeartRate?(w.avgHeartRate.qty||w.avgHeartRate):(w.heartRate&&w.heartRate.avg?w.heartRate.avg.qty:null);
     const maxHr=w.maxHeartRate?(w.maxHeartRate.qty||w.maxHeartRate):(w.heartRate&&w.heartRate.max?w.heartRate.max.qty:null);
     const cal=w.activeEnergyBurned?w.activeEnergyBurned.qty:(w.activeEnergy&&w.activeEnergy.qty?w.activeEnergy.qty:(w.totalEnergy?w.totalEnergy.qty:null));
-    const extId=w.id||(w.name+"|"+w.start);
-    if(S.workouts.some(x=>x.extId===extId))return;
-    const nw={id:uid(),extId,name:w.name||"Séance",date:dk,durationMin:round(dur,1),
-      avgHr:avgHr?Math.round(avgHr):null,maxHr:maxHr?Math.round(maxHr):null,calories:cal?Math.round(cal):null,
-      rpe:null,painDuring:0,painAfter:0,detail:"",imported:true,created:Date.now()};
-    nw.trimp=trimp(nw);S.workouts.push(nw);added.workouts++;
-  });
-  S.settings.lastSync=Date.now();save();
-  return added;
-}
-$("#fileInput").addEventListener("change",function(){
-  const files=[...this.files];if(!files.length)return;let tot={m:0,d:new Set(),w:0};let done=0;
+    const extId=w.id||(w.name+"|"+w.start);if(S.workouts.some(x=>x.extId===extId))return;
+    const nw={id:uid(),extId,name:w.name||"Séance",date:dk,durationMin:round(dur,1),avgHr:avgHr?Math.round(avgHr):null,maxHr:maxHr?Math.round(maxHr):null,calories:cal?Math.round(cal):null,rpe:null,painDuring:0,painAfter:0,detail:"",imported:true,created:Date.now()};
+    nw.trimp=trimp(nw);S.workouts.push(nw);added.workouts++;});
+  S.settings.lastSync=Date.now();save();return added;}
+$("#fileInput").addEventListener("change",function(){const files=[...this.files];if(!files.length)return;let tot={m:0,d:new Set(),w:0};let done=0;
   files.forEach(f=>{const r=new FileReader();r.onload=e=>{try{const j=JSON.parse(e.target.result);const a=ingestHAE(j);tot.m+=a.metrics;a.days.forEach(x=>tot.d.add(x));tot.w+=a.workouts;}catch(err){toast("Fichier illisible");}
-    if(++done===files.length){renderAll();toast(tot.w||tot.m?`Importé : ${tot.d.size} jour(s), ${tot.w} séance(s)`:"Aucune donnée reconnue");}};r.readAsText(f);});
-  this.value="";
-});
-function openImportHelp(){
-  openSheet(`<h3>Connecter Apple Santé</h3><div class="sub">3 façons d'alimenter Vitalis</div>
-   <div class="card" style="margin-top:4px"><b style="color:var(--acc)">① Automatique — Health Auto Export</b><p class="muted" style="margin-top:8px;line-height:1.6">Installez l'app <b>Health Auto Export</b> (App Store). Créez une <b>Automation</b> → format <b>JSON</b> → choisissez vos métriques (VFC, FC repos, sommeil, fréq. respiratoire, énergie, entraînements). Exportez vers un dossier iCloud/Fichiers. Ensuite ici, touchez <b>Importer</b> et sélectionnez le ou les fichiers JSON.</p></div>
-   <div class="card"><b style="color:var(--acc2)">② Manuel — fichier JSON</b><p class="muted" style="margin-top:8px;line-height:1.6">Vous pouvez déposer n'importe quel JSON au format Health Auto Export via le bouton Importer.</p></div>
-   <div class="card"><b style="color:var(--acc3)">③ Saisie manuelle</b><p class="muted" style="margin-top:8px;line-height:1.6">Onglet Récup → « Saisir mes données du jour ». Idéal pour démarrer tout de suite.</p></div>
-   <p class="muted" style="font-size:12px;line-height:1.6;margin-top:6px">Note : une page web ne peut pas lire Apple Santé directement (restriction iOS). Health Auto Export fait le pont en exportant vos données vers votre Worker Cloudflare, que Vitalis lit à chaque ouverture.</p>
+    if(++done===files.length){renderAll();toast(tot.w||tot.m?`Importé : ${tot.d.size} jour(s), ${tot.w} séance(s)`:"Aucune donnée reconnue");}};r.readAsText(f);});this.value="";});
+function openImportHelp(){openSheet(`<h3>Données & synchronisation</h3><div class="sub">3 façons d'alimenter Vitalis</div>
+   <div class="card" style="margin-top:4px;box-shadow:none"><b style="color:var(--acc)">① Automatique — Cloudflare + Health Auto Export</b><p class="muted" style="margin-top:8px;line-height:1.6">Configurée dans Réglages → Sync. Health Auto Export envoie tes données vers ton Worker, Vitalis les lit à chaque ouverture.</p></div>
+   <div class="card" style="box-shadow:none"><b style="color:var(--acc2)">② Manuel — fichier JSON</b><p class="muted" style="margin-top:8px;line-height:1.6">Dépose un export JSON Health Auto Export.</p></div>
+   <div class="card" style="box-shadow:none"><b style="color:var(--acc3)">③ Saisie manuelle</b><p class="muted" style="margin-top:8px;line-height:1.6">Onglet Récup → « Saisir mes données du jour ».</p></div>
    ${S.settings.syncUrl?`<button class="btn primary full" style="margin-top:4px" onclick="fetchSync(false)">⟳ Synchroniser maintenant</button>`:""}
-   <div class="sheetbtns"><button class="btn ghost" onclick="closeSheet()">Fermer</button><button class="btn ghost full" onclick="closeSheet();$('#fileInput').click()">Importer un fichier</button></div>`);
-}
+   <div class="sheetbtns"><button class="btn ghost full" onclick="closeSheet();$('#fileInput').click()">Importer un fichier</button></div>`);}
 
-function buildContext(){
-  const tk=Object.keys(S.days).sort().pop()||todayKey();const rec=recovery(tk);
+function buildContext(){const tk=Object.keys(S.days).sort().pop()||todayKey();const rec=recovery(tk);const ot=overtraining();
   const ser=loadSeries();const last=ser[ser.length-1];
   const recentDays=lastNDays(7).map(dk=>({date:dk,...(S.days[dk]||{})})).filter(d=>Object.keys(d).length>1);
   const recentW=[...S.workouts].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,10).map(w=>({date:w.date,nom:w.name,min:w.durationMin,fcMoy:w.avgHr,kcal:w.calories,rpe:w.rpe,douleurPendant:w.painDuring,douleurApres:w.painAfter,charge:w.trimp||trimp(w),detail:w.detail}));
   const supToday=S.supps.map(s=>({nom:s.name,dose:s.dosage,freq:s.freq,prisAujourdhui:!!(s.log&&s.log[todayKey()]),serie:suppStreak(s)}));
-  return{
-    profil:{prenom:S.settings.userName,sexe:S.settings.sex,age:S.settings.age,fcMax:S.settings.hrMax||(220-(S.settings.age||30)),fcRepos:S.settings.hrRest,objectifSommeil:S.settings.sleepGoal},
+  return{profil:{prenom:S.settings.userName,sexe:S.settings.sex,age:S.settings.age,fcMax:S.settings.hrMax||(220-(S.settings.age||30)),fcRepos:S.settings.hrRest,objectifSommeil:S.settings.sleepGoal},
     recuperation:rec?{score:rec.score,composantes:rec.comps,date:tk}:null,
+    surentrainement:ot?{risque:ot.band.t,acwr:ot.acwr,tsb:ot.tsb}:null,
     charge:last?{ctl_forme:last.ctl,atl_fatigue:last.atl,tsb_fraicheur:last.tsb,etat:formState(last.tsb).t}:null,
-    sante7jours:recentDays,
-    entrainementsRecents:recentW,
-    complements:supToday,
-    notes:S.notes.map(n=>({titre:n.title,contenu:n.body}))
-  };
-}
-function openAI(){
-  const hasKey=!!S.settings.apiKey;
-  openSheet(`<div class="chatwrap"><h3>Assistant IA</h3><div class="sub">${hasKey?"Connecté · accès complet à vos données Vitalis":"Clé API requise (Réglages)"}</div>
-   <div class="suggestions">${["Comment est ma récupération aujourd'hui ?","Que faire à ma prochaine séance ?","Analyse ma charge d'entraînement","Mon sommeil affecte-t-il ma VFC ?"].map(s=>`<button onclick="aiSuggest(this.textContent)">${s}</button>`).join("")}</div>
-   <div class="chatmsgs" id="chatMsgs"></div>
-   <div class="chatin"><input id="chatInput" placeholder="Votre question..." onkeydown="if(event.key==='Enter')aiSend()"><button onclick="aiSend()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div></div>`);
-  renderChat();
-}
+    sante7jours:recentDays,entrainementsRecents:recentW,complements:supToday,
+    notes:S.notes.map(n=>({categorie:(NOTE_CAT_MAP[n.category||"note"]||{}).label,titre:n.title,contenu:n.body}))};}
+function openAI(){const hasKey=!!S.settings.apiKey;
+  openSheet(`<div class="aihead"><div class="av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.6 4.6L18 8.2l-4.4 1.6L12 14l-1.6-4.2L6 8.2l4.4-1.6z"/></svg></div><div class="t"><b>Assistant Vitalis</b><span>${hasKey?"Accès complet à tes données":"Clé API requise (Réglages)"}</span></div></div>
+   <div class="chatwrap"><div class="chatmsgs" id="chatMsgs"></div>
+   <div class="chatin"><input id="chatInput" placeholder="Pose ta question..." onkeydown="if(event.key==='Enter')aiSend()"><button onclick="aiSend()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div></div>`);
+  renderChat();}
 function renderChat(){const c=$("#chatMsgs");if(!c)return;c.innerHTML="";
-  const list=S.ai.length?S.ai:[{role:"sys",content:S.settings.apiKey?"Posez votre question — j'ai accès à vos données.":"⚙️ Ajoutez votre clé API dans les Réglages pour activer l'assistant."}];
-  list.forEach(m=>{const d=el("div","msg "+(m.role==="user"?"u":m.role==="assistant"?"a":"sys"));d.textContent=m.content;c.appendChild(d);});
-  c.scrollTop=c.scrollHeight;}
-function aiSuggest(t){const i=$("#chatInput");if(i){i.value=t;aiSend();}}
-async function aiSend(){
-  const inp=$("#chatInput");const q=inp.value.trim();if(!q)return;
+  const list=S.ai.length?S.ai:[{role:"sys",content:S.settings.apiKey?"Pose ta question — j'ai accès à ta récupération, ta charge, tes séances, tes compléments et tes notes.":"⚙️ Ajoute ta clé API dans les Réglages pour activer l'assistant."}];
+  list.forEach(m=>{const d=el("div","msg "+(m.role==="user"?"u":m.role==="assistant"?"a":"sys"));d.textContent=m.content;c.appendChild(d);});c.scrollTop=c.scrollHeight;}
+async function aiSend(){const inp=$("#chatInput");const q=inp.value.trim();if(!q)return;
   if(!S.settings.apiKey){toast("Ajoutez votre clé API dans les Réglages");openSettings();return;}
   inp.value="";S.ai.push({role:"user",content:q});save();renderChat();
   const c=$("#chatMsgs");const typing=el("div","msg a");typing.innerHTML='<div class="typing"><i></i><i></i><i></i></div>';c.appendChild(typing);c.scrollTop=c.scrollHeight;
   const ctx=buildContext();
-  const sys=`Tu es le coach santé & performance intégré à l'app Vitalis de ${S.settings.userName||"l'utilisateur"}. Tu as accès en temps réel à TOUTES ses données ci-dessous (récupération, VFC, FC repos, sommeil, charge CTL/ATL/TSB, entraînements, compléments, notes). Réponds en français, concis, concret et personnalisé en t'appuyant sur ces chiffres. Donne des conseils actionnables pour adapter ses entraînements et optimiser sa récupération. Tu n'es pas médecin: pour toute question de santé sérieuse, recommande un professionnel.\n\nDONNÉES ACTUELLES (JSON):\n${JSON.stringify(ctx)}`;
-  try{
-    let reply;
-    if(S.settings.apiProvider==="openai"){
-      const model=S.settings.apiModel||"gpt-4o";
-      const r=await fetch("https://api.openai.com/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+S.settings.apiKey},
-        body:JSON.stringify({model,messages:[{role:"system",content:sys},...S.ai.filter(m=>m.role!=="sys").slice(-12).map(m=>({role:m.role,content:m.content}))]})});
+  const sys=`Tu es le coach santé & performance intégré à l'app Vitalis de ${S.settings.userName||"l'utilisateur"}. Tu as accès en temps réel à TOUTES ses données ci-dessous (récupération, risque de surentraînement ACWR, VFC, FC repos, sommeil, charge CTL/ATL/TSB, entraînements, compléments, notes). Réponds en français, concis, concret et personnalisé en t'appuyant sur ces chiffres. Donne des conseils actionnables pour adapter ses entraînements et optimiser sa récupération. Tu n'es pas médecin: pour toute question de santé sérieuse, recommande un professionnel.\n\nDONNÉES (JSON):\n${JSON.stringify(ctx)}`;
+  try{let reply;
+    if(S.settings.apiProvider==="openai"){const model=S.settings.apiModel||"gpt-4o";
+      const r=await fetch("https://api.openai.com/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+S.settings.apiKey},body:JSON.stringify({model,messages:[{role:"system",content:sys},...S.ai.filter(m=>m.role!=="sys").slice(-12).map(m=>({role:m.role,content:m.content}))]})});
       const j=await r.json();if(j.error)throw new Error(j.error.message);reply=j.choices[0].message.content;
-    }else{
-      const model=S.settings.apiModel||"claude-sonnet-4-20250514";
-      const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":S.settings.apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
-        body:JSON.stringify({model,max_tokens:1024,system:sys,messages:S.ai.filter(m=>m.role!=="sys").slice(-12).map(m=>({role:m.role,content:m.content}))})});
-      const j=await r.json();if(j.error)throw new Error(j.error.message);reply=j.content.map(b=>b.text||"").join("");
-    }
+    }else{const model=S.settings.apiModel||"claude-sonnet-4-20250514";
+      const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":S.settings.apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model,max_tokens:1024,system:sys,messages:S.ai.filter(m=>m.role!=="sys").slice(-12).map(m=>({role:m.role,content:m.content}))})});
+      const j=await r.json();if(j.error)throw new Error(j.error.message);reply=j.content.map(b=>b.text||"").join("");}
     typing.remove();S.ai.push({role:"assistant",content:reply});save();renderChat();
-  }catch(err){typing.remove();S.ai.push({role:"assistant",content:"⚠️ Erreur : "+err.message+"\n\nVérifiez votre clé API et le modèle dans les Réglages."});save();renderChat();}
-}
+  }catch(err){typing.remove();S.ai.push({role:"assistant",content:"⚠️ Erreur : "+err.message+"\n\nVérifie ta clé API et le modèle dans les Réglages."});save();renderChat();}}
 
 let curTab="recovery";
 const renderers={recovery:renderRecovery,training:renderTraining,notes:renderNotes,supps:renderSupps};
 function switchTab(t){curTab=t;document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));$("#tab-"+t).classList.add("active");
-  document.querySelectorAll(".tabbtn").forEach(b=>b.classList.toggle("on",b.dataset.tab===t));renderers[t]();$(".scroll").scrollTop=0;}
-document.querySelectorAll(".tabbtn").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+  document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("on",b.dataset.tab===t));renderers[t]();$(".scroll").scrollTop=0;}
+document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
 function calShift(n){calMonth+=n;if(calMonth<0){calMonth=11;calYear--;}if(calMonth>11){calMonth=0;calYear++;}renderTraining();}
 function renderAll(){renderers[curTab]();updateSyncBadge();}
 function updateSyncBadge(){const st=$("#syncStatus");const nd=Object.keys(S.days).length,nw=S.workouts.length;
   if(S.settings.lastSync){const d=new Date(S.settings.lastSync);st.textContent="Sync "+d.toLocaleDateString("fr-FR",{day:"numeric",month:"short"})+" · "+nd+" j · "+nw+" séances";$("#importBtn").classList.add("synced");}
-  else if(nd||nw)st.textContent=nd+" jours · "+nw+" séances";else st.textContent="Aucune donnée — importez";}
-$("#importBtn").onclick=openImportHelp;
-$("#settingsBtn").onclick=openSettings;
-$("#aiFab").onclick=openAI;
+  else if(nd||nw)st.textContent=nd+" jours · "+nw+" séances";else st.textContent="Aucune donnée";}
+$("#importBtn").onclick=openImportHelp;$("#settingsBtn").onclick=openSettings;$("#aiFab").onclick=openAI;$("#aiNav").onclick=openAI;
 switchTab("recovery");updateSyncBadge();
 if(S.settings.syncUrl)fetchSync(true);
 </script>
