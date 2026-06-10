@@ -225,6 +225,20 @@ textarea{resize:vertical;min-height:90px;line-height:1.5}
 .toast{position:fixed;bottom:calc(150px + var(--safe-b));left:50%;transform:translateX(-50%);background:var(--txt);color:#fff;padding:11px 20px;border-radius:14px;font-size:13.5px;font-weight:600;z-index:200;opacity:0;transition:.25s;pointer-events:none;box-shadow:var(--sh)}
 .toast.show{opacity:1}
 .pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 9px;border-radius:20px;background:var(--surface2);color:var(--txt2);font-weight:650}
+.fcard .fttitle{font-size:16px;font-weight:740;margin-bottom:12px;display:flex;align-items:center;gap:8px;justify-content:space-between;flex-wrap:wrap}
+.fttitle .btn{padding:7px 12px;font-size:12px}
+.ftwrap{overflow-x:auto;border-radius:14px;border:1px solid var(--border);-webkit-overflow-scrolling:touch}
+.ftwrap::-webkit-scrollbar{height:8px}.ftwrap::-webkit-scrollbar-thumb{background:var(--border2);border-radius:8px}
+table.ft{border-collapse:collapse;width:100%;min-width:700px;font-size:12.5px}
+table.ft th,table.ft td{padding:7px 9px;text-align:center;border-bottom:1px solid var(--border);white-space:nowrap}
+table.ft thead th{background:var(--surface2);font-weight:700;color:var(--txt2)}
+table.ft thead tr:first-child th{font-size:11.5px;letter-spacing:.02em}
+table.ft .grp{border-left:2px solid var(--border)}
+table.ft td.sem{font-weight:700;color:var(--txt)}
+table.ft td.sea{color:var(--txt2);font-weight:600}
+table.ft tbody td[contenteditable]{cursor:text;border-radius:6px}
+table.ft tbody td[contenteditable]:focus{outline:2px solid var(--acc2);background:#fff}
+tr.heavy{background:rgba(245,158,11,.10)} tr.vol{background:rgba(59,130,246,.08)}
 </style>
 </head>
 <body>
@@ -276,6 +290,7 @@ const KEY="vitalis_v1";
 const DEFAULT={settings:{userName:"",sex:"M",age:30,hrMax:0,hrRest:0,sleepGoal:8,apiProvider:"anthropic",apiKey:"",apiModel:"",syncUrl:"",syncToken:""},
   days:{},workouts:[],notes:[],supps:[],ai:[]};
 let S=load();
+S.workouts.forEach(w=>{if(w)w.name=normWorkoutName(w.name);});save();
 function load(){try{const r=JSON.parse(localStorage.getItem(KEY));if(r)return Object.assign({},DEFAULT,r,{settings:Object.assign({},DEFAULT.settings,r.settings||{})});}catch(e){}return JSON.parse(JSON.stringify(DEFAULT));}
 function save(){localStorage.setItem(KEY,JSON.stringify(S));}
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
@@ -450,16 +465,24 @@ function openRecoveryHistory(){const ser=recoveryHistory(recHistPeriod);const va
 
 let calMonth=new Date().getMonth(),calYear=new Date().getFullYear(),loadPeriod=90;
 function setLoadPeriod(d){loadPeriod=d;renderTraining();}
-function workoutColor(n){n=(n||"").toLowerCase();
- if(/cours|run|jog|trail/.test(n))return"#f97316";if(/vélo|velo|cycl|bike/.test(n))return"#06b6d4";
- if(/nage|swim|piscine/.test(n))return"#3b82f6";if(/muscu|force|strength|hiit|fonctionnel|functional|cross/.test(n))return"#6366f1";
- if(/yoga|mobil|étire|etire|stretch|pilates/.test(n))return"#10b981";if(/marche|walk|rando/.test(n))return"#14b8a6";
- if(/foot|tennis|basket|rugby|hand|sport|boxe/.test(n))return"#d946ef";return"#8b5cf6";}
-function workoutIcon(n){n=(n||"").toLowerCase();
- if(/cours|run|jog|trail/.test(n))return"🏃";if(/vélo|velo|cycl|bike/.test(n))return"🚴";
- if(/nage|swim|piscine/.test(n))return"🏊";if(/muscu|force|strength|hiit|fonctionnel|functional|cross/.test(n))return"🏋️";
- if(/yoga|mobil|étire|etire|stretch|pilates/.test(n))return"🧘";if(/marche|walk|rando/.test(n))return"🚶";
- if(/foot|tennis|basket|rugby|hand|sport|boxe/.test(n))return"⚽";return"💪";}
+const WPALETTE=["#f97316","#06b6d4","#3b82f6","#10b981","#14b8a6","#d946ef","#8b5cf6","#ef4444","#0ea5a4","#ec4899","#eab308","#22c55e","#a855f7","#0ea5e9"];
+function hashColor(s){let h=0;s=s||"";for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return WPALETTE[h%WPALETTE.length];}
+function normWorkoutName(n){const s=(n||"").trim().toLowerCase();
+ if(s==="autre"||s==="other"||s==="freestyle")return"Freestyle";
+ if(/fonctionnelle|functional/.test(s))return"Musculation";
+ if(/traditionnel|traditional/.test(s))return"Rééducation";
+ return (n&&n.trim())||"Séance";}
+function workoutColor(n){const s=(n||"").toLowerCase();
+ if(/musculation/.test(s))return"#6366f1";if(/rééduc|reeduc|réeduc/.test(s))return"#f59e0b";if(/freestyle/.test(s))return"#d946ef";
+ if(/cours|run|jog|trail/.test(s))return"#f97316";if(/vélo|velo|cycl|bike/.test(s))return"#06b6d4";
+ if(/nage|swim|piscine/.test(s))return"#3b82f6";if(/yoga|mobil|étire|etire|stretch|pilates/.test(s))return"#10b981";
+ if(/marche|walk|rando/.test(s))return"#14b8a6";if(/foot|tennis|basket|rugby|hand|boxe/.test(s))return"#ec4899";
+ return hashColor(s);}
+function workoutIcon(n){const s=(n||"").toLowerCase();
+ if(/musculation|muscu|force|strength/.test(s))return"🏋️";if(/rééduc|reeduc|réeduc/.test(s))return"🩹";if(/freestyle/.test(s))return"🤸";
+ if(/cours|run|jog|trail/.test(s))return"🏃";if(/vélo|velo|cycl|bike/.test(s))return"🚴";
+ if(/nage|swim|piscine/.test(s))return"🏊";if(/yoga|mobil|étire|etire|stretch|pilates/.test(s))return"🧘";
+ if(/marche|walk|rando/.test(s))return"🚶";if(/foot|tennis|basket|rugby|hand|boxe/.test(s))return"⚽";return"💪";}
 function renderTraining(){
   const root=$("#tab-training");root.innerHTML="";
   const ser=loadSeries();const last=ser[ser.length-1];const fs=last?formState(last.tsb):{t:"—",c:"var(--txt3)"};
@@ -494,41 +517,107 @@ function renderTraining(){
     cell.innerHTML=`<div class="dn">${d}</div>`+(ws.length?`<div class="wbars">${ws.slice(0,3).map(w=>`<span class="wbar" style="background:${workoutColor(w.name)}"></span>`).join("")}</div><div class="wmin">${totMin?Math.round(totMin)+"′":""}</div>`:"");
     cell.onclick=()=>openDayWorkouts(dk);grid.appendChild(cell);}
 
-  const recent=[...S.workouts].sort((a,b)=>b.date.localeCompare(a.date)||(b.created||0)-(a.created||0)).slice(0,8);
-  const rc=el("div","card");rc.innerHTML=`<h2><span class="dot"></span>Entraînements récents</h2>`;
-  if(!recent.length)rc.innerHTML+=`<p class="muted" style="text-align:center;padding:14px">Aucun entraînement enregistré. Ajoutez-en un ou importez vos séances Apple Watch.</p>`;
-  recent.forEach(w=>{const tl=w.trimp||trimp(w);const col=workoutColor(w.name);const item=el("div","wkitem");item.onclick=()=>openWorkoutView(w.id);
-    item.innerHTML=`<div class="wko" style="background:${hexA(col,.16)}">${workoutIcon(w.name)}</div>
-      <div class="wkmeta"><div class="wkn">${escapeHtml(w.name||"Séance")}</div>
-      <div class="wks">${w.date.split("-").reverse().join("/")} · ${fmtMin(w.durationMin||0)}${w.avgHr?" · "+w.avgHr+" bpm":""}${w.calories?" · "+w.calories+" kcal":""}${w.rpe?" · RPE "+w.rpe:""}</div></div>
-      <div class="wkload"><b style="color:${col}">${tl}</b><span>charge</span></div>`;rc.appendChild(item);});
-  root.appendChild(rc);
+  // légende : types d'entraînement présents ce mois, chacun sa couleur
+  const types={};const ym=calYear+"-"+pad(calMonth+1);
+  Object.keys(wbd).forEach(dk=>{if(dk.indexOf(ym)===0)wbd[dk].forEach(w=>{types[w.name]=workoutColor(w.name);});});
+  const tnames=Object.keys(types);
+  if(tnames.length){const lg=el("div");lg.style.cssText="display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)";
+    lg.innerHTML=tnames.map(nm=>`<span style="display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--txt2);font-weight:650"><i style="width:10px;height:10px;border-radius:3px;background:${types[nm]}"></i>${escapeHtml(nm)}</span>`).join("");
+    cal.appendChild(lg);}
 }
 
-const NOTE_CATS=[{k:"cycle",label:"Cycle",color:"#6366f1"},{k:"idea",label:"Idée",color:"#0ea5a4"},{k:"advice",label:"Conseil",color:"#d946ef"},{k:"note",label:"Général",color:"#64748b"}];
-const NOTE_CAT_MAP=Object.fromEntries(NOTE_CATS.map(c=>[c.k,c]));
-let notesFilter="all",tmpNoteCat="note";
-function setNotesFilter(f){notesFilter=f;renderNotes();}
+const FORCE_EXOS=["Back Squat","Soulevé de Terre","Développé Couché","Traction lestée"];
+const FORCE_DATA=[
+["S1","1 · Lourde","60","5","3","87.5","4","3","55","5","3","+15","5","3"],
+["S1","2 · Volume","50","4","6","75","3","6","47.5","4","6","+12.5","4","6"],
+["S2","1 · Lourde","62.5","5","3","90","4","3","57.5","5","3","+17.5","5","3"],
+["S2","2 · Volume","52.5","4","6","77.5","3","6","50","4","6","+15","4","6"],
+["S3","1 · Lourde","65","5","3","92.5","4","3","60","5","3","+17.5","5","3"],
+["S3","2 · Volume","55","4","6","80","3","6","50","4","6","+15","4","6"],
+["S4","1 · Lourde","67.5","5","3","95","4","3","60","5","3","+17.5","5","3"],
+["S4","2 · Volume","57.5","4","6","80","3","6","52.5","4","6","+15","4","6"],
+["S5","1 · Lourde","70","5","3","97.5","4","3","62.5","5","3","+17.5","5","3"],
+["S5","2 · Volume","60","4","6","82.5","3","6","52.5","4","6","+15","4","6"],
+["S6","1 · Lourde","72.5","5","3","100","4","3","65","5","3","+20","5","3"],
+["S6","2 · Volume","62.5","4","6","85","3","6","55","4","6","+17.5","4","6"],
+["S7","1 · Lourde","75","5","3","102.5","4","3","65","5","3","+20","5","3"],
+["S7","2 · Volume","65","4","6","87.5","3","6","55","4","6","+17.5","4","6"],
+["S8","1 · Lourde","77.5","5","3","105","4","3","67.5","5","3","+20","5","3"],
+["S8","2 · Volume","67.5","4","6","90","3","6","57.5","4","6","+17.5","4","6"],
+["S9","1 · Lourde","82.5","5","3","107.5","4","3","67.5","5","3","+20","5","3"],
+["S9","2 · Volume","70","4","6","90","3","6","57.5","4","6","+17.5","4","6"],
+["S10","1 · Lourde","85","5","3","107.5","4","3","70","5","3","+22.5","5","3"],
+["S10","2 · Volume","72.5","4","6","92.5","3","6","60","4","6","+17.5","4","6"],
+["S11","1 · Lourde","87.5","5","3","110","4","3","72.5","5","3","+22.5","5","3"],
+["S11","2 · Volume","75","4","6","95","3","6","62.5","4","6","+20","4","6"],
+["S12","1 · Lourde","90","5","3","112.5","4","3","72.5","5","3","+22.5","5","3"],
+["S12","2 · Volume","77.5","4","6","97.5","3","6","62.5","4","6","+20","4","6"],
+["S13","1 · Lourde","92.5","5","3","115","4","3","75","5","3","+22.5","5","3"],
+["S13","2 · Volume","80","4","6","100","3","6","65","4","6","+20","4","6"],
+["S14","1 · Lourde","95","5","3","117.5","4","3","77.5","5","3","+25","5","3"],
+["S14","2 · Volume","82.5","4","6","102.5","3","6","65","4","6","+20","4","6"],
+["S15","1 · Lourde","97.5","5","3","120","4","3","77.5","5","3","+25","5","3"],
+["S15","2 · Volume","85","4","6","105","3","6","67.5","4","6","+22.5","4","6"],
+["S16","1 · Lourde","102.5","5","3","122.5","4","3","80","5","3","+25","5","3"],
+["S16","2 · Volume","87.5","4","6","107.5","3","6","70","4","6","+22.5","4","6"],
+["S17","1 · Lourde","105","5","3","125","4","3","82.5","5","3","+27.5","5","3"],
+["S17","2 · Volume","90","4","6","107.5","3","6","70","4","6","+22.5","4","6"],
+["S18","1 · Lourde","107.5","5","3","127.5","4","3","85","5","3","+27.5","5","3"],
+["S18","2 · Volume","92.5","4","6","110","3","6","72.5","4","6","+22.5","4","6"],
+["S19","1 · Lourde","110","5","3","130","4","3","85","5","3","+27.5","5","3"],
+["S19","2 · Volume","95","4","6","112.5","3","6","75","4","6","+25","4","6"],
+["S20","1 · Lourde","112.5","5","3","132.5","4","3","87.5","5","3","+27.5","5","3"],
+["S20","2 · Volume","97.5","4","6","115","3","6","75","4","6","+25","4","6"],
+["S21","1 · Lourde","117.5","5","3","135","4","3","90","5","3","+30","5","3"],
+["S21","2 · Volume","100","4","6","117.5","3","6","77.5","4","6","+25","4","6"],
+["S22","1 · Lourde","120","5","3","137.5","4","3","90","5","3","+30","5","3"],
+["S22","2 · Volume","102.5","4","6","120","3","6","77.5","4","6","+25","4","6"],
+["S23","1 · Lourde","122.5","5","3","142.5","4","3","92.5","5","3","+30","5","3"],
+["S23","2 · Volume","107.5","4","6","122.5","3","6","80","4","6","+27.5","4","6"],
+["S24","1 · Lourde","125","5","3","145","4","3","95","5","3","+32.5","5","3"],
+["S24","2 · Volume","110","4","6","125","3","6","82.5","4","6","+27.5","4","6"]];
+function seedForceNote(){if(S.settings.forceSeeded)return;
+  const rows=FORCE_DATA.map(a=>({sem:a[0],seance:a[1],data:[[a[2],a[3],a[4]],[a[5],a[6],a[7]],[a[8],a[9],a[10]],[a[11],a[12],a[13]]]}));
+  S.notes.push({id:uid(),type:"force",title:"Plan Force — 24 semaines",exos:FORCE_EXOS.slice(),rows,created:Date.now(),updated:Date.now()});
+  S.settings.forceSeeded=true;save();}
 function renderNotes(){
   const root=$("#tab-notes");root.innerHTML="";
-  root.appendChild(el("div","",`<button class="addbtn" onclick="openNote()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nouvelle note</button>`));
-  const filters=[["all","Toutes"]].concat(NOTE_CATS.map(c=>[c.k,c.label==="Général"?"Général":c.label+"s"]));
-  root.insertAdjacentHTML("beforeend",`<div class="chips">`+filters.map(([k,l])=>`<div class="chip${notesFilter===k?' on':''}" onclick="setNotesFilter('${k}')">${l}</div>`).join("")+`</div>`);
-  let list=S.notes.map(n=>Object.assign({category:"note"},n));
-  if(notesFilter!=="all")list=list.filter(n=>n.category===notesFilter);
-  if(!list.length){root.appendChild(el("div","empty",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>Espace libre. Crée des <b>cycles d'entraînement</b>, note tes <b>idées</b> de séances, ou garde des <b>remarques & conseils</b> — chaque catégorie a sa couleur.</p>`));return;}
-  const sorted=list.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.updated||0)-(a.updated||0));
-  const grid=el("div","notegrid");
-  sorted.forEach(n=>{const cat=NOTE_CAT_MAP[n.category]||NOTE_CAT_MAP.note;const c=el("div","note"+(n.pinned?" pin":""));c.style.borderLeftColor=cat.color;
-    c.innerHTML=`<svg class="pinbtn" viewBox="0 0 24 24" fill="${n.pinned?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="M12 17v5M9 10.76V3h6v7.76l3 3.24v2H6v-2z"/></svg>
-      <div class="ntag" style="color:${cat.color}">${cat.label}</div>
-      <div class="nt">${escapeHtml(n.title||"Sans titre")}</div>
-      <div class="nb">${escapeHtml((n.body||"").slice(0,240))}</div>
-      <div class="nd">${new Date(n.updated||n.created).toLocaleDateString("fr-FR",{day:"numeric",month:"short"})}</div>`;
-    c.querySelector(".pinbtn").onclick=e=>{e.stopPropagation();const o=S.notes.find(x=>x.id===n.id);o.pinned=!o.pinned;o.updated=Date.now();save();renderNotes();};
-    c.onclick=()=>openNote(n.id);grid.appendChild(c);});
-  root.appendChild(grid);
+  const adds=el("div");adds.style.cssText="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap";
+  adds.innerHTML=`<button class="btn ghost" style="flex:1;min-width:150px" onclick="openFreeNote()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Note libre</button><button class="btn primary" style="flex:1;min-width:150px" onclick="newForceNote()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Cycle de force</button>`;
+  root.appendChild(adds);
+  if(!S.notes.length){root.appendChild(el("div","empty",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>Deux types de notes : <b>libre</b> pour écrire ce que tu veux, et <b>cycle de force</b> sous forme de tableau type Excel.</p>`));return;}
+  S.notes.filter(n=>n.type==="force").forEach(n=>root.appendChild(renderForceCard(n)));
+  const free=S.notes.filter(n=>n.type!=="force").sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.updated||0)-(a.updated||0));
+  if(free.length){const grid=el("div","notegrid");
+    free.forEach(n=>{const c=el("div","note"+(n.pinned?" pin":""));c.style.borderLeftColor="#0ea5a4";
+      c.innerHTML=`<svg class="pinbtn" viewBox="0 0 24 24" fill="${n.pinned?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="M12 17v5M9 10.76V3h6v7.76l3 3.24v2H6v-2z"/></svg>
+        <div class="ntag" style="color:#0ea5a4">Note</div>
+        <div class="nt">${escapeHtml(n.title||"Sans titre")}</div>
+        <div class="nb">${escapeHtml((n.body||"").slice(0,240))}</div>
+        <div class="nd">${new Date(n.updated||n.created).toLocaleDateString("fr-FR",{day:"numeric",month:"short"})}</div>`;
+      c.querySelector(".pinbtn").onclick=e=>{e.stopPropagation();const o=S.notes.find(x=>x.id===n.id);o.pinned=!o.pinned;o.updated=Date.now();save();renderNotes();};
+      c.onclick=()=>openFreeNote(n.id);grid.appendChild(c);});
+    root.appendChild(grid);}
 }
+function renderForceCard(n){const card=el("div","card fcard");const exos=n.exos||[];
+  const head1=`<th></th><th></th>`+exos.map(e=>`<th class="grp" colspan="3">${escapeHtml(e)}</th>`).join("");
+  const head2=`<th>Sem.</th><th>Séance</th>`+exos.map(()=>`<th class="grp">kg</th><th>Sér.</th><th>Reps</th>`).join("");
+  const body=(n.rows||[]).map((r,ri)=>{const cls=/lourde/i.test(r.seance)?"heavy":/volume/i.test(r.seance)?"vol":"";
+    let cells=`<td class="sem" contenteditable oninput="editForce('${n.id}',${ri},-1,0,this.textContent)">${escapeHtml(r.sem)}</td><td class="sea" contenteditable oninput="editForce('${n.id}',${ri},-1,1,this.textContent)">${escapeHtml(r.seance)}</td>`;
+    (r.data||[]).forEach((d,ei)=>{d.forEach((v,fi)=>{cells+=`<td class="${fi===0?'grp':''}" contenteditable oninput="editForce('${n.id}',${ri},${ei},${fi},this.textContent)">${escapeHtml(String(v))}</td>`;});});
+    return `<tr class="${cls}">${cells}</tr>`;}).join("");
+  card.innerHTML=`<div class="fttitle"><span contenteditable oninput="renameForce('${n.id}',this.textContent)">🏋️ ${escapeHtml(n.title||"Cycle de force")}</span>
+    <span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" onclick="addForceRow('${n.id}')">+ ligne</button><button class="btn ghost" onclick="delForceRow('${n.id}')">− ligne</button><button class="btn ghost" onclick="delNote('${n.id}')">Suppr.</button></span></div>
+    <div class="ftwrap"><table class="ft"><thead><tr>${head1}</tr><tr>${head2}</tr></thead><tbody>${body}</tbody></table></div>
+    <p class="muted" style="margin-top:10px;font-size:11.5px">Touche une cellule pour la modifier. Orange = séance lourde · bleu = volume.</p>`;
+  return card;}
+function editForce(id,ri,ei,fi,val){const n=S.notes.find(x=>x.id===id);if(!n)return;val=(val||"").trim();
+  if(ei<0){if(fi===0)n.rows[ri].sem=val;else n.rows[ri].seance=val;}else n.rows[ri].data[ei][fi]=val;n.updated=Date.now();save();}
+function renameForce(id,val){const n=S.notes.find(x=>x.id===id);if(!n)return;n.title=(val||"").replace(/^🏋️\s*/,"").trim();n.updated=Date.now();save();}
+function newForceNote(){const exos=FORCE_EXOS.slice();const rows=[{sem:"S1",seance:"1 · Lourde",data:exos.map(()=>["","",""])},{sem:"S1",seance:"2 · Volume",data:exos.map(()=>["","",""])}];
+  S.notes.push({id:uid(),type:"force",title:"Nouveau cycle de force",exos,rows,created:Date.now(),updated:Date.now()});save();renderNotes();toast("Cycle créé — édite les cellules");}
+function addForceRow(id){const n=S.notes.find(x=>x.id===id);if(!n)return;n.rows.push({sem:"",seance:"",data:(n.exos||[]).map(()=>["","",""])});n.updated=Date.now();save();renderNotes();}
+function delForceRow(id){const n=S.notes.find(x=>x.id===id);if(!n||!n.rows.length)return;if(confirm("Supprimer la dernière ligne ?")){n.rows.pop();n.updated=Date.now();save();renderNotes();}}
 
 function renderSupps(){
   const root=$("#tab-supps");root.innerHTML="";const tk=todayKey();
@@ -626,18 +715,16 @@ function openDayWorkouts(dk){const ws=workoutsByDay()[dk]||[];const dObj=parseDa
 }
 function openWorkoutForDate(dk){openWorkoutEdit();setTimeout(()=>{const f=$("#w_date");if(f)f.value=dk;},60);}
 
-function openNote(id){const n=id?S.notes.find(x=>x.id===id):null;tmpNoteCat=n?(n.category||"note"):(notesFilter!=="all"?notesFilter:"note");
-  openSheet(`<h3>${n?"Modifier la note":"Nouvelle note"}</h3><div class="sub">Choisis une catégorie, un titre et le contenu</div>
-   <label>Catégorie</label><div class="catrow" id="catRow">${NOTE_CATS.map(c=>`<button class="${tmpNoteCat===c.k?'on':''}" style="${tmpNoteCat===c.k?'color:'+c.color:''}" onclick="tmpNoteCat='${c.k}';markCat('${c.k}')"><i style="background:${c.color}"></i>${c.label}</button>`).join("")}</div>
-   <label>Titre</label><input id="n_title" value="${n?escapeHtml(n.title||""):""}" placeholder="Ex: Bloc force 4 sem, Idée WOD, Conseil mobilité...">
-   <label>Contenu</label><textarea id="n_body" style="min-height:190px" placeholder="Notes libres...">${n?escapeHtml(n.body||""):""}</textarea>
+function openFreeNote(id){const n=id?S.notes.find(x=>x.id===id):null;
+  openSheet(`<h3>${n?"Modifier la note":"Nouvelle note libre"}</h3><div class="sub">Titre et contenu libre</div>
+   <label>Titre</label><input id="n_title" value="${n?escapeHtml(n.title||""):""}" placeholder="Titre de la note">
+   <label>Contenu</label><textarea id="n_body" style="min-height:220px" placeholder="Écris ce que tu veux...">${n?escapeHtml(n.body||""):""}</textarea>
    <label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" id="n_pin" ${n&&n.pinned?"checked":""} style="width:auto"> Épingler en haut</label>
-   <div class="sheetbtns">${n?`<button class="btn ghost" onclick="delNote('${n.id}')">Supprimer</button>`:`<button class="btn ghost" onclick="closeSheet()">Annuler</button>`}<button class="btn primary full" onclick="saveNote('${n?n.id:""}')">Enregistrer</button></div>`);
+   <div class="sheetbtns">${n?`<button class="btn ghost" onclick="delNote('${n.id}')">Supprimer</button>`:`<button class="btn ghost" onclick="closeSheet()">Annuler</button>`}<button class="btn primary full" onclick="saveFreeNote('${n?n.id:""}')">Enregistrer</button></div>`);
 }
-function markCat(k){const cat=NOTE_CAT_MAP[k];document.querySelectorAll("#catRow button").forEach(b=>{const on=b.textContent.trim()===cat.label;b.classList.toggle("on",on);b.style.color=on?cat.color:"";});}
-function saveNote(id){const t=$("#n_title").value.trim(),b=$("#n_body").value,p=$("#n_pin").checked;if(!t&&!b){closeSheet();return;}
-  if(id){const n=S.notes.find(x=>x.id===id);n.title=t;n.body=b;n.pinned=p;n.category=tmpNoteCat;n.updated=Date.now();}
-  else S.notes.push({id:uid(),title:t,body:b,pinned:p,category:tmpNoteCat,created:Date.now(),updated:Date.now()});
+function saveFreeNote(id){const t=$("#n_title").value.trim(),b=$("#n_body").value,p=$("#n_pin").checked;if(!t&&!b){closeSheet();return;}
+  if(id){const n=S.notes.find(x=>x.id===id);n.title=t;n.body=b;n.pinned=p;n.type="free";n.updated=Date.now();}
+  else S.notes.push({id:uid(),type:"free",title:t,body:b,pinned:p,created:Date.now(),updated:Date.now()});
   save();closeSheet();renderNotes();toast("Note enregistrée");}
 function delNote(id){if(confirm("Supprimer cette note ?")){S.notes=S.notes.filter(x=>x.id!==id);save();closeSheet();renderNotes();}}
 
@@ -706,7 +793,7 @@ function ingestHAE(json){let data=json.data||json;let metrics=data.metrics||[];l
     const maxHr=w.maxHeartRate?(w.maxHeartRate.qty||w.maxHeartRate):(w.heartRate&&w.heartRate.max?w.heartRate.max.qty:null);
     const cal=w.activeEnergyBurned?w.activeEnergyBurned.qty:(w.activeEnergy&&w.activeEnergy.qty?w.activeEnergy.qty:(w.totalEnergy?w.totalEnergy.qty:null));
     const extId=w.id||(w.name+"|"+w.start);if(S.workouts.some(x=>x.extId===extId))return;
-    const nw={id:uid(),extId,name:w.name||"Séance",date:dk,durationMin:round(dur,1),avgHr:avgHr?Math.round(avgHr):null,maxHr:maxHr?Math.round(maxHr):null,calories:cal?Math.round(cal):null,rpe:null,painDuring:0,painAfter:0,detail:"",imported:true,created:Date.now()};
+    const nw={id:uid(),extId,name:normWorkoutName(w.name),date:dk,durationMin:round(dur,1),avgHr:avgHr?Math.round(avgHr):null,maxHr:maxHr?Math.round(maxHr):null,calories:cal?Math.round(cal):null,rpe:null,painDuring:0,painAfter:0,detail:"",imported:true,created:Date.now()};
     nw.trimp=trimp(nw);S.workouts.push(nw);added.workouts++;});
   S.settings.lastSync=Date.now();save();return added;}
 $("#fileInput").addEventListener("change",function(){const files=[...this.files];if(!files.length)return;let tot={m:0,d:new Set(),w:0};let done=0;
@@ -729,7 +816,7 @@ function buildContext(){const tk=Object.keys(S.days).sort().pop()||todayKey();co
     surentrainement:ot?{risque:ot.band.t,acwr:ot.acwr,tsb:ot.tsb}:null,
     charge:last?{ctl_forme:last.ctl,atl_fatigue:last.atl,tsb_fraicheur:last.tsb,etat:formState(last.tsb).t}:null,
     sante7jours:recentDays,entrainementsRecents:recentW,complements:supToday,
-    notes:S.notes.map(n=>({categorie:(NOTE_CAT_MAP[n.category||"note"]||{}).label,titre:n.title,contenu:n.body}))};}
+    notes:S.notes.map(n=>n.type==="force"?{type:"cycle de force",titre:n.title,exercices:n.exos,plan:(n.rows||[]).map(r=>({sem:r.sem,seance:r.seance,charges:(n.exos||[]).map((e,i)=>e+" "+((r.data[i]||[]).join("kg ×")))}))}:{type:"note libre",titre:n.title,contenu:n.body})};}
 function openAI(){const hasKey=!!S.settings.apiKey;
   openSheet(`<div class="aihead"><div class="av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.6 4.6L18 8.2l-4.4 1.6L12 14l-1.6-4.2L6 8.2l4.4-1.6z"/></svg></div><div class="t"><b>Assistant Vitalis</b><span>${hasKey?"Accès complet à tes données":"Clé API requise (Réglages)"}</span></div></div>
    <div class="chatwrap"><div class="chatmsgs" id="chatMsgs"></div>
@@ -765,6 +852,7 @@ function updateSyncBadge(){const st=$("#syncStatus");const nd=Object.keys(S.days
   if(S.settings.lastSync){const d=new Date(S.settings.lastSync);st.textContent="Sync "+d.toLocaleDateString("fr-FR",{day:"numeric",month:"short"})+" · "+nd+" j · "+nw+" séances";$("#importBtn").classList.add("synced");}
   else if(nd||nw)st.textContent=nd+" jours · "+nw+" séances";else st.textContent="Aucune donnée";}
 $("#importBtn").onclick=openImportHelp;$("#settingsBtn").onclick=openSettings;$("#aiFab").onclick=openAI;$("#aiNav").onclick=openAI;
+seedForceNote();
 switchTab("recovery");updateSyncBadge();
 if(S.settings.syncUrl)fetchSync(true);
 </script>
