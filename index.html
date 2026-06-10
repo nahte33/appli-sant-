@@ -389,6 +389,20 @@ function dualBarLine(ser,h=190){const w=600;if(!ser.length)return "<div class='b
  let grid="";for(let g=0;g<=3;g++){const gy=20+g/3*(h-40);grid+=`<line x1="44" y1="${round(gy,1)}" x2="${w}" y2="${round(gy,1)}" stroke="var(--grid)"/><text x="2" y="${round(gy+3,1)}" fill="var(--txt3)" font-size="10">${round(maxLoad-(g/3)*maxLoad)}</text>`;}
  return `<svg class="bigchart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${grid}${bars}<path d="${atlP}" fill="none" stroke="#d946ef" stroke-width="2.2"/><path d="${ctlP}" fill="none" stroke="#0ea5a4" stroke-width="2.6"/></svg>`;}
 
+function sleepScore(dayKey){const day=S.days[dayKey];if(!day||day.sleep==null)return null;
+  const goal=S.settings.sleepGoal||8;const durComp=clamp(day.sleep/goal*100,0,100);
+  const vals=[];const end=parseDate(dayKey);for(let i=0;i<7;i++){const d=new Date(end);d.setDate(end.getDate()-i);const dk=fmtKey(d);if(S.days[dk]&&S.days[dk].sleep!=null)vals.push(S.days[dk].sleep);}
+  let regComp=null;
+  if(vals.length>=3){const m=vals.reduce((a,b)=>a+b,0)/vals.length;const sd=Math.sqrt(vals.reduce((a,b)=>a+(b-m)*(b-m),0)/vals.length);regComp=clamp(100-sd*45,0,100);}
+  let score,parts;
+  if(regComp!=null){score=Math.round(durComp*0.6+regComp*0.4);parts=["Durée "+fmtSleepH(day.sleep),"Régularité "+Math.round(regComp)+"/100"];}
+  else{score=Math.round(durComp);parts=["Durée "+fmtSleepH(day.sleep)];}
+  let c,txt;
+  if(score>=80){c="var(--good)";txt="Sommeil long et régulier — la meilleure base pour récupérer de tes séances lourdes.";}
+  else if(score>=60){c="var(--acc)";txt="Bon sommeil. Stabilise tes heures de coucher pour gagner encore en régularité.";}
+  else if(score>=40){c="var(--warn)";txt="Sommeil à améliorer : durée et régularité conditionnent ta récupération tissulaire.";}
+  else{c="var(--bad)";txt="Sommeil insuffisant ou irrégulier — priorité vu ton historique adducteurs/pubalgie.";}
+  return{score,c,txt,parts};}
 let recPeriod=30;
 function setRecPeriod(d){recPeriod=d;renderRecovery();}
 function renderRecovery(){
@@ -435,21 +449,16 @@ function renderRecovery(){
   herorow.appendChild(otCard);
   root.appendChild(herorow);
 
+  if(hasData){const sl=sleepScore(tk);if(sl){const slCard=el("div","card");
+    slCard.innerHTML=`<h2><span class="dot" style="background:#6366f1"></span>Indice de sommeil</h2>
+      <div style="display:flex;align-items:center;gap:18px">
+        <div style="font-size:42px;font-weight:760;letter-spacing:-.03em;color:${sl.c}">${sl.score}</div>
+        <div style="flex:1"><div style="height:9px;border-radius:6px;background:var(--track);overflow:hidden"><div style="height:100%;width:${sl.score}%;background:linear-gradient(90deg,#2dd4bf,#6366f1)"></div></div>
+        <div class="otsub" style="margin-top:8px">${sl.txt}</div></div></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">${sl.parts.map(p=>`<span class="pill">${p}</span>`).join("")}</div>`;
+    root.appendChild(slCard);}}
+
   root.appendChild(el("div","",`<button class="addbtn" onclick="openDayEntry()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Saisir / corriger mes données du jour</button>`));
-
-  root.insertAdjacentHTML("beforeend",periodChips(recPeriod,"setRecPeriod"));
-
-  const grid=el("div","mgrid");
-  METRICS.forEach(m=>{const ser=seriesFor(m.k,recPeriod);const lv=latestVal(m.k);if(!lv&&!ser.some(p=>p.value!=null))return;
-    const vals=ser.filter(p=>p.value!=null);let trend="",tcls="bg-flat";
-    if(vals.length>=2){const first=vals[0].value,last=vals[vals.length-1].value;const diff=last-first;const pct=first?diff/Math.abs(first)*100:0;
-      const improving=m.hi?diff>0:diff<0;tcls=Math.abs(pct)<2?"bg-flat":(improving?"bg-up":"bg-down");trend=(diff>0?"▲":diff<0?"▼":"=")+" "+Math.abs(round(pct,0))+"%";}
-    const card=el("div","metric");card.onclick=()=>openMetricDetail(m.k);
-    card.innerHTML=`<div class="mtop"><div class="mname"><i style="background:${m.color}"></i>${m.label}</div>${trend?`<div class="mtrend ${tcls}">${trend}</div>`:""}</div>
-      <div class="mval">${lv?fmtVal(m.k,lv.value):"—"}${m.unit&&!m.sleep?`<small>${m.unit}</small>`:""}</div>${spark(ser,m.color)}`;
-    grid.appendChild(card);});
-  root.appendChild(grid);
-  if(hasData)root.insertAdjacentHTML("beforeend",`<p class="muted" style="text-align:center;padding:10px 10px 0">Touchez une carte pour le détail. Le score combine VFC, FC repos, sommeil et fréquence respiratoire comparés à votre ligne de base personnelle.</p>`);
 }
 let recHistPeriod=90;
 function setRecHist(d){recHistPeriod=d;openRecoveryHistory();}
@@ -494,9 +503,11 @@ function renderTraining(){
      <div class="loadbox"><div class="lv" style="color:${fs.c}">${last?(last.tsb>0?"+":"")+round(last.tsb):0}</div><div class="ll">TSB · Fraîcheur</div><div class="ld" style="color:${fs.c}">${fs.t}</div></div>
    </div>
    ${periodChips(loadPeriod,"setLoadPeriod")}
-   <div style="display:flex;gap:14px;align-items:center;font-size:11px;color:var(--txt2);margin-bottom:8px;flex-wrap:wrap"><span style="color:#0ea5a4">━ CTL (forme)</span><span style="color:#d946ef">━ ATL (fatigue)</span><span style="color:#6366f1">▮ charge/jour</span></div>
+   <div style="display:flex;gap:14px;align-items:center;font-size:11px;color:var(--txt2);margin-bottom:6px;flex-wrap:wrap"><span style="color:#0ea5a4">━ CTL · forme</span><span style="color:#d946ef">━ ATL · fatigue</span><span style="color:#6366f1">▮ charge/jour</span></div>
+   <div style="font-size:10.5px;color:var(--txt3);margin-bottom:2px">↕ axe vertical : charge quotidienne en points TRIMP (u.a.)</div>
    ${dualBarLine(ser.slice(-loadPeriod))}
-   <div class="chartlbls"><span>${ser.length>loadPeriod?ser[ser.length-loadPeriod].date.slice(5):(ser[0]?ser[0].date.slice(5):"")}</span><span>aujourd'hui</span></div>`;
+   <div class="chartlbls"><span>${ser.length>loadPeriod?ser[ser.length-loadPeriod].date.split("-").reverse().slice(0,2).join("/"):(ser[0]?ser[0].date.slice(5):"")}</span><span>↔ dates · aujourd'hui</span></div>
+   <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);font-size:12px;color:var(--txt2);line-height:1.65"><b>Comment lire :</b> chaque barre = la <b>charge d'une journée</b> (intensité × durée, en points TRIMP). La courbe <b style="color:#0ea5a4">turquoise (CTL)</b> = ta forme de fond (moyenne lissée sur 42 j), elle monte quand tu t'entraînes régulièrement. La courbe <b style="color:#d946ef">rose (ATL)</b> = ta fatigue récente (7 j). Le <b>TSB</b> (fraîcheur) = CTL − ATL : <span style="color:var(--good)">positif = frais/affûté</span>, <span style="color:var(--bad)">négatif = fatigué</span>. Unités arbitraires (u.a.) : elles servent à comparer tes périodes entre elles.</div>`;
   root.appendChild(sum);
 
   root.appendChild(el("div","",`<button class="addbtn" onclick="openWorkoutEdit()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ajouter un entraînement</button>`));
@@ -596,9 +607,13 @@ function renderNotes(){
         <div class="nb">${escapeHtml((n.body||"").slice(0,240))}</div>
         <div class="nd">${new Date(n.updated||n.created).toLocaleDateString("fr-FR",{day:"numeric",month:"short"})}</div>`;
       c.querySelector(".pinbtn").onclick=e=>{e.stopPropagation();const o=S.notes.find(x=>x.id===n.id);o.pinned=!o.pinned;o.updated=Date.now();save();renderNotes();};
-      c.onclick=()=>openFreeNote(n.id);grid.appendChild(c);});
+      c.onclick=()=>viewFreeNote(n.id);grid.appendChild(c);});
     root.appendChild(grid);}
 }
+function viewFreeNote(id){const n=S.notes.find(x=>x.id===id);if(!n)return;
+  openSheet(`<h3>${escapeHtml(n.title||"Sans titre")}</h3>
+   <div class="detailbox" style="margin-top:6px">${n.body?escapeHtml(n.body):"<span style='color:var(--txt3)'>(Note vide)</span>"}</div>
+   <div class="sheetbtns"><button class="btn ghost" onclick="delNote('${n.id}')">Supprimer</button><button class="btn primary full" onclick="openFreeNote('${n.id}')">Modifier</button></div>`);}
 function renderForceCard(n){const card=el("div","card fcard");const exos=n.exos||[];
   const head1=`<th></th><th></th>`+exos.map(e=>`<th class="grp" colspan="3">${escapeHtml(e)}</th>`).join("");
   const head2=`<th>Sem.</th><th>Séance</th>`+exos.map(()=>`<th class="grp">kg</th><th>Sér.</th><th>Reps</th>`).join("");
@@ -607,33 +622,56 @@ function renderForceCard(n){const card=el("div","card fcard");const exos=n.exos|
     (r.data||[]).forEach((d,ei)=>{d.forEach((v,fi)=>{cells+=`<td class="${fi===0?'grp':''}" contenteditable oninput="editForce('${n.id}',${ri},${ei},${fi},this.textContent)">${escapeHtml(String(v))}</td>`;});});
     return `<tr class="${cls}">${cells}</tr>`;}).join("");
   card.innerHTML=`<div class="fttitle"><span contenteditable oninput="renameForce('${n.id}',this.textContent)">🏋️ ${escapeHtml(n.title||"Cycle de force")}</span>
-    <span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" onclick="addForceRow('${n.id}')">+ ligne</button><button class="btn ghost" onclick="delForceRow('${n.id}')">− ligne</button><button class="btn ghost" onclick="delNote('${n.id}')">Suppr.</button></span></div>
+    <span style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn ghost" onclick="addForceExo('${n.id}')">+ exo</button><button class="btn ghost" onclick="delForceExo('${n.id}')">− exo</button><button class="btn ghost" onclick="addForceRow('${n.id}')">+ ligne</button><button class="btn ghost" onclick="delForceRow('${n.id}')">− ligne</button><button class="btn ghost" onclick="delNote('${n.id}')">Suppr.</button></span></div>
     <div class="ftwrap"><table class="ft"><thead><tr>${head1}</tr><tr>${head2}</tr></thead><tbody>${body}</tbody></table></div>
     <p class="muted" style="margin-top:10px;font-size:11.5px">Touche une cellule pour la modifier. Orange = séance lourde · bleu = volume.</p>`;
   return card;}
 function editForce(id,ri,ei,fi,val){const n=S.notes.find(x=>x.id===id);if(!n)return;val=(val||"").trim();
   if(ei<0){if(fi===0)n.rows[ri].sem=val;else n.rows[ri].seance=val;}else n.rows[ri].data[ei][fi]=val;n.updated=Date.now();save();}
 function renameForce(id,val){const n=S.notes.find(x=>x.id===id);if(!n)return;n.title=(val||"").replace(/^🏋️\s*/,"").trim();n.updated=Date.now();save();}
-function newForceNote(){const exos=FORCE_EXOS.slice();const rows=[{sem:"S1",seance:"1 · Lourde",data:exos.map(()=>["","",""])},{sem:"S1",seance:"2 · Volume",data:exos.map(()=>["","",""])}];
-  S.notes.push({id:uid(),type:"force",title:"Nouveau cycle de force",exos,rows,created:Date.now(),updated:Date.now()});save();renderNotes();toast("Cycle créé — édite les cellules");}
+function newForceNote(){openSheet(`<h3>Nouveau cycle de force</h3><div class="sub">Choisis librement tes exercices</div>
+   <label>Titre</label><input id="nf_title" value="Cycle de force">
+   <label>Exercices (un par ligne)</label><textarea id="nf_exos" style="min-height:130px" placeholder="Un exercice par ligne">Back Squat
+Soulevé de Terre
+Développé Couché</textarea>
+   <label>Nombre de lignes de départ (séances)</label><input type="number" id="nf_rows" value="4" inputmode="numeric">
+   <div class="sheetbtns"><button class="btn ghost" onclick="closeSheet()">Annuler</button><button class="btn primary full" onclick="createForceNote()">Créer le tableau</button></div>`);}
+function createForceNote(){const title=$("#nf_title").value.trim()||"Cycle de force";
+  const exos=$("#nf_exos").value.split("\n").map(s=>s.trim()).filter(Boolean);if(!exos.length){toast("Ajoute au moins un exercice");return;}
+  const nr=clamp(parseInt($("#nf_rows").value)||4,1,80);const rows=[];for(let i=0;i<nr;i++)rows.push({sem:"S"+(Math.floor(i/2)+1),seance:(i%2===0?"1 · Lourde":"2 · Volume"),data:exos.map(()=>["","",""])});
+  S.notes.push({id:uid(),type:"force",title,exos,rows,created:Date.now(),updated:Date.now()});save();closeSheet();renderNotes();toast("Cycle de force créé");}
+function addForceExo(id){const n=S.notes.find(x=>x.id===id);if(!n)return;const name=prompt("Nom du nouvel exercice :");if(!name||!name.trim())return;n.exos.push(name.trim());n.rows.forEach(r=>r.data.push(["","",""]));n.updated=Date.now();save();renderNotes();}
+function delForceExo(id){const n=S.notes.find(x=>x.id===id);if(!n||n.exos.length<=1)return;if(confirm("Supprimer le dernier exercice ("+n.exos[n.exos.length-1]+") ?")){n.exos.pop();n.rows.forEach(r=>r.data.pop());n.updated=Date.now();save();renderNotes();}}
 function addForceRow(id){const n=S.notes.find(x=>x.id===id);if(!n)return;n.rows.push({sem:"",seance:"",data:(n.exos||[]).map(()=>["","",""])});n.updated=Date.now();save();renderNotes();}
 function delForceRow(id){const n=S.notes.find(x=>x.id===id);if(!n||!n.rows.length)return;if(confirm("Supprimer la dernière ligne ?")){n.rows.pop();n.updated=Date.now();save();renderNotes();}}
 
+let suppPeriod=14;
+function setSuppPeriod(d){suppPeriod=d;renderSupps();}
 function renderSupps(){
   const root=$("#tab-supps");root.innerHTML="";const tk=todayKey();
-  const head=el("div","card glass");const total=S.supps.length;const taken=S.supps.filter(s=>s.log&&s.log[tk]).length;
-  head.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between">
+  const total=S.supps.length;const takenToday=S.supps.filter(s=>s.log&&s.log[tk]).length;
+  const days=lastNDays(suppPeriod);let slots=0,tk2=0;
+  S.supps.forEach(s=>{const cdk=s.created?fmtKey(new Date(s.created)):"0000-00-00";days.forEach(dk=>{if(dk>=cdk){slots++;if(s.log&&s.log[dk])tk2++;}});});
+  const adh=slots?Math.round(tk2/slots*100):0;const adhC=adh>=80?"var(--good)":adh>=50?"var(--warn)":"var(--bad)";
+  const head=el("div","card glass");
+  head.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;gap:14px">
     <div><div style="font-size:12px;color:var(--txt2);font-weight:680;text-transform:uppercase;letter-spacing:.06em">Aujourd'hui</div>
-    <div style="font-size:30px;font-weight:740;margin-top:4px">${taken}<span style="color:var(--txt3);font-size:20px">/${total}</span> <span style="font-size:14px;color:var(--txt2);font-weight:500">pris</span></div></div>
-    <div style="width:62px;height:62px"><svg width="62" height="62" viewBox="0 0 62 62"><circle cx="31" cy="31" r="26" fill="none" stroke="var(--track)" stroke-width="7"/><circle cx="31" cy="31" r="26" fill="none" stroke="url(#rg2)" stroke-width="7" stroke-linecap="round" transform="rotate(-90 31 31)" stroke-dasharray="${(2*Math.PI*26).toFixed(1)}" stroke-dashoffset="${(2*Math.PI*26*(1-(total?taken/total:0))).toFixed(1)}"/><defs><linearGradient id="rg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2dd4bf"/><stop offset="1" stop-color="#6366f1"/></linearGradient></defs></svg></div></div>`;
+    <div style="font-size:30px;font-weight:740;margin-top:4px">${takenToday}<span style="color:var(--txt3);font-size:20px">/${total}</span> <span style="font-size:14px;color:var(--txt2);font-weight:500">pris</span></div></div>
+    <div style="text-align:right"><div style="font-size:12px;color:var(--txt2);font-weight:680;text-transform:uppercase;letter-spacing:.06em">Assiduité ${suppPeriod} j</div><div style="font-size:30px;font-weight:740;margin-top:4px;color:${adhC}">${adh}%</div></div></div>
+    <div style="height:9px;border-radius:6px;background:var(--track);overflow:hidden;margin-top:14px"><div style="height:100%;width:${adh}%;background:var(--grad)"></div></div>`;
   root.appendChild(head);
+  root.insertAdjacentHTML("beforeend",`<div class="chips">`+[[7,"7 j"],[14,"14 j"],[30,"1 mois"],[90,"3 mois"]].map(([d,l])=>`<div class="chip${suppPeriod===d?' on':''}" onclick="setSuppPeriod(${d})">${l}</div>`).join("")+`</div>`);
   root.appendChild(el("div","",`<button class="addbtn" onclick="openSupp()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ajouter un complément</button>`));
-  if(!S.supps.length){root.appendChild(el("div","empty",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10.5 20.5L3.5 13.5a5 5 0 0 1 7-7l7 7a5 5 0 0 1-7 7z"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg><p>Ajoutez vos compléments (dosage, fréquence) puis cochez-les chaque jour.</p>`));return;}
-  S.supps.forEach(s=>{const done=s.log&&s.log[tk];const streak=suppStreak(s);const item=el("div","supitem");
-    item.innerHTML=`<div class="supcheck${done?" done":""}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+  if(!S.supps.length){root.appendChild(el("div","empty",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10.5 20.5L3.5 13.5a5 5 0 0 1 7-7l7 7a5 5 0 0 1-7 7z"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg><p>Ajoutez vos compléments puis cochez-les chaque jour. L'assiduité se calcule automatiquement.</p>`));return;}
+  S.supps.forEach(s=>{const done=s.log&&s.log[tk];const streak=suppStreak(s);const cdk=s.created?fmtKey(new Date(s.created)):"0000-00-00";
+    const strip=days.map(dk=>{const active=dk>=cdk;const isT=s.log&&s.log[dk];const col=!active?"transparent":isT?"var(--good)":"var(--border2)";return `<span title="${dk.split('-').reverse().join('/')}${isT?' · pris':active?' · non pris':''}" style="width:11px;height:11px;border-radius:3px;background:${col};${!active?'border:1px dashed var(--border2);box-sizing:border-box':''}"></span>`;}).join("");
+    const item=el("div","supitem");item.style.flexWrap="wrap";
+    item.innerHTML=`<div style="display:flex;align-items:center;gap:14px;width:100%">
+      <div class="supcheck${done?" done":""}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
       <div class="supmeta"><div class="sn">${escapeHtml(s.name)}</div><div class="ss">${escapeHtml(s.dosage||"")}${s.dosage&&s.freq?" · ":""}${escapeHtml(s.freq||"")}</div></div>
       <div class="supstreak"><b>${streak}</b>jours</div>
-      <div class="deldot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></div>`;
+      <div class="deldot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></div></div>
+      <div style="display:flex;gap:3px;flex-wrap:wrap;width:100%;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">${strip}</div>`;
     item.querySelector(".supcheck").onclick=()=>{s.log=s.log||{};if(s.log[tk])delete s.log[tk];else s.log[tk]=true;save();renderSupps();};
     item.querySelector(".deldot").onclick=e=>{e.stopPropagation();if(confirm("Supprimer "+s.name+" ?")){S.supps=S.supps.filter(x=>x.id!==s.id);save();renderSupps();}};
     item.querySelector(".supmeta").onclick=()=>openSupp(s.id);root.appendChild(item);});
