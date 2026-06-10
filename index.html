@@ -6,7 +6,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Vitalis">
-<meta name="theme-color" content="#eceef3">
+<meta name="theme-color" content="#eceef3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1117" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>Vitalis — Santé & Forme</title>
 <style>
 :root{
@@ -18,8 +21,17 @@
   --good:#10b981; --warn:#f59e0b; --bad:#ef4444;
   --grad:linear-gradient(135deg,#2dd4bf 0%,#6366f1 55%,#d946ef 100%);
   --r:22px; --r2:16px; --sh:0 10px 34px rgba(20,25,55,.10); --sh2:0 4px 16px rgba(20,25,55,.07);
+  --glass:rgba(255,255,255,.9); --glasscard:linear-gradient(160deg,#ffffff,#f7f8fc);
   --safe-b:env(safe-area-inset-bottom,0px); --safe-t:env(safe-area-inset-top,0px);
 }
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0f1117; --bg2:#171a23; --surface:#1a1e29; --surface2:#232836;
+  --border:rgba(235,240,255,.08); --border2:rgba(235,240,255,.17);
+  --txt:#e8eaf2; --txt2:#a3abc2; --txt3:#6b7390;
+  --track:rgba(235,240,255,.10); --grid:rgba(235,240,255,.07);
+  --sh:0 10px 34px rgba(0,0,0,.45); --sh2:0 4px 16px rgba(0,0,0,.32);
+  --glass:rgba(23,26,35,.88); --glasscard:linear-gradient(160deg,#1d2230,#171a23);
+}}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%}
 body{
@@ -64,7 +76,7 @@ header{padding:calc(var(--safe-t) + 16px) 22px 10px;display:flex;align-items:cen
   .content{max-width:1160px;margin:0 auto}
 }
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:14px;box-shadow:var(--sh)}
-.card.glass{background:linear-gradient(160deg,#ffffff,#f7f8fc)}
+.card.glass{background:var(--glasscard)}
 .card h2{font-size:12.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--txt2);font-weight:680;margin-bottom:14px;display:flex;align-items:center;gap:8px}
 .card h2 .dot{width:6px;height:6px;border-radius:50%;background:var(--acc)}
 .muted{color:var(--txt3);font-size:13px}
@@ -169,7 +181,7 @@ header{padding:calc(var(--safe-t) + 16px) 22px 10px;display:flex;align-items:cen
 .supstreak{font-size:11px;color:var(--txt2);text-align:right;flex-shrink:0}.supstreak b{font-size:18px;display:block;color:var(--acc)}
 .deldot{color:var(--txt3);cursor:pointer;padding:6px}.deldot:hover{color:var(--bad)}.deldot svg{width:16px;height:16px;display:block}
 .tabbar{position:absolute;left:0;right:0;bottom:0;padding:8px 14px calc(8px + var(--safe-b));background:linear-gradient(to top,var(--bg) 60%,transparent);display:flex;justify-content:center;z-index:40}
-.tabbar .inner{display:flex;gap:3px;background:rgba(255,255,255,.9);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:22px;padding:6px;box-shadow:var(--sh)}
+.tabbar .inner{display:flex;gap:3px;background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:22px;padding:6px;box-shadow:var(--sh)}
 .tabbtn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 15px;border-radius:16px;color:var(--txt3);cursor:pointer;transition:.18s;border:none;background:none;font-family:inherit}
 .tabbtn svg{width:21px;height:21px}.tabbtn span{font-size:10px;font-weight:650}
 .tabbtn.on{color:var(--txt);background:var(--surface2)}.tabbtn.on svg{color:var(--acc2)}
@@ -222,7 +234,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.5}
 .empty svg{width:44px;height:44px;margin-bottom:14px;opacity:.5}.empty p{font-size:14px;line-height:1.6}
 .addbtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border:1.5px dashed var(--border2);border-radius:var(--r2);background:transparent;color:var(--txt2);font-size:14px;font-weight:650;cursor:pointer;font-family:inherit;margin-bottom:14px;transition:.15s}
 .addbtn:hover{border-color:var(--acc2);color:var(--acc2)}
-.toast{position:fixed;bottom:calc(150px + var(--safe-b));left:50%;transform:translateX(-50%);background:var(--txt);color:#fff;padding:11px 20px;border-radius:14px;font-size:13.5px;font-weight:600;z-index:200;opacity:0;transition:.25s;pointer-events:none;box-shadow:var(--sh)}
+.toast{position:fixed;bottom:calc(150px + var(--safe-b));left:50%;transform:translateX(-50%);background:var(--txt);color:var(--bg2);padding:11px 20px;border-radius:14px;font-size:13.5px;font-weight:600;z-index:200;opacity:0;transition:.25s;pointer-events:none;box-shadow:var(--sh)}
 .toast.show{opacity:1}
 .pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 9px;border-radius:20px;background:var(--surface2);color:var(--txt2);font-weight:650}
 .fcard .fttitle{font-size:16px;font-weight:740;margin-bottom:12px;display:flex;align-items:center;gap:8px;justify-content:space-between;flex-wrap:wrap}
@@ -237,8 +249,12 @@ table.ft .grp{border-left:2px solid var(--border)}
 table.ft td.sem{font-weight:700;color:var(--txt)}
 table.ft td.sea{color:var(--txt2);font-weight:600}
 table.ft tbody td[contenteditable]{cursor:text;border-radius:6px}
-table.ft tbody td[contenteditable]:focus{outline:2px solid var(--acc2);background:#fff}
+table.ft tbody td[contenteditable]:focus{outline:2px solid var(--acc2);background:var(--surface)}
 tr.heavy{background:rgba(245,158,11,.10)} tr.vol{background:rgba(59,130,246,.08)}
+.donebtn{width:25px;height:25px;border-radius:8px;border:1.5px solid var(--border2);background:var(--surface2);color:transparent;cursor:pointer;font-size:13px;font-weight:800;line-height:1;padding:0;transition:.15s}
+.donebtn.on{background:var(--good);border-color:var(--good);color:#fff}
+tr.done-row td{opacity:.55} tr.done-row td:first-child{opacity:1}
+tr.nextrow td{background:rgba(99,102,241,.09)} tr.nextrow td:first-child{box-shadow:inset 3px 0 0 var(--acc2)}
 </style>
 </head>
 <body>
@@ -391,12 +407,22 @@ function dualBarLine(ser,h=190){const w=600;if(!ser.length)return "<div class='b
 
 function sleepScore(dayKey){const day=S.days[dayKey];if(!day||day.sleep==null)return null;
   const goal=S.settings.sleepGoal||8;const durComp=clamp(day.sleep/goal*100,0,100);
-  const vals=[];const end=parseDate(dayKey);for(let i=0;i<7;i++){const d=new Date(end);d.setDate(end.getDate()-i);const dk=fmtKey(d);if(S.days[dk]&&S.days[dk].sleep!=null)vals.push(S.days[dk].sleep);}
-  let regComp=null;
-  if(vals.length>=3){const m=vals.reduce((a,b)=>a+b,0)/vals.length;const sd=Math.sqrt(vals.reduce((a,b)=>a+(b-m)*(b-m),0)/vals.length);regComp=clamp(100-sd*45,0,100);}
-  let score,parts;
-  if(regComp!=null){score=Math.round(durComp*0.6+regComp*0.4);parts=["Durée "+fmtSleepH(day.sleep),"Régularité "+Math.round(regComp)+"/100"];}
-  else{score=Math.round(durComp);parts=["Durée "+fmtSleepH(day.sleep)];}
+  const durs=[],beds=[];const end=parseDate(dayKey);
+  for(let i=0;i<7;i++){const d=new Date(end);d.setDate(end.getDate()-i);const dk=fmtKey(d);const dd=S.days[dk];
+    if(dd&&dd.sleep!=null){durs.push(dd.sleep);if(dd.bedtime!=null)beds.push(dd.bedtime<12?dd.bedtime+24:dd.bedtime);}}
+  const sdOf=a=>{const m=a.reduce((x,y)=>x+y,0)/a.length;return Math.sqrt(a.reduce((x,y)=>x+(y-m)*(y-m),0)/a.length);};
+  // régularité : heure de coucher (±min sur 7 j) si dispo, sinon repli sur la variance de durée
+  let regComp=null,regPart=null;
+  if(beds.length>=3){const sd=sdOf(beds);regComp=clamp(100-sd*60,0,100);regPart="Coucher ±"+Math.round(sd*60)+" min";}
+  else if(durs.length>=3){regComp=clamp(100-sdOf(durs)*45,0,100);regPart="Régularité "+Math.round(regComp)+"/100";}
+  // composition : part de sommeil profond + REM (cible ≈ 40 % de la nuit)
+  let compComp=null,compPart=null;
+  if(day.sleepDeep!=null||day.sleepRem!=null){const dr=(day.sleepDeep||0)+(day.sleepRem||0);
+    const ratio=day.sleep>0?dr/day.sleep:0;compComp=clamp(ratio/0.40*100,0,100);compPart="Profond+REM "+Math.round(ratio*100)+" %";}
+  const comps=[[durComp,.45],[regComp,.25],[compComp,.30]].filter(c=>c[0]!=null);
+  const den=comps.reduce((a,c)=>a+c[1],0);
+  const score=Math.round(comps.reduce((a,c)=>a+c[0]*c[1],0)/den);
+  const parts=["Durée "+fmtSleepH(day.sleep)];if(regPart)parts.push(regPart);if(compPart)parts.push(compPart);
   let c,txt;
   if(score>=80){c="var(--good)";txt="Sommeil long et régulier — la meilleure base pour récupérer de tes séances lourdes.";}
   else if(score>=60){c="var(--acc)";txt="Bon sommeil. Stabilise tes heures de coucher pour gagner encore en régularité.";}
@@ -615,17 +641,50 @@ function viewFreeNote(id){const n=S.notes.find(x=>x.id===id);if(!n)return;
    <div class="detailbox" style="margin-top:6px">${n.body?escapeHtml(n.body):"<span style='color:var(--txt3)'>(Note vide)</span>"}</div>
    <div class="sheetbtns"><button class="btn ghost" onclick="delNote('${n.id}')">Supprimer</button><button class="btn primary full" onclick="openFreeNote('${n.id}')">Modifier</button></div>`);}
 function renderForceCard(n){const card=el("div","card fcard");const exos=n.exos||[];
-  const head1=`<th></th><th></th>`+exos.map(e=>`<th class="grp" colspan="3">${escapeHtml(e)}</th>`).join("");
-  const head2=`<th>Sem.</th><th>Séance</th>`+exos.map(()=>`<th class="grp">kg</th><th>Sér.</th><th>Reps</th>`).join("");
-  const body=(n.rows||[]).map((r,ri)=>{const cls=/lourde/i.test(r.seance)?"heavy":/volume/i.test(r.seance)?"vol":"";
-    let cells=`<td class="sem" contenteditable oninput="editForce('${n.id}',${ri},-1,0,this.textContent)">${escapeHtml(r.sem)}</td><td class="sea" contenteditable oninput="editForce('${n.id}',${ri},-1,1,this.textContent)">${escapeHtml(r.seance)}</td>`;
+  const rows=n.rows||[];const doneCt=rows.filter(r=>r.done).length;
+  const nextIdx=rows.findIndex(r=>!r.done);
+  const head1=`<th></th><th></th><th></th>`+exos.map(e=>`<th class="grp" colspan="3">${escapeHtml(e)}</th>`).join("");
+  const head2=`<th>✓</th><th>Sem.</th><th>Séance</th>`+exos.map(()=>`<th class="grp">kg</th><th>Sér.</th><th>Reps</th>`).join("");
+  const body=rows.map((r,ri)=>{let cls=/lourde/i.test(r.seance)?"heavy":/volume/i.test(r.seance)?"vol":"";
+    if(r.done)cls+=" done-row";else if(ri===nextIdx)cls+=" nextrow";
+    let cells=`<td><button class="donebtn${r.done?' on':''}" title="${r.done?'Faite le '+(r.doneDate||'').split('-').reverse().join('/'):'Marquer comme faite'}" onclick="toggleForceDone('${n.id}',${ri})">✓</button></td>
+      <td class="sem" contenteditable oninput="editForce('${n.id}',${ri},-1,0,this.textContent)">${escapeHtml(r.sem)}</td><td class="sea" contenteditable oninput="editForce('${n.id}',${ri},-1,1,this.textContent)">${escapeHtml(r.seance)}</td>`;
     (r.data||[]).forEach((d,ei)=>{d.forEach((v,fi)=>{cells+=`<td class="${fi===0?'grp':''}" contenteditable oninput="editForce('${n.id}',${ri},${ei},${fi},this.textContent)">${escapeHtml(String(v))}</td>`;});});
     return `<tr class="${cls}">${cells}</tr>`;}).join("");
+  const pct=rows.length?Math.round(doneCt/rows.length*100):0;
   card.innerHTML=`<div class="fttitle"><span contenteditable oninput="renameForce('${n.id}',this.textContent)">🏋️ ${escapeHtml(n.title||"Cycle de force")}</span>
-    <span style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn ghost" onclick="addForceExo('${n.id}')">+ exo</button><button class="btn ghost" onclick="delForceExo('${n.id}')">− exo</button><button class="btn ghost" onclick="addForceRow('${n.id}')">+ ligne</button><button class="btn ghost" onclick="delForceRow('${n.id}')">− ligne</button><button class="btn ghost" onclick="delNote('${n.id}')">Suppr.</button></span></div>
+    <span style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="pill" style="color:${doneCt?'var(--good)':'var(--txt2)'}">${doneCt}/${rows.length} faites</span><button class="btn primary" onclick="openForceProgress('${n.id}',0)">📈 Progression</button><button class="btn ghost" onclick="addForceExo('${n.id}')">+ exo</button><button class="btn ghost" onclick="delForceExo('${n.id}')">− exo</button><button class="btn ghost" onclick="addForceRow('${n.id}')">+ ligne</button><button class="btn ghost" onclick="delForceRow('${n.id}')">− ligne</button><button class="btn ghost" onclick="delNote('${n.id}')">Suppr.</button></span></div>
+    <div style="height:7px;border-radius:5px;background:var(--track);overflow:hidden;margin-bottom:12px"><div style="height:100%;width:${pct}%;background:var(--grad)"></div></div>
     <div class="ftwrap"><table class="ft"><thead><tr>${head1}</tr><tr>${head2}</tr></thead><tbody>${body}</tbody></table></div>
-    <p class="muted" style="margin-top:10px;font-size:11.5px">Touche une cellule pour la modifier. Orange = séance lourde · bleu = volume.</p>`;
+    <p class="muted" style="margin-top:10px;font-size:11.5px">Coche ✓ quand la séance est faite — la ligne surlignée en violet est ta prochaine séance. Orange = lourde · bleu = volume.</p>`;
   return card;}
+function toggleForceDone(id,ri){const n=S.notes.find(x=>x.id===id);if(!n||!n.rows[ri])return;const r=n.rows[ri];
+  if(r.done){delete r.done;delete r.doneDate;}else{r.done=true;r.doneDate=todayKey();}
+  n.updated=Date.now();save();renderNotes();}
+const epley=(kg,reps)=>reps>1?kg*(1+reps/30):kg;
+function forceSeries(n,ei){const pts=[];(n.rows||[]).forEach(r=>{const d=(r.data||[])[ei]||[];
+  const kg=parseFloat(String(d[0]).replace(",", "."));const reps=parseFloat(String(d[2]).replace(",", "."));
+  if(isNaN(kg))return;pts.push({date:r.sem+" "+r.seance,value:round(epley(kg,reps||1),1),kg,done:!!r.done});});
+  return pts;}
+function openForceProgress(id,ei){const n=S.notes.find(x=>x.id===id);if(!n)return;const exos=n.exos||[];ei=clamp(ei,0,exos.length-1);
+  const all=forceSeries(n,ei);const done=all.filter(p=>p.done);
+  const ser=done.length>=2?done:all;const fromPlan=done.length<2;
+  const vals=ser.map(p=>p.value);
+  const first=vals[0],last=vals[vals.length-1];
+  const prog=vals.length>=2?round(last-first,1):null;
+  const isTraction=/traction|pull/i.test(exos[ei]||"");
+  const chips=`<div class="chips">`+exos.map((e,i)=>`<div class="chip${i===ei?' on':''}" onclick="openForceProgress('${id}',${i})">${escapeHtml(e)}</div>`).join("")+`</div>`;
+  openSheet(`<h3>Progression — ${escapeHtml(exos[ei]||"")}</h3>
+   <div class="sub">${fromPlan?"Charges planifiées du cycle (coche des séances ✓ pour suivre ta progression réelle)":"1RM estimé sur tes "+done.length+" séances faites"}</div>
+   ${chips}
+   ${lineChart(ser,"#6366f1",null)}
+   <div class="chartlbls"><span>${ser.length?escapeHtml(ser[0].date):""}</span><span>${ser.length?escapeHtml(ser[ser.length-1].date):""}</span></div>
+   <div style="margin-top:16px">
+   <div class="kv"><span>1RM estimé actuel (Epley)</span><b>${last!=null?last+" kg":"—"}</b></div>
+   <div class="kv"><span>Meilleur 1RM estimé</span><b>${vals.length?Math.max(...vals)+" kg":"—"}</b></div>
+   ${prog!=null?`<div class="kv"><span>Progression sur la période</span><b style="color:${prog>=0?'var(--good)':'var(--bad)'}">${prog>0?"+":""}${prog} kg${first?" ("+(prog>=0?"+":"")+round(prog/first*100)+" %)":""}</b></div>`:""}
+   <div class="kv"><span>Séances faites</span><b>${done.length}/${all.length}</b></div></div>
+   ${isTraction?`<p class="muted" style="margin-top:12px;font-size:11.5px">Pour les tractions lestées, les valeurs correspondent au lest ajouté (hors poids de corps).</p>`:""}`);}
 function editForce(id,ri,ei,fi,val){const n=S.notes.find(x=>x.id===id);if(!n)return;val=(val||"").trim();
   if(ei<0){if(fi===0)n.rows[ri].sem=val;else n.rows[ri].seance=val;}else n.rows[ri].data[ei][fi]=val;n.updated=Date.now();save();}
 function renameForce(id,val){const n=S.notes.find(x=>x.id===id);if(!n)return;n.title=(val||"").replace(/^🏋️\s*/,"").trim();n.updated=Date.now();save();}
@@ -821,7 +880,14 @@ const HAE_MAP=[{k:"hrv",match:["heart_rate_variability"]},{k:"rhr",match:["resti
 function ingestHAE(json){let data=json.data||json;let metrics=data.metrics||[];let workouts=data.workouts||[];let added={metrics:0,days:new Set(),workouts:0};
   metrics.forEach(m=>{const name=(m.name||"").toLowerCase();
     if(name.includes("sleep")){(m.data||[]).forEach(pt=>{const dk=dayKeyFrom(pt.date||pt.sleepEnd||pt.endDate);if(!dk)return;let hrs=pt.totalSleep!=null?pt.totalSleep:(pt.asleep!=null?pt.asleep:(pt.qty!=null?pt.qty:null));
-       if(hrs!=null){if(hrs>30)hrs=hrs/60;S.days[dk]=S.days[dk]||{};S.days[dk].sleep=round(hrs,2);added.days.add(dk);added.metrics++;}});return;}
+       if(hrs!=null){const inMin=hrs>30;const toH=v=>v==null?null:round(inMin?v/60:v,2);
+        S.days[dk]=S.days[dk]||{};S.days[dk].sleep=toH(hrs);
+        const deep=pt.deep!=null?pt.deep:(pt.deepSleep!=null?pt.deepSleep:null);
+        const rem=pt.rem!=null?pt.rem:(pt.remSleep!=null?pt.remSleep:null);
+        if(deep!=null)S.days[dk].sleepDeep=toH(deep);if(rem!=null)S.days[dk].sleepRem=toH(rem);
+        const bd=parseDate(pt.sleepStart||pt.inBedStart||pt.startDate);
+        if(bd)S.days[dk].bedtime=round(bd.getHours()+bd.getMinutes()/60,2);
+        added.days.add(dk);added.metrics++;}});return;}
     const def=HAE_MAP.find(d=>d.match.some(x=>name===x||name.includes(x)));if(!def)return;const key=def.k==="rhr2"?"rhr":def.k;
     const byDay={};(m.data||[]).forEach(pt=>{const dk=dayKeyFrom(pt.date);if(!dk)return;let v=pt.qty!=null?pt.qty:(pt.Avg!=null?pt.Avg:null);if(v==null)return;(byDay[dk]=byDay[dk]||[]).push(v);});
     for(const dk in byDay){const arr=byDay[dk];let v=arr.reduce((a,b)=>a+b,0)/arr.length;if(def.k==="rhr2"&&S.days[dk]&&S.days[dk].rhr!=null)continue;S.days[dk]=S.days[dk]||{};S.days[dk][key]=round(v,2);added.days.add(dk);added.metrics++;}});
@@ -854,7 +920,7 @@ function buildContext(){const tk=Object.keys(S.days).sort().pop()||todayKey();co
     surentrainement:ot?{risque:ot.band.t,acwr:ot.acwr,tsb:ot.tsb}:null,
     charge:last?{ctl_forme:last.ctl,atl_fatigue:last.atl,tsb_fraicheur:last.tsb,etat:formState(last.tsb).t}:null,
     sante7jours:recentDays,entrainementsRecents:recentW,complements:supToday,
-    notes:S.notes.map(n=>n.type==="force"?{type:"cycle de force",titre:n.title,exercices:n.exos,plan:(n.rows||[]).map(r=>({sem:r.sem,seance:r.seance,charges:(n.exos||[]).map((e,i)=>e+" "+((r.data[i]||[]).join("kg ×")))}))}:{type:"note libre",titre:n.title,contenu:n.body})};}
+    notes:S.notes.map(n=>n.type==="force"?{type:"cycle de force",titre:n.title,exercices:n.exos,plan:(n.rows||[]).map(r=>({sem:r.sem,seance:r.seance,faite:!!r.done,charges:(n.exos||[]).map((e,i)=>e+" "+((r.data[i]||[]).join("kg ×")))}))}:{type:"note libre",titre:n.title,contenu:n.body})};}
 function openAI(){const hasKey=!!S.settings.apiKey;
   openSheet(`<div class="aihead"><div class="av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.6 4.6L18 8.2l-4.4 1.6L12 14l-1.6-4.2L6 8.2l4.4-1.6z"/></svg></div><div class="t"><b>Assistant Vitalis</b><span>${hasKey?"Accès complet à tes données":"Clé API requise (Réglages)"}</span></div></div>
    <div class="chatwrap"><div class="chatmsgs" id="chatMsgs"></div>
@@ -893,6 +959,7 @@ $("#importBtn").onclick=openImportHelp;$("#settingsBtn").onclick=openSettings;$(
 seedForceNote();
 switchTab("recovery");updateSyncBadge();
 if(S.settings.syncUrl)fetchSync(true);
+if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>
 </body>
 </html>
