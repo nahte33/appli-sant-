@@ -253,6 +253,11 @@ table.ft tbody td[contenteditable]:focus{outline:2px solid var(--acc2);backgroun
 tr.heavy{background:rgba(245,158,11,.10)} tr.vol{background:rgba(59,130,246,.08)}
 .donebtn{width:25px;height:25px;border-radius:8px;border:1.5px solid var(--border2);background:var(--surface2);color:transparent;cursor:pointer;font-size:13px;font-weight:800;line-height:1;padding:0;transition:.15s}
 .donebtn.on{background:var(--good);border-color:var(--good);color:#fff}
+.planbtn{min-width:25px;height:25px;border-radius:8px;border:1.5px solid var(--border2);background:var(--surface2);color:var(--txt3);cursor:pointer;font-size:11px;font-weight:700;line-height:1;padding:0 5px;transition:.15s}
+.planbtn.on{background:rgba(99,102,241,.14);border-color:var(--acc2);color:var(--acc2)}
+.note .colbtn{position:absolute;top:9px;right:36px;width:20px;height:20px;display:grid;place-items:center;color:var(--txt3);cursor:pointer;font-size:12px;user-select:none}
+.note.mini{min-height:0}
+.note.mini .nb,.note.mini .nd{display:none}
 tr.done-row td{opacity:.55} tr.done-row td:first-child{opacity:1}
 tr.nextrow td{background:rgba(99,102,241,.09)} tr.nextrow td:first-child{box-shadow:inset 3px 0 0 var(--acc2)}
 </style>
@@ -274,6 +279,7 @@ tr.nextrow td{background:rgba(99,102,241,.09)} tr.nextrow td:first-child{box-sha
     <nav class="sidebar">
       <button class="navbtn on" data-tab="recovery"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Récupération</button>
       <button class="navbtn" data-tab="training"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M3 3l1 1M21 21l-1-1M18 22l4-4M2 6l4-4M6 18l-4 4M22 18l-4 4"/></svg>Forme</button>
+      <button class="navbtn" data-tab="cal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Calendrier</button>
       <button class="navbtn" data-tab="notes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/></svg>Notes</button>
       <button class="navbtn" data-tab="supps"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5L3.5 13.5a5 5 0 0 1 7-7l7 7a5 5 0 0 1-7 7z"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg>Suppléments</button>
       <button class="navbtn ainav" id="aiNav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.6 4.6L18 8.2l-4.4 1.6L12 14l-1.6-4.2L6 8.2l4.4-1.6z"/></svg>Assistant IA</button>
@@ -281,6 +287,7 @@ tr.nextrow td{background:rgba(99,102,241,.09)} tr.nextrow td:first-child{box-sha
     <div class="scroll"><div class="content">
       <section class="tab active" id="tab-recovery"></section>
       <section class="tab" id="tab-training"></section>
+      <section class="tab" id="tab-cal"></section>
       <section class="tab" id="tab-notes"></section>
       <section class="tab" id="tab-supps"></section>
     </div></div>
@@ -291,6 +298,7 @@ tr.nextrow td{background:rgba(99,102,241,.09)} tr.nextrow td:first-child{box-sha
   <nav class="tabbar"><div class="inner">
     <button class="tabbtn on" data-tab="recovery"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span>Récup</span></button>
     <button class="tabbtn" data-tab="training"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M3 3l1 1M21 21l-1-1M18 22l4-4M2 6l4-4M6 18l-4 4M22 18l-4 4"/></svg><span>Forme</span></button>
+    <button class="tabbtn" data-tab="cal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Agenda</span></button>
     <button class="tabbtn" data-tab="notes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>Notes</span></button>
     <button class="tabbtn" data-tab="supps"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5L3.5 13.5a5 5 0 0 1 7-7l7 7a5 5 0 0 1-7 7z"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg><span>Suppl.</span></button>
   </div></nav>
@@ -304,10 +312,11 @@ tr.nextrow td{background:rgba(99,102,241,.09)} tr.nextrow td:first-child{box-sha
 "use strict";
 const KEY="vitalis_v1";
 const DEFAULT={settings:{userName:"",sex:"M",age:30,hrMax:0,hrRest:0,sleepGoal:8,apiProvider:"anthropic",apiKey:"",apiModel:"",syncUrl:"",syncToken:""},
-  days:{},workouts:[],notes:[],supps:[],ai:[]};
+  days:{},workouts:[],notes:[],supps:[],ai:[],plan:[]};
 let S=load();
 S.rev=S.rev||0;
-S.deleted=S.deleted||{};["notes","workouts","supps"].forEach(k=>S.deleted[k]=S.deleted[k]||{});
+S.plan=S.plan||[];
+S.deleted=S.deleted||{};["notes","workouts","supps","plan"].forEach(k=>S.deleted[k]=S.deleted[k]||{});
 // NB : la migration des séances (normalisation des noms + recalcul sRPE) est faite
 // en fin de script — trimp() dépend d'utilitaires const non encore initialisés ici.
 function load(){try{const r=JSON.parse(localStorage.getItem(KEY));if(r)return Object.assign({},DEFAULT,r,{settings:Object.assign({},DEFAULT.settings,r.settings||{})});}catch(e){}return JSON.parse(JSON.stringify(DEFAULT));}
@@ -339,7 +348,7 @@ function mergeState(remote){
   const ts=x=>(x&&(x.updated||x.created))||0;
   const localNewer=(S.rev||0)>=(remote.rev||0);
   const A=localNewer?S:remote,B=localNewer?remote:S;// A = état le plus récent
-  const tombs={};["notes","workouts","supps"].forEach(k=>{tombs[k]={};
+  const tombs={};["notes","workouts","supps","plan"].forEach(k=>{tombs[k]={};
     const a=(S.deleted||{})[k]||{},b=(remote.deleted||{})[k]||{};
     Object.keys(a).forEach(id=>tombs[k][id]=a[id]);
     Object.keys(b).forEach(id=>tombs[k][id]=Math.max(tombs[k][id]||0,b[id]));});
@@ -351,8 +360,10 @@ function mergeState(remote){
   const wmap=pick((B.workouts||[]).concat(A.workouts||[]),wkey);
   const nmap=pick((B.notes||[]).concat(A.notes||[]),n=>n.id);
   const smap=pick((B.supps||[]).concat(A.supps||[]),s=>s.id);
+  const pmap=pick((B.plan||[]).concat(A.plan||[]),p=>p.id);
   S={settings:Object.assign({},DEFAULT.settings,A.settings||{},{apiKey:S.settings.apiKey,syncUrl:S.settings.syncUrl,syncToken:S.settings.syncToken}),
     days,workouts:alive(wmap,tombs.workouts,wkey),notes:alive(nmap,tombs.notes,n=>n.id),supps:alive(smap,tombs.supps,s=>s.id),
+    plan:alive(pmap,tombs.plan,p=>p.id).filter(p=>p.date>=todayKey()),
     ai:(A.ai&&A.ai.length?A.ai:(B.ai||[])),deleted:tombs,rev:Math.max(S.rev||0,remote.rev||0)};
   save(false);renderAll();}
 // si l'app se ferme avec un envoi en attente, on le termine via sendBeacon
@@ -654,30 +665,89 @@ function renderTraining(){
 
   root.appendChild(el("div","",`<button class="addbtn" onclick="openWorkoutEdit()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ajouter un entraînement</button>`));
 
-  const cal=el("div","card");const monthNames=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+}
+
+/* ---------- Onglet Calendrier : vue réelle (Apple Watch) + vue prévisionnelle ---------- */
+let calView="real";
+const planOf=(noteId,ri)=>S.plan.find(p=>p.noteId===noteId&&p.row===ri);
+// le prévisionnel s'efface au fil des jours : les séances passées sont purgées
+function purgePlan(){const tk=todayKey();const n=S.plan.length;S.plan=S.plan.filter(p=>p.date>=tk);if(S.plan.length!==n)save(false);}
+function planByDay(){const m={};S.plan.forEach(p=>{(m[p.date]=m[p.date]||[]).push(p);});return m;}
+function renderCalTab(){
+  const root=$("#tab-cal");root.innerHTML="";purgePlan();
+  root.appendChild(el("div","chips",
+    `<div class="chip${calView==="real"?" on":""}" onclick="calView='real';renderCalTab()">⌚ Réel</div>
+     <div class="chip${calView==="plan"?" on":""}" onclick="calView='plan';renderCalTab()">🗓️ Prévisionnel (${S.plan.length})</div>`));
+  const monthNames=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+  const cal=el("div","card");
   cal.innerHTML=`<div class="calhead"><div class="mlabel">${monthNames[calMonth]} ${calYear}</div>
     <div class="calnav"><div class="iconbtn" onclick="calShift(-1)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></div><div class="iconbtn" onclick="calShift(1)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div></div>
     <div class="calgrid" id="calgrid"></div>`;
   root.appendChild(cal);
   const grid=cal.querySelector("#calgrid");
   ["L","M","M","J","V","S","D"].forEach(d=>grid.appendChild(el("div","caldow",d)));
-  const wbd=workoutsByDay();const first=new Date(calYear,calMonth,1);let startDow=(first.getDay()+6)%7;const dim=new Date(calYear,calMonth+1,0).getDate();
+  const first=new Date(calYear,calMonth,1);let startDow=(first.getDay()+6)%7;const dim=new Date(calYear,calMonth+1,0).getDate();
   for(let i=0;i<startDow;i++)grid.appendChild(el("div","calday empty"));
-  for(let d=1;d<=dim;d++){const dk=calYear+"-"+pad(calMonth+1)+"-"+pad(d);const ws=wbd[dk]||[];
-    const cell=el("div","calday"+(dk===todayKey()?" today":""));
-    if(ws.length)cell.style.background=hexA(workoutColor(ws[0].name),.13);
-    const totMin=ws.reduce((a,w)=>a+(w.durationMin||0),0);
-    cell.innerHTML=`<div class="dn">${d}</div>`+(ws.length?`<div class="wbars">${ws.slice(0,3).map(w=>`<span class="wbar" style="background:${workoutColor(w.name)}"></span>`).join("")}</div><div class="wmin">${totMin?Math.round(totMin)+"′":""}</div>`:"");
-    cell.onclick=()=>openDayWorkouts(dk);grid.appendChild(cell);}
-
-  // légende : types d'entraînement présents ce mois, chacun sa couleur
-  const types={};const ym=calYear+"-"+pad(calMonth+1);
-  Object.keys(wbd).forEach(dk=>{if(dk.indexOf(ym)===0)wbd[dk].forEach(w=>{types[w.name]=workoutColor(w.name);});});
-  const tnames=Object.keys(types);
-  if(tnames.length){const lg=el("div");lg.style.cssText="display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)";
-    lg.innerHTML=tnames.map(nm=>`<span style="display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--txt2);font-weight:650"><i style="width:10px;height:10px;border-radius:3px;background:${types[nm]}"></i>${escapeHtml(nm)}</span>`).join("");
-    cal.appendChild(lg);}
+  const tk=todayKey();
+  if(calView==="real"){
+    const wbd=workoutsByDay();
+    for(let d=1;d<=dim;d++){const dk=calYear+"-"+pad(calMonth+1)+"-"+pad(d);const ws=wbd[dk]||[];
+      const cell=el("div","calday"+(dk===tk?" today":""));
+      if(ws.length)cell.style.background=hexA(workoutColor(ws[0].name),.13);
+      const totMin=ws.reduce((a,w)=>a+(w.durationMin||0),0);
+      cell.innerHTML=`<div class="dn">${d}</div>`+(ws.length?`<div class="wbars">${ws.slice(0,3).map(w=>`<span class="wbar" style="background:${workoutColor(w.name)}"></span>`).join("")}</div><div class="wmin">${totMin?Math.round(totMin)+"′":""}</div>`:"");
+      cell.onclick=()=>openDayWorkouts(dk);grid.appendChild(cell);}
+    // légende : types d'entraînement présents ce mois, chacun sa couleur
+    const types={};const ym=calYear+"-"+pad(calMonth+1);const wbd2=workoutsByDay();
+    Object.keys(wbd2).forEach(dk=>{if(dk.indexOf(ym)===0)wbd2[dk].forEach(w=>{types[w.name]=workoutColor(w.name);});});
+    const tnames=Object.keys(types);
+    if(tnames.length){const lg=el("div");lg.style.cssText="display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)";
+      lg.innerHTML=tnames.map(nm=>`<span style="display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--txt2);font-weight:650"><i style="width:10px;height:10px;border-radius:3px;background:${types[nm]}"></i>${escapeHtml(nm)}</span>`).join("");
+      cal.appendChild(lg);}
+    cal.insertAdjacentHTML("beforeend",`<p class="muted" style="margin-top:12px;font-size:11.5px">Séances enregistrées (Apple Watch + saisies manuelles). Touche un jour pour le détail.</p>`);
+  }else{
+    const pbd=planByDay();
+    for(let d=1;d<=dim;d++){const dk=calYear+"-"+pad(calMonth+1)+"-"+pad(d);const ps=pbd[dk]||[];const past=dk<tk;
+      const cell=el("div","calday"+(dk===tk?" today":""));
+      if(past){cell.style.opacity=".32";cell.innerHTML=`<div class="dn">${d}</div>`;grid.appendChild(cell);continue;}
+      if(ps.length)cell.style.background=hexA("#6366f1",.13);
+      cell.innerHTML=`<div class="dn">${d}</div>`+(ps.length?`<div class="wbars">${ps.slice(0,3).map(p=>`<span class="wbar" style="background:${workoutColor(p.label)}"></span>`).join("")}</div><div class="wmin">${ps.length>1?ps.length+" séances":"1 séance"}</div>`:"");
+      cell.onclick=()=>openDayPlan(dk);grid.appendChild(cell);}
+    cal.insertAdjacentHTML("beforeend",`<p class="muted" style="margin-top:12px;font-size:11.5px">Tes séances à venir, programmées depuis l'onglet <b>Notes</b> (icône 📅 à côté de chaque séance). Les jours passés s'effacent automatiquement.</p>`);
+    // liste des prochaines séances programmées
+    const next=[...S.plan].sort((a,b)=>a.date.localeCompare(b.date)).slice(0,8);
+    if(next.length){const lc=el("div","card");
+      lc.innerHTML=`<h2><span class="dot" style="background:#6366f1"></span>Prochaines séances</h2>`+next.map(p=>{const dObj=parseDate(p.date);const dStr=dObj?dObj.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}):p.date;
+        return `<div class="kv"><span style="text-transform:capitalize">${dStr}</span><b>${escapeHtml(p.label)}</b></div>`;}).join("");
+      root.appendChild(lc);}
+    else root.appendChild(el("div","empty",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><p>Aucune séance programmée.<br>Va dans <b>Notes</b> et touche l'icône 📅 à côté d'une séance pour la planifier.</p>`));
+  }
 }
+function openDayPlan(dk){const ps=planByDay()[dk]||[];const dObj=parseDate(dk);const dStr=dObj?dObj.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}):dk;
+  openSheet(`<h3 style="text-transform:capitalize">${dStr}</h3><div class="sub">${ps.length?ps.length+" séance(s) programmée(s)":"Rien de prévu ce jour"}</div>
+   ${ps.map(p=>`<div class="kv"><span>${escapeHtml(p.label)}</span><b style="display:flex;gap:6px"><button class="btn ghost" style="padding:6px 11px;font-size:12px" onclick="openProgramSheet('${p.noteId}',${p.row})">Modifier</button><button class="btn ghost" style="padding:6px 11px;font-size:12px" onclick="removePlan('${p.id}')">Retirer</button></b></div>`).join("")}
+   ${ps.length?"":`<p class="muted" style="margin-top:8px">Programme tes séances depuis l'onglet Notes (icône 📅).</p>`}`);}
+function removePlan(id){S.deleted.plan[id]=Date.now();S.plan=S.plan.filter(p=>p.id!==id);save();closeSheet();renderCalTab();toast("Séance retirée du prévisionnel");}
+function openProgramSheet(noteId,ri){const n=S.notes.find(x=>x.id===noteId);if(!n)return;
+  const ex=planOf(noteId,ri);
+  const r=ri>=0?(n.rows||[])[ri]:null;
+  const label=ri<0?(n.title||"Séance"):((n.title||"Séance")+" · "+((r&&r.sem)||"")+" "+((r&&r.seance)||"")).trim();
+  openSheet(`<h3>📅 Programmer la séance</h3><div class="sub">${escapeHtml(label)}</div>
+   <label>Date prévue</label><input type="date" id="pl_date" value="${ex?ex.date:todayKey()}" min="${todayKey()}">
+   <p class="muted" style="margin-top:10px;font-size:12px">La séance apparaîtra dans l'onglet Calendrier, vue Prévisionnel. Elle s'effacera automatiquement une fois le jour passé.</p>
+   <div class="sheetbtns">${ex?`<button class="btn ghost" onclick="unplanRow('${noteId}',${ri})">Déprogrammer</button>`:`<button class="btn ghost" onclick="closeSheet()">Annuler</button>`}<button class="btn primary full" onclick="planRow('${noteId}',${ri})">Enregistrer</button></div>`);}
+function planRow(noteId,ri){const d=$("#pl_date").value;if(!d){toast("Choisis une date");return;}
+  if(d<todayKey()){toast("Cette date est déjà passée");return;}
+  const n=S.notes.find(x=>x.id===noteId);if(!n)return;
+  const r=ri>=0?(n.rows||[])[ri]:null;
+  const label=ri<0?(n.title||"Séance"):((n.title||"Séance")+" · "+((r&&r.sem)||"")+" "+((r&&r.seance)||"")).trim();
+  let ex=planOf(noteId,ri);
+  if(ex){ex.date=d;ex.label=label;ex.updated=Date.now();}
+  else S.plan.push({id:uid(),noteId,row:ri,date:d,label,created:Date.now(),updated:Date.now()});
+  save();closeSheet();renderNotes();toast("Programmée le "+d.split("-").reverse().join("/"));}
+function unplanRow(noteId,ri){const ex=planOf(noteId,ri);if(!ex)return;
+  S.deleted.plan[ex.id]=Date.now();S.plan=S.plan.filter(p=>p.id!==ex.id);
+  save();closeSheet();renderNotes();toast("Séance déprogrammée");}
 
 const FORCE_EXOS=["Back Squat","Soulevé de Terre","Développé Couché","Traction lestée"];
 const FORCE_DATA=[
@@ -736,19 +806,22 @@ function seedForceNote(){if(S.settings.forceSeeded)return;
 function renderNotes(){
   const root=$("#tab-notes");root.innerHTML="";
   const adds=el("div");adds.style.cssText="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap";
-  adds.innerHTML=`<button class="btn ghost" style="flex:1;min-width:150px" onclick="openFreeNote()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Note libre</button><button class="btn primary" style="flex:1;min-width:150px" onclick="newForceNote()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Cycle de force</button>`;
+  adds.innerHTML=`<button class="btn ghost" style="flex:1;min-width:130px" onclick="openFreeNote()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Note libre</button><button class="btn primary" style="flex:1;min-width:130px" onclick="newForceNote()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Cycle de force</button><button class="btn ghost" style="flex:1;min-width:130px;color:var(--acc3)" onclick="newFreestyleNote()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Programme freestyle</button>`;
   root.appendChild(adds);
-  if(!S.notes.length){root.appendChild(el("div","empty",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>Deux types de notes : <b>libre</b> pour écrire ce que tu veux, et <b>cycle de force</b> sous forme de tableau type Excel.</p>`));return;}
-  S.notes.filter(n=>n.type==="force"&&!n.archived).forEach(n=>root.appendChild(renderForceCard(n)));
-  const free=S.notes.filter(n=>n.type!=="force"&&!n.archived).sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.updated||0)-(a.updated||0));
+  if(!S.notes.length){root.appendChild(el("div","empty",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>Trois types de notes : <b>libre</b> pour écrire, <b>cycle de force</b> (kg × séries × reps) et <b>programme freestyle</b> (temps par exercice).</p>`));return;}
+  S.notes.filter(n=>(n.type==="force"||n.type==="freestyle")&&!n.archived).forEach(n=>root.appendChild(renderForceCard(n)));
+  const free=S.notes.filter(n=>n.type!=="force"&&n.type!=="freestyle"&&!n.archived).sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.updated||0)-(a.updated||0));
   if(free.length){const grid=el("div","notegrid");
-    free.forEach(n=>{const c=el("div","note"+(n.pinned?" pin":""));c.style.borderLeftColor="#0ea5a4";
+    free.forEach(n=>{const c=el("div","note"+(n.pinned?" pin":"")+(n.collapsed?" mini":""));c.style.borderLeftColor="#0ea5a4";
+      const pl=planOf(n.id,-1);
       c.innerHTML=`<svg class="pinbtn" viewBox="0 0 24 24" fill="${n.pinned?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="M12 17v5M9 10.76V3h6v7.76l3 3.24v2H6v-2z"/></svg>
-        <div class="ntag" style="color:#0ea5a4">Note</div>
+        <span class="colbtn" title="${n.collapsed?'Agrandir':'Réduire'}">${n.collapsed?"▸":"▾"}</span>
+        <div class="ntag" style="color:#0ea5a4">Note${pl?` <span style="color:var(--acc2)">· 📅 ${pl.date.slice(8,10)}/${pl.date.slice(5,7)}</span>`:""}</div>
         <div class="nt">${escapeHtml(n.title||"Sans titre")}</div>
         <div class="nb">${escapeHtml((n.body||"").slice(0,240))}</div>
         <div class="nd">${new Date(n.updated||n.created).toLocaleDateString("fr-FR",{day:"numeric",month:"short"})}</div>`;
       c.querySelector(".pinbtn").onclick=e=>{e.stopPropagation();const o=S.notes.find(x=>x.id===n.id);o.pinned=!o.pinned;o.updated=Date.now();save();renderNotes();};
+      c.querySelector(".colbtn").onclick=e=>{e.stopPropagation();toggleNoteCollapse(n.id);};
       c.onclick=()=>viewFreeNote(n.id);grid.appendChild(c);});
     root.appendChild(grid);}
   // section des notes archivées (repliée par défaut)
@@ -756,7 +829,7 @@ function renderNotes(){
   if(arch.length){const c=el("div","card");
     c.innerHTML=`<h2 style="cursor:pointer;margin-bottom:0;user-select:none" onclick="archOpen=!archOpen;renderNotes()"><span class="dot" style="background:var(--txt3)"></span>🗃️ Archivées (${arch.length})<span style="margin-left:auto;font-size:14px">${archOpen?"▾":"▸"}</span></h2>`+
     (archOpen?`<div style="margin-top:14px">`+arch.map(n=>{const when=n.archivedAt?new Date(n.archivedAt).toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"}):"";
-      return `<div class="kv" style="gap:10px"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--txt)">${n.type==="force"?"🏋️":"📝"} ${escapeHtml(n.title||"Sans titre")}<span class="muted" style="margin-left:8px;font-size:11px">${when}</span></span>
+      return `<div class="kv" style="gap:10px"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--txt)">${n.type==="force"?"🏋️":n.type==="freestyle"?"🤸":"📝"} ${escapeHtml(n.title||"Sans titre")}<span class="muted" style="margin-left:8px;font-size:11px">${when}</span></span>
       <b style="display:flex;gap:6px;flex-shrink:0"><button class="btn ghost" style="padding:6px 11px;font-size:12px" onclick="archiveNote('${n.id}')">Restaurer</button><button class="btn ghost" style="padding:6px 11px;font-size:12px" onclick="delNote('${n.id}')">Suppr.</button></b></div>`;}).join("")+`</div>`:"");
     root.appendChild(c);}
 }
@@ -767,25 +840,34 @@ function archiveNote(id){const n=S.notes.find(x=>x.id===id);if(!n)return;
 function viewFreeNote(id){const n=S.notes.find(x=>x.id===id);if(!n)return;
   openSheet(`<h3>${escapeHtml(n.title||"Sans titre")}</h3>
    <div class="detailbox" style="margin-top:6px">${n.body?escapeHtml(n.body):"<span style='color:var(--txt3)'>(Note vide)</span>"}</div>
-   <div class="sheetbtns"><button class="btn ghost" onclick="delNote('${n.id}')">Supprimer</button><button class="btn ghost" onclick="archiveNote('${n.id}')">${n.archived?"Restaurer":"✓ Archiver"}</button><button class="btn primary full" onclick="openFreeNote('${n.id}')">Modifier</button></div>`);}
+   <div class="sheetbtns"><button class="btn ghost" onclick="delNote('${n.id}')">Supprimer</button><button class="btn ghost" onclick="archiveNote('${n.id}')">${n.archived?"Restaurer":"✓ Archiver"}</button><button class="btn ghost" onclick="openProgramSheet('${n.id}',-1)">${planOf(n.id,-1)?"📅 "+planOf(n.id,-1).date.slice(8,10)+"/"+planOf(n.id,-1).date.slice(5,7):"📅 Programmer"}</button><button class="btn primary full" onclick="openFreeNote('${n.id}')">Modifier</button></div>`);}
+// Carte tableau commune aux cycles de force (kg/séries/reps) et aux programmes
+// freestyle (temps en minutes par exercice).
 function renderForceCard(n){const card=el("div","card fcard");const exos=n.exos||[];
+  const isFs=n.type==="freestyle";const FIELDS=isFs?["min"]:["kg","Sér.","Reps"];const NF=FIELDS.length;
   const rows=n.rows||[];const doneCt=rows.filter(r=>r.done).length;
   const nextIdx=rows.findIndex(r=>!r.done);
-  const head1=`<th></th><th></th><th></th>`+exos.map(e=>`<th class="grp" colspan="3">${escapeHtml(e)}</th>`).join("");
-  const head2=`<th>✓</th><th>Sem.</th><th>Séance</th>`+exos.map(()=>`<th class="grp">kg</th><th>Sér.</th><th>Reps</th>`).join("");
+  const pct=rows.length?Math.round(doneCt/rows.length*100):0;
+  const icon=isFs?"🤸":"🏋️";
+  const titleRow=`<div class="fttitle"><span style="display:flex;align-items:center;gap:8px;min-width:0"><button class="btn ghost" style="padding:6px 10px;font-size:13px" title="${n.collapsed?'Agrandir':'Réduire'}" onclick="toggleNoteCollapse('${n.id}')">${n.collapsed?"▸":"▾"}</button><span contenteditable oninput="renameForce('${n.id}',this.textContent)">${icon} ${escapeHtml(n.title||(isFs?"Programme freestyle":"Cycle de force"))}</span></span>
+    <span style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="pill" style="color:${doneCt?'var(--good)':'var(--txt2)'}">${doneCt}/${rows.length} faites</span>${n.collapsed?"":(isFs?"":`<button class="btn primary" onclick="openForceProgress('${n.id}',0)">📈 Progression</button>`)+`<button class="btn ghost" onclick="addForceExo('${n.id}')">+ exo</button><button class="btn ghost" onclick="delForceExo('${n.id}')">− exo</button><button class="btn ghost" onclick="addForceRow('${n.id}')">+ ligne</button><button class="btn ghost" onclick="delForceRow('${n.id}')">− ligne</button><button class="btn ghost" ${doneCt===rows.length&&rows.length?'style="color:var(--good)"':''} onclick="archiveNote('${n.id}')">🗃️ Archiver</button><button class="btn ghost" onclick="delNote('${n.id}')">Suppr.</button>`}</span></div>`;
+  if(n.collapsed){card.innerHTML=titleRow+`<div style="height:7px;border-radius:5px;background:var(--track);overflow:hidden;margin-top:4px"><div style="height:100%;width:${pct}%;background:var(--grad)"></div></div>`;return card;}
+  const head1=`<th></th><th></th><th></th><th></th>`+exos.map(e=>`<th class="grp" colspan="${NF}">${escapeHtml(e)}</th>`).join("");
+  const head2=`<th>✓</th><th>📅</th><th>Sem.</th><th>Séance</th>`+exos.map(()=>FIELDS.map((f,fi)=>`<th class="${fi===0?'grp':''}">${f}</th>`).join("")).join("");
   const body=rows.map((r,ri)=>{let cls=/lourde/i.test(r.seance)?"heavy":/volume/i.test(r.seance)?"vol":"";
     if(r.done)cls+=" done-row";else if(ri===nextIdx)cls+=" nextrow";
+    const pl=planOf(n.id,ri);
     let cells=`<td><button class="donebtn${r.done?' on':''}" title="${r.done?'Faite le '+(r.doneDate||'').split('-').reverse().join('/'):'Marquer comme faite'}" onclick="toggleForceDone('${n.id}',${ri})">✓</button></td>
+      <td><button class="planbtn${pl?' on':''}" title="${pl?'Programmée le '+pl.date.split('-').reverse().join('/'):'Programmer sur le calendrier'}" onclick="openProgramSheet('${n.id}',${ri})">${pl?pl.date.slice(8,10)+"/"+pl.date.slice(5,7):"📅"}</button></td>
       <td class="sem" contenteditable oninput="editForce('${n.id}',${ri},-1,0,this.textContent)">${escapeHtml(r.sem)}</td><td class="sea" contenteditable oninput="editForce('${n.id}',${ri},-1,1,this.textContent)">${escapeHtml(r.seance)}</td>`;
     (r.data||[]).forEach((d,ei)=>{d.forEach((v,fi)=>{cells+=`<td class="${fi===0?'grp':''}" contenteditable oninput="editForce('${n.id}',${ri},${ei},${fi},this.textContent)">${escapeHtml(String(v))}</td>`;});});
     return `<tr class="${cls}">${cells}</tr>`;}).join("");
-  const pct=rows.length?Math.round(doneCt/rows.length*100):0;
-  card.innerHTML=`<div class="fttitle"><span contenteditable oninput="renameForce('${n.id}',this.textContent)">🏋️ ${escapeHtml(n.title||"Cycle de force")}</span>
-    <span style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="pill" style="color:${doneCt?'var(--good)':'var(--txt2)'}">${doneCt}/${rows.length} faites</span><button class="btn primary" onclick="openForceProgress('${n.id}',0)">📈 Progression</button><button class="btn ghost" onclick="addForceExo('${n.id}')">+ exo</button><button class="btn ghost" onclick="delForceExo('${n.id}')">− exo</button><button class="btn ghost" onclick="addForceRow('${n.id}')">+ ligne</button><button class="btn ghost" onclick="delForceRow('${n.id}')">− ligne</button><button class="btn ghost" ${doneCt===rows.length&&rows.length?'style="color:var(--good)"':''} onclick="archiveNote('${n.id}')">🗃️ Archiver</button><button class="btn ghost" onclick="delNote('${n.id}')">Suppr.</button></span></div>
+  card.innerHTML=titleRow+`
     <div style="height:7px;border-radius:5px;background:var(--track);overflow:hidden;margin-bottom:12px"><div style="height:100%;width:${pct}%;background:var(--grad)"></div></div>
-    <div class="ftwrap"><table class="ft"><thead><tr>${head1}</tr><tr>${head2}</tr></thead><tbody>${body}</tbody></table></div>
-    <p class="muted" style="margin-top:10px;font-size:11.5px">Coche ✓ quand la séance est faite — la ligne surlignée en violet est ta prochaine séance. Orange = lourde · bleu = volume.</p>`;
+    <div class="ftwrap"><table class="ft" style="min-width:${isFs?440+exos.length*60:700}px"><thead><tr>${head1}</tr><tr>${head2}</tr></thead><tbody>${body}</tbody></table></div>
+    <p class="muted" style="margin-top:10px;font-size:11.5px">✓ = séance faite · 📅 = programmer sur le calendrier prévisionnel — la ligne violette est ta prochaine séance.${isFs?" Temps en minutes par exercice.":" Orange = lourde · bleu = volume."}</p>`;
   return card;}
+function toggleNoteCollapse(id){const n=S.notes.find(x=>x.id===id);if(!n)return;n.collapsed=!n.collapsed;n.updated=Date.now();save();renderNotes();}
 function toggleForceDone(id,ri){const n=S.notes.find(x=>x.id===id);if(!n||!n.rows[ri])return;const r=n.rows[ri];
   if(r.done){delete r.done;delete r.doneDate;}else{r.done=true;r.doneDate=todayKey();}
   n.updated=Date.now();save();renderNotes();}
@@ -815,7 +897,7 @@ function openForceProgress(id,ei){const n=S.notes.find(x=>x.id===id);if(!n)retur
    ${isTraction?`<p class="muted" style="margin-top:12px;font-size:11.5px">Pour les tractions lestées, les valeurs correspondent au lest ajouté (hors poids de corps).</p>`:""}`);}
 function editForce(id,ri,ei,fi,val){const n=S.notes.find(x=>x.id===id);if(!n)return;val=(val||"").trim();
   if(ei<0){if(fi===0)n.rows[ri].sem=val;else n.rows[ri].seance=val;}else n.rows[ri].data[ei][fi]=val;n.updated=Date.now();save();}
-function renameForce(id,val){const n=S.notes.find(x=>x.id===id);if(!n)return;n.title=(val||"").replace(/^🏋️\s*/,"").trim();n.updated=Date.now();save();}
+function renameForce(id,val){const n=S.notes.find(x=>x.id===id);if(!n)return;n.title=(val||"").replace(/^[🏋️🤸]+\s*/u,"").trim();n.updated=Date.now();save();}
 function newForceNote(){openSheet(`<h3>Nouveau cycle de force</h3><div class="sub">Choisis librement tes exercices</div>
    <label>Titre</label><input id="nf_title" value="Cycle de force">
    <label>Exercices (un par ligne)</label><textarea id="nf_exos" style="min-height:130px" placeholder="Un exercice par ligne">Back Squat
@@ -827,9 +909,20 @@ function createForceNote(){const title=$("#nf_title").value.trim()||"Cycle de fo
   const exos=$("#nf_exos").value.split("\n").map(s=>s.trim()).filter(Boolean);if(!exos.length){toast("Ajoute au moins un exercice");return;}
   const nr=clamp(parseInt($("#nf_rows").value)||4,1,80);const rows=[];for(let i=0;i<nr;i++)rows.push({sem:"S"+(Math.floor(i/2)+1),seance:(i%2===0?"1 · Lourde":"2 · Volume"),data:exos.map(()=>["","",""])});
   S.notes.push({id:uid(),type:"force",title,exos,rows,created:Date.now(),updated:Date.now()});save();closeSheet();renderNotes();toast("Cycle de force créé");}
-function addForceExo(id){const n=S.notes.find(x=>x.id===id);if(!n)return;const name=prompt("Nom du nouvel exercice :");if(!name||!name.trim())return;n.exos.push(name.trim());n.rows.forEach(r=>r.data.push(["","",""]));n.updated=Date.now();save();renderNotes();}
+function newFreestyleNote(){openSheet(`<h3>Nouveau programme freestyle</h3><div class="sub">Des exercices au temps (minutes) plutôt qu'en séries × répétitions</div>
+   <label>Titre</label><input id="fs_title" value="Programme freestyle">
+   <label>Exercices (un par ligne)</label><textarea id="fs_exos" style="min-height:130px" placeholder="Un exercice par ligne">Handstand
+Planche
+L-sit</textarea>
+   <label>Nombre de séances de départ</label><input type="number" id="fs_rows" value="4" inputmode="numeric">
+   <div class="sheetbtns"><button class="btn ghost" onclick="closeSheet()">Annuler</button><button class="btn primary full" onclick="createFreestyleNote()">Créer le programme</button></div>`);}
+function createFreestyleNote(){const title=$("#fs_title").value.trim()||"Programme freestyle";
+  const exos=$("#fs_exos").value.split("\n").map(s=>s.trim()).filter(Boolean);if(!exos.length){toast("Ajoute au moins un exercice");return;}
+  const nr=clamp(parseInt($("#fs_rows").value)||4,1,80);const rows=[];for(let i=0;i<nr;i++)rows.push({sem:"S"+(i+1),seance:"Séance "+(i+1),data:exos.map(()=>[""])});
+  S.notes.push({id:uid(),type:"freestyle",title,exos,rows,created:Date.now(),updated:Date.now()});save();closeSheet();renderNotes();toast("Programme freestyle créé");}
+function addForceExo(id){const n=S.notes.find(x=>x.id===id);if(!n)return;const name=prompt("Nom du nouvel exercice :");if(!name||!name.trim())return;n.exos.push(name.trim());const blank=n.type==="freestyle"?[""]:["","",""];n.rows.forEach(r=>r.data.push(blank.slice()));n.updated=Date.now();save();renderNotes();}
 function delForceExo(id){const n=S.notes.find(x=>x.id===id);if(!n||n.exos.length<=1)return;if(confirm("Supprimer le dernier exercice ("+n.exos[n.exos.length-1]+") ?")){n.exos.pop();n.rows.forEach(r=>r.data.pop());n.updated=Date.now();save();renderNotes();}}
-function addForceRow(id){const n=S.notes.find(x=>x.id===id);if(!n)return;n.rows.push({sem:"",seance:"",data:(n.exos||[]).map(()=>["","",""])});n.updated=Date.now();save();renderNotes();}
+function addForceRow(id){const n=S.notes.find(x=>x.id===id);if(!n)return;const blank=n.type==="freestyle"?[""]:["","",""];n.rows.push({sem:"",seance:"",data:(n.exos||[]).map(()=>blank.slice())});n.updated=Date.now();save();renderNotes();}
 function delForceRow(id){const n=S.notes.find(x=>x.id===id);if(!n||!n.rows.length)return;if(confirm("Supprimer la dernière ligne ?")){n.rows.pop();n.updated=Date.now();save();renderNotes();}}
 
 let suppPeriod=14;
@@ -951,7 +1044,9 @@ function saveFreeNote(id){const t=$("#n_title").value.trim(),b=$("#n_body").valu
   if(id){const n=S.notes.find(x=>x.id===id);n.title=t;n.body=b;n.pinned=p;n.type="free";n.updated=Date.now();}
   else S.notes.push({id:uid(),type:"free",title:t,body:b,pinned:p,created:Date.now(),updated:Date.now()});
   save();closeSheet();renderNotes();toast("Note enregistrée");}
-function delNote(id){if(confirm("Supprimer cette note ?")){S.deleted.notes[id]=Date.now();S.notes=S.notes.filter(x=>x.id!==id);save();closeSheet();renderNotes();}}
+function delNote(id){if(confirm("Supprimer cette note ?")){S.deleted.notes[id]=Date.now();S.notes=S.notes.filter(x=>x.id!==id);
+  S.plan.filter(p=>p.noteId===id).forEach(p=>S.deleted.plan[p.id]=Date.now());S.plan=S.plan.filter(p=>p.noteId!==id);
+  save();closeSheet();renderNotes();}}
 
 function openSupp(id){const s=id?S.supps.find(x=>x.id===id):null;
   openSheet(`<h3>${s?"Modifier le complément":"Nouveau complément"}</h3><div class="sub">Nom, dosage et fréquence</div>
@@ -1051,7 +1146,10 @@ function buildContext(){const tk=Object.keys(S.days).sort().pop()||todayKey();co
     analyseHebdo:weeklyStats(),
     tonnageMuscuParSemaine:tonnageByWeek(),
     sante7jours:recentDays,entrainementsRecents:recentW,complements:supToday,
-    notes:S.notes.map(n=>n.type==="force"?{type:"cycle de force",titre:n.title,exercices:n.exos,plan:(n.rows||[]).map(r=>({sem:r.sem,seance:r.seance,faite:!!r.done,charges:(n.exos||[]).map((e,i)=>e+" "+((r.data[i]||[]).join("kg ×")))}))}:{type:"note libre",titre:n.title,contenu:n.body})};}
+    notes:S.notes.map(n=>n.type==="force"?{type:"cycle de force",titre:n.title,archivee:!!n.archived,exercices:n.exos,plan:(n.rows||[]).map(r=>({sem:r.sem,seance:r.seance,faite:!!r.done,charges:(n.exos||[]).map((e,i)=>e+" "+((r.data[i]||[]).join("kg ×")))}))}
+      :n.type==="freestyle"?{type:"programme freestyle",titre:n.title,archivee:!!n.archived,exercices:n.exos,plan:(n.rows||[]).map(r=>({seance:r.seance,faite:!!r.done,minutes:(n.exos||[]).map((e,i)=>e+" "+((r.data[i]||[""])[0]||"?")+" min")}))}
+      :{type:"note libre",titre:n.title,archivee:!!n.archived,contenu:n.body}),
+    seancesProgrammees:S.plan.map(p=>({date:p.date,seance:p.label}))};}
 function openAI(){const hasKey=!!S.settings.apiKey;
   openSheet(`<div class="aihead"><div class="av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.6 4.6L18 8.2l-4.4 1.6L12 14l-1.6-4.2L6 8.2l4.4-1.6z"/></svg></div><div class="t"><b>Assistant Vitalis</b><span>${hasKey?"Accès complet à tes données":"Clé API requise (Réglages)"}</span></div></div>
    <div class="chatwrap"><div class="chatmsgs" id="chatMsgs"></div>
@@ -1077,11 +1175,11 @@ async function aiSend(){const inp=$("#chatInput");const q=inp.value.trim();if(!q
   }catch(err){typing.remove();S.ai.push({role:"assistant",content:"⚠️ Erreur : "+err.message+"\n\nVérifie ta clé API et le modèle dans les Réglages."});save();renderChat();}}
 
 let curTab="recovery";
-const renderers={recovery:renderRecovery,training:renderTraining,notes:renderNotes,supps:renderSupps};
+const renderers={recovery:renderRecovery,training:renderTraining,cal:renderCalTab,notes:renderNotes,supps:renderSupps};
 function switchTab(t){curTab=t;document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));$("#tab-"+t).classList.add("active");
   document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("on",b.dataset.tab===t));renderers[t]();$(".scroll").scrollTop=0;}
 document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
-function calShift(n){calMonth+=n;if(calMonth<0){calMonth=11;calYear--;}if(calMonth>11){calMonth=0;calYear++;}renderTraining();}
+function calShift(n){calMonth+=n;if(calMonth<0){calMonth=11;calYear--;}if(calMonth>11){calMonth=0;calYear++;}renderCalTab();}
 function renderAll(){renderers[curTab]();updateSyncBadge();}
 function updateSyncBadge(){const st=$("#syncStatus");const nd=Object.keys(S.days).length,nw=S.workouts.length;
   if(S.settings.lastSync){const d=new Date(S.settings.lastSync);st.textContent="Sync "+d.toLocaleDateString("fr-FR",{day:"numeric",month:"short"})+" · "+nd+" j · "+nw+" séances";$("#importBtn").classList.add("synced");}
