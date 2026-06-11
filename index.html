@@ -308,7 +308,8 @@ const DEFAULT={settings:{userName:"",sex:"M",age:30,hrMax:0,hrRest:0,sleepGoal:8
 let S=load();
 S.rev=S.rev||0;
 S.deleted=S.deleted||{};["notes","workouts","supps"].forEach(k=>S.deleted[k]=S.deleted[k]||{});
-S.workouts.forEach(w=>{if(w){w.name=normWorkoutName(w.name);w.trimp=trimp(w);}});save(false);
+// NB : la migration des séances (normalisation des noms + recalcul sRPE) est faite
+// en fin de script — trimp() dépend d'utilitaires const non encore initialisés ici.
 function load(){try{const r=JSON.parse(localStorage.getItem(KEY));if(r)return Object.assign({},DEFAULT,r,{settings:Object.assign({},DEFAULT.settings,r.settings||{})});}catch(e){}return JSON.parse(JSON.stringify(DEFAULT));}
 // bump=false : écriture locale pure (migration, fusion) — sinon on horodate et on
 // programme l'envoi de l'état vers le Worker pour les autres appareils.
@@ -1086,6 +1087,7 @@ function updateSyncBadge(){const st=$("#syncStatus");const nd=Object.keys(S.days
   if(S.settings.lastSync){const d=new Date(S.settings.lastSync);st.textContent="Sync "+d.toLocaleDateString("fr-FR",{day:"numeric",month:"short"})+" · "+nd+" j · "+nw+" séances";$("#importBtn").classList.add("synced");}
   else if(nd||nw)st.textContent=nd+" jours · "+nw+" séances";else st.textContent="Aucune donnée";}
 $("#importBtn").onclick=openImportHelp;$("#settingsBtn").onclick=openSettings;$("#aiFab").onclick=openAI;$("#aiNav").onclick=openAI;
+S.workouts.forEach(w=>{if(w){w.name=normWorkoutName(w.name);w.trimp=trimp(w);}});save(false);
 seedForceNote();
 switchTab("recovery");updateSyncBadge();
 if(S.settings.syncUrl)fetchSync(true);
