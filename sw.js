@@ -1,5 +1,5 @@
 // Service worker Vitalis — réseau d'abord (l'app reste à jour), cache en secours (hors-ligne).
-const CACHE = "vitalis-v1";
+const CACHE = "vitalis-v2";
 const ASSETS = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {

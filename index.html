@@ -6,45 +6,47 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Vitalis">
-<meta name="theme-color" content="#eceef3" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0f1117" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f1f3ee" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a100e" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>Vitalis — Santé & Forme</title>
 <style>
 :root{
-  --bg:#eceef3; --bg2:#ffffff; --surface:#ffffff; --surface2:#f1f3f8;
-  --border:rgba(18,22,40,.09); --border2:rgba(18,22,40,.16);
-  --txt:#15171f; --txt2:#565d70; --txt3:#929aac;
-  --track:rgba(18,22,40,.08); --grid:rgba(18,22,40,.07);
-  --acc:#0ea5a4; --acc2:#6366f1; --acc3:#d946ef;
-  --good:#10b981; --warn:#f59e0b; --bad:#ef4444;
-  --grad:linear-gradient(135deg,#2dd4bf 0%,#6366f1 55%,#d946ef 100%);
-  --r:22px; --r2:16px; --sh:0 10px 34px rgba(20,25,55,.10); --sh2:0 4px 16px rgba(20,25,55,.07);
-  --glass:rgba(255,255,255,.9); --glasscard:linear-gradient(160deg,#ffffff,#f7f8fc);
+  --bg:#f1f3ee; --bg2:#ffffff; --surface:#ffffff; --surface2:#ecf0e9;
+  --border:rgba(19,32,27,.10); --border2:rgba(19,32,27,.19);
+  --txt:#13201b; --txt2:#50635b; --txt3:#879790;
+  --track:rgba(19,32,27,.08); --grid:rgba(19,32,27,.07);
+  --acc:#059669; --acc2:#0891b2; --acc3:#e11d63;
+  --good:#059669; --warn:#d97706; --bad:#dc2626;
+  --grad:linear-gradient(135deg,#10b981 0%,#06b6d4 100%);
+  --r:18px; --r2:14px; --sh:0 8px 26px rgba(19,40,32,.09); --sh2:0 3px 12px rgba(19,40,32,.06);
+  --glass:rgba(255,255,255,.92); --glasscard:linear-gradient(160deg,#ffffff,#f3f7f1);
   --safe-b:env(safe-area-inset-bottom,0px); --safe-t:env(safe-area-inset-top,0px);
 }
 @media (prefers-color-scheme:dark){:root{
-  --bg:#0f1117; --bg2:#171a23; --surface:#1a1e29; --surface2:#232836;
-  --border:rgba(235,240,255,.08); --border2:rgba(235,240,255,.17);
-  --txt:#e8eaf2; --txt2:#a3abc2; --txt3:#6b7390;
-  --track:rgba(235,240,255,.10); --grid:rgba(235,240,255,.07);
-  --sh:0 10px 34px rgba(0,0,0,.45); --sh2:0 4px 16px rgba(0,0,0,.32);
-  --glass:rgba(23,26,35,.88); --glasscard:linear-gradient(160deg,#1d2230,#171a23);
+  --bg:#0a100e; --bg2:#101816; --surface:#131c19; --surface2:#1b2622;
+  --border:rgba(214,242,229,.08); --border2:rgba(214,242,229,.17);
+  --txt:#e6efe9; --txt2:#9db1a7; --txt3:#64776e;
+  --track:rgba(214,242,229,.10); --grid:rgba(214,242,229,.07);
+  --acc:#34d399; --acc2:#22d3ee; --acc3:#fb7185;
+  --good:#34d399; --warn:#fbbf24; --bad:#f87171;
+  --sh:0 10px 32px rgba(0,0,0,.5); --sh2:0 4px 14px rgba(0,0,0,.35);
+  --glass:rgba(16,24,22,.9); --glasscard:linear-gradient(160deg,#16221d,#101816);
 }}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%}
 body{
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Inter,system-ui,sans-serif;
-  background:radial-gradient(1100px 720px at 82% -12%,rgba(99,102,241,.12) 0%,transparent 58%),radial-gradient(900px 650px at 2% 112%,rgba(45,212,191,.13) 0%,transparent 55%),var(--bg);
+  background:radial-gradient(1100px 720px at 82% -12%,rgba(6,182,212,.10) 0%,transparent 58%),radial-gradient(900px 650px at 2% 112%,rgba(16,185,129,.12) 0%,transparent 55%),var(--bg);
   color:var(--txt);-webkit-font-smoothing:antialiased;overflow:hidden;letter-spacing:-.01em;
 }
 .app{display:flex;flex-direction:column;height:100vh;height:100dvh;width:100%;max-width:820px;margin:0 auto;position:relative}
 header{padding:calc(var(--safe-t) + 16px) 22px 10px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0}
 .brand{display:flex;align-items:center;gap:11px}
-.logo{width:36px;height:36px;border-radius:12px;background:var(--grad);display:grid;place-items:center;box-shadow:0 6px 18px rgba(99,102,241,.35)}
+.logo{width:36px;height:36px;border-radius:12px;background:var(--grad);display:grid;place-items:center;box-shadow:0 6px 18px rgba(6,182,212,.35)}
 .logo svg{width:20px;height:20px}
-.brand h1{font-size:20px;font-weight:720;letter-spacing:-.02em}
+.brand h1{font-size:20px;font-weight:780;letter-spacing:-.03em;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
 .brand span{display:block;font-size:11px;color:var(--txt3);font-weight:500;margin-top:1px}
 .hbtns{display:flex;gap:8px}
 .iconbtn{width:39px;height:39px;border-radius:13px;background:var(--surface);border:1px solid var(--border);color:var(--txt2);display:grid;place-items:center;cursor:pointer;transition:.18s;box-shadow:var(--sh2)}
@@ -53,7 +55,7 @@ header{padding:calc(var(--safe-t) + 16px) 22px 10px;display:flex;align-items:cen
 .iconbtn.synced{color:var(--good);border-color:rgba(16,185,129,.35)}
 .shell{flex:1;display:flex;min-height:0}
 .sidebar{display:none}
-.scroll{flex:1;overflow-y:auto;overflow-x:hidden;padding:6px 16px 130px}
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;padding:6px 16px 130px;scroll-behavior:smooth}
 .scroll::-webkit-scrollbar{width:8px}.scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:8px}
 .content{width:100%}
 .tab{display:none;animation:fade .3s ease}
@@ -68,14 +70,14 @@ header{padding:calc(var(--safe-t) + 16px) 22px 10px;display:flex;align-items:cen
   .navbtn:hover{background:var(--surface)}
   .navbtn.on{background:var(--surface);color:var(--txt);box-shadow:var(--sh2)}
   .navbtn.on svg{color:var(--acc2)}
-  .navbtn.ainav{margin-top:auto;background:var(--grad);color:#fff;box-shadow:0 8px 22px rgba(99,102,241,.32)}
+  .navbtn.ainav{margin-top:auto;background:var(--grad);color:#fff;box-shadow:0 8px 22px rgba(6,182,212,.32)}
   .navbtn.ainav svg{color:#fff}
   .tabbar{display:none!important}
   .fab{display:none!important}
   .scroll{padding:18px 36px 50px}
   .content{max-width:1160px;margin:0 auto}
 }
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:14px;box-shadow:var(--sh)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--sh)}
 .card.glass{background:var(--glasscard)}
 .card h2{font-size:12.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--txt2);font-weight:680;margin-bottom:14px;display:flex;align-items:center;gap:8px}
 .card h2 .dot{width:6px;height:6px;border-radius:50%;background:var(--acc)}
@@ -121,7 +123,7 @@ header{padding:calc(var(--safe-t) + 16px) 22px 10px;display:flex;align-items:cen
 .chartlbls{display:flex;justify-content:space-between;font-size:11px;color:var(--txt3);margin-top:8px}
 .charttip{display:none;position:absolute;top:-6px;left:50%;transform:translate(-50%,-100%);background:var(--txt);color:var(--bg2);padding:6px 11px;border-radius:9px;font-size:11.5px;font-weight:600;pointer-events:none;white-space:nowrap;z-index:6;box-shadow:var(--sh2)}
 .btn{border:none;border-radius:14px;padding:12px 18px;font-size:14px;font-weight:650;cursor:pointer;font-family:inherit;transition:.16s;display:inline-flex;align-items:center;gap:8px;justify-content:center}
-.btn.primary{background:var(--grad);color:#fff;box-shadow:0 8px 20px rgba(99,102,241,.3)}
+.btn.primary{background:var(--grad);color:#fff;box-shadow:0 8px 20px rgba(6,182,212,.3)}
 .btn.primary:hover{filter:brightness(1.05)}
 .btn.ghost{background:var(--surface);border:1px solid var(--border);color:var(--txt);box-shadow:var(--sh2)}
 .btn.ghost:hover{background:var(--surface2)}
@@ -137,15 +139,18 @@ header{padding:calc(var(--safe-t) + 16px) 22px 10px;display:flex;align-items:cen
 .calnav{display:flex;gap:7px}
 .calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
 .caldow{text-align:center;font-size:10.5px;color:var(--txt3);font-weight:700;padding-bottom:4px;text-transform:uppercase}
-.calday{aspect-ratio:.92;border-radius:12px;background:var(--surface2);border:1.5px solid transparent;display:flex;flex-direction:column;align-items:center;padding:5px 3px 4px;cursor:pointer;position:relative;transition:.15s;overflow:hidden}
+.calday{aspect-ratio:.72;border-radius:10px;background:var(--surface2);border:1.5px solid transparent;display:flex;flex-direction:column;align-items:center;padding:4px 3px 4px;cursor:pointer;position:relative;transition:.15s;overflow:hidden}
 .calday:hover{border-color:var(--border2)}
 .calday.empty{background:transparent;cursor:default}
-.calday.today{border-color:var(--acc2);box-shadow:0 0 0 2px rgba(99,102,241,.15)}
-.calday .dn{font-size:12px;font-weight:700;color:var(--txt2)}
+.calday.today{border-color:var(--acc2);box-shadow:0 0 0 2px rgba(6,182,212,.15)}
+.calday .dn{font-size:11.5px;font-weight:700;color:var(--txt2)}
 .calday.today .dn{color:var(--acc2)}
-.calday .wbars{display:flex;flex-direction:column;gap:2.5px;width:100%;align-items:center;margin-top:4px}
-.calday .wbar{height:4px;width:78%;border-radius:3px}
-.calday .wmin{font-size:9px;color:var(--txt2);font-weight:700;margin-top:auto}
+.calday .wlabs{display:flex;flex-direction:column;gap:2px;width:100%;margin-top:3px;flex:1;min-height:0;overflow:hidden}
+.wlab{display:flex;align-items:center;gap:3px;font-size:8.5px;font-weight:680;color:var(--txt2);line-height:1.2;width:100%;overflow:hidden}
+.wlab i{width:5px;height:5px;border-radius:2px;flex-shrink:0}
+.wlab span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+@media(min-width:620px){.wlab{font-size:10.5px;gap:4px}.wlab i{width:6px;height:6px}}
+.calday .wmin{font-size:9px;color:var(--txt3);font-weight:700;margin-top:auto}
 .wkitem{display:flex;align-items:center;gap:13px;padding:13px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);margin-bottom:9px;cursor:pointer;transition:.15s;box-shadow:var(--sh2)}
 .wkitem:hover{transform:translateY(-2px);box-shadow:var(--sh)}
 .wkitem .wko{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;flex-shrink:0;font-size:21px}
@@ -172,7 +177,7 @@ header{padding:calc(var(--safe-t) + 16px) 22px 10px;display:flex;align-items:cen
 .note .nb{font-size:12.5px;color:var(--txt2);line-height:1.5;flex:1;white-space:pre-wrap;overflow:hidden}
 .note .nd{font-size:10.5px;color:var(--txt3);margin-top:8px}
 .note .pinbtn{position:absolute;top:12px;right:12px;color:var(--txt3);width:18px;height:18px;cursor:pointer}
-.note.pin{box-shadow:0 8px 24px rgba(99,102,241,.15)}
+.note.pin{box-shadow:0 8px 24px rgba(6,182,212,.15)}
 .note.pin .pinbtn{color:var(--acc2)}
 .supitem{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:14px 15px;margin-bottom:10px;display:flex;align-items:center;gap:14px;box-shadow:var(--sh2)}
 .supcheck{width:46px;height:46px;border-radius:14px;border:2px solid var(--border2);display:grid;place-items:center;cursor:pointer;flex-shrink:0;transition:.18s;color:transparent}
@@ -186,7 +191,7 @@ header{padding:calc(var(--safe-t) + 16px) 22px 10px;display:flex;align-items:cen
 .tabbtn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 15px;border-radius:16px;color:var(--txt3);cursor:pointer;transition:.18s;border:none;background:none;font-family:inherit}
 .tabbtn svg{width:21px;height:21px}.tabbtn span{font-size:10px;font-weight:650}
 .tabbtn.on{color:var(--txt);background:var(--surface2)}.tabbtn.on svg{color:var(--acc2)}
-.fab{position:absolute;right:18px;bottom:calc(88px + var(--safe-b));width:56px;height:56px;border-radius:18px;background:var(--grad);display:grid;place-items:center;cursor:pointer;box-shadow:0 10px 30px rgba(99,102,241,.45);z-index:45;transition:.2s}
+.fab{position:absolute;right:18px;bottom:calc(88px + var(--safe-b));width:56px;height:56px;border-radius:18px;background:var(--grad);display:grid;place-items:center;cursor:pointer;box-shadow:0 10px 30px rgba(6,182,212,.45);z-index:45;transition:.2s}
 .fab:hover{transform:scale(1.06)}.fab svg{width:26px;height:26px;color:#fff}
 .overlay{position:fixed;inset:0;background:rgba(20,25,50,.34);backdrop-filter:blur(7px);z-index:100;display:none;align-items:center;justify-content:center;padding:18px}
 .overlay.open{display:flex}
@@ -255,12 +260,12 @@ tr.heavy{background:rgba(245,158,11,.10)} tr.vol{background:rgba(59,130,246,.08)
 .donebtn{width:25px;height:25px;border-radius:8px;border:1.5px solid var(--border2);background:var(--surface2);color:transparent;cursor:pointer;font-size:13px;font-weight:800;line-height:1;padding:0;transition:.15s}
 .donebtn.on{background:var(--good);border-color:var(--good);color:#fff}
 .planbtn{min-width:25px;height:25px;border-radius:8px;border:1.5px solid var(--border2);background:var(--surface2);color:var(--txt3);cursor:pointer;font-size:11px;font-weight:700;line-height:1;padding:0 5px;transition:.15s}
-.planbtn.on{background:rgba(99,102,241,.14);border-color:var(--acc2);color:var(--acc2)}
+.planbtn.on{background:rgba(6,182,212,.14);border-color:var(--acc2);color:var(--acc2)}
 .note .colbtn{position:absolute;top:9px;right:36px;width:20px;height:20px;display:grid;place-items:center;color:var(--txt3);cursor:pointer;font-size:12px;user-select:none}
 .note.mini{min-height:0}
 .note.mini .nb,.note.mini .nd{display:none}
 tr.done-row td{opacity:.55} tr.done-row td:first-child{opacity:1}
-tr.nextrow td{background:rgba(99,102,241,.09)} tr.nextrow td:first-child{box-shadow:inset 3px 0 0 var(--acc2)}
+tr.nextrow td{background:rgba(6,182,212,.09)} tr.nextrow td:first-child{box-shadow:inset 3px 0 0 var(--acc2)}
 </style>
 </head>
 <body>
@@ -392,14 +397,14 @@ const PERIODS=[[14,"2 sem"],[30,"1 mois"],[90,"3 mois"],[180,"6 mois"],[365,"1 a
 function periodChips(cur,fn){return `<div class="chips">`+PERIODS.map(([d,l])=>`<div class="chip${cur===d?' on':''}" onclick="${fn}(${d})">${l}</div>`).join("")+`</div>`;}
 
 const METRICS=[
- {k:"hrv",label:"VFC (HRV)",unit:"ms",color:"#0ea5a4",hi:true,dec:0},
- {k:"rhr",label:"FC repos",unit:"bpm",color:"#d946ef",hi:false,dec:0},
- {k:"sleep",label:"Sommeil",unit:"",color:"#6366f1",hi:true,dec:1,sleep:true},
+ {k:"hrv",label:"VFC (HRV)",unit:"ms",color:"#10b981",hi:true,dec:0},
+ {k:"rhr",label:"FC repos",unit:"bpm",color:"#fb7185",hi:false,dec:0},
+ {k:"sleep",label:"Sommeil",unit:"",color:"#06b6d4",hi:true,dec:1,sleep:true},
  {k:"resp",label:"Resp.",unit:"/min",color:"#10b981",hi:false,dec:1},
  {k:"spo2",label:"SpO₂",unit:"%",color:"#0ea5e9",hi:true,dec:0},
  {k:"steps",label:"Pas",unit:"",color:"#f59e0b",hi:true,dec:0},
  {k:"energy",label:"Énergie active",unit:"kcal",color:"#f97316",hi:true,dec:0},
- {k:"vo2",label:"VO₂ max",unit:"",color:"#8b5cf6",hi:true,dec:1},
+ {k:"vo2",label:"VO₂ max",unit:"",color:"#38bdf8",hi:true,dec:1},
  {k:"weight",label:"Poids",unit:"kg",color:"#64748b",hi:false,dec:1},
  {k:"wristtemp",label:"Temp. poignet",unit:"°C",color:"#ef4444",hi:false,dec:1}
 ];
@@ -526,7 +531,7 @@ function chartMove(e,id){const c=CHARTS[id];const svg=document.getElementById(id
  if(cur){cur.style.display="";const l=cur.querySelector("line");if(l){l.setAttribute("x1",px);l.setAttribute("x2",px);}
   const circ=cur.querySelector("circle");if(circ&&c.type==="line"){circ.setAttribute("cx",px);circ.setAttribute("cy",c.y(p.value));}}
  tip.style.display="block";
- if(c.type==="dual")tip.innerHTML=`<b>${fmtTick(p.date)}</b> · charge ${round(p.load)} · <span style="color:#2dd4bf">CTL ${round(p.ctl)}</span> · <span style="color:#f0a3f7">ATL ${round(p.atl)}</span>`;
+ if(c.type==="dual")tip.innerHTML=`<b>${fmtTick(p.date)}</b> · charge ${round(p.load)} · <span style="color:#34d399">CTL ${round(p.ctl)}</span> · <span style="color:#fda4af">ATL ${round(p.atl)}</span>`;
  else tip.innerHTML=`<b>${fmtTick(p.date)}</b> · ${c.fmtFn?c.fmtFn(p.value):round(p.value,Math.abs(p.value)<10?1:0).toLocaleString("fr-FR")}${c.unit?" "+c.unit:""}`;
  const tipX=clamp(px/c.w*r.width,55,r.width-55);
  tip.style.left=tipX+"px";}
@@ -545,13 +550,13 @@ function lineChart(series,color,fmtFn,h=180,unit){const w=600;const vals=series.
 function dualBarLine(ser,h=190){const w=600;if(!ser.length)return "<div class='bigchart'></div>";
  const maxLoad=Math.max(10,...ser.map(s=>Math.max(s.load,s.ctl,s.atl)));const n=ser.length;const bw=Math.max(1.2,(w-54)/n*0.7);
  const x=i=>44+i/(Math.max(1,n-1))*(w-54);const y=v=>h-22-(v/maxLoad)*(h-40);let bars="",ctlP="",atlP="";
- ser.forEach((s,i)=>{const px=x(i);if(s.load>0)bars+=`<rect x="${round(px-bw/2,1)}" y="${round(y(s.load),1)}" width="${round(bw,1)}" height="${round(h-22-y(s.load),1)}" rx="1" fill="${hexA('#6366f1',.32)}"/>`;
+ ser.forEach((s,i)=>{const px=x(i);if(s.load>0)bars+=`<rect x="${round(px-bw/2,1)}" y="${round(y(s.load),1)}" width="${round(bw,1)}" height="${round(h-22-y(s.load),1)}" rx="1" fill="${hexA('#06b6d4',.32)}"/>`;
   ctlP+=(i?"L":"M")+round(px,1)+" "+round(y(s.ctl),1)+" ";atlP+=(i?"L":"M")+round(px,1)+" "+round(y(s.atl),1)+" ";});
  let grid="";for(let g=0;g<=3;g++){const gy=20+g/3*(h-40);grid+=`<line x1="44" y1="${round(gy,1)}" x2="${w}" y2="${round(gy,1)}" stroke="var(--grid)"/><text x="2" y="${round(gy+3,1)}" fill="var(--txt3)" font-size="10">${round(maxLoad-(g/3)*maxLoad)}</text>`;}
  const id="db"+Math.random().toString(36).slice(2,7);
  CHARTS[id]={type:"dual",series:ser,w,h,padL:44,padR:10,y};
  const cur=`<g id="${id}_cur" style="display:none"><line y1="18" y2="${h-22}" stroke="var(--border2)" stroke-width="1" stroke-dasharray="3 3"/></g>`;
- return chartWrap(`<svg id="${id}" class="bigchart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${grid}${xTicks(ser,x,h)}${bars}<path d="${atlP}" fill="none" stroke="#d946ef" stroke-width="2.2"/><path d="${ctlP}" fill="none" stroke="#0ea5a4" stroke-width="2.6"/>${cur}</svg>`,id);}
+ return chartWrap(`<svg id="${id}" class="bigchart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${grid}${xTicks(ser,x,h)}${bars}<path d="${atlP}" fill="none" stroke="#fb7185" stroke-width="2.2"/><path d="${ctlP}" fill="none" stroke="#10b981" stroke-width="2.6"/>${cur}</svg>`,id);}
 
 function sleepScore(dayKey){const day=S.days[dayKey];if(!day||day.sleep==null)return null;
   const goal=S.settings.sleepGoal||8;const durComp=clamp(day.sleep/goal*100,0,100);
@@ -594,7 +599,7 @@ function renderRecovery(){
       <div class="ring"><svg width="190" height="190" viewBox="0 0 190 190">
         <circle cx="95" cy="95" r="80" fill="none" stroke="var(--track)" stroke-width="13"/>
         <circle cx="95" cy="95" r="80" fill="none" stroke="url(#rg)" stroke-width="13" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"/>
-        <defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2dd4bf"/><stop offset=".55" stop-color="#6366f1"/><stop offset="1" stop-color="#d946ef"/></linearGradient></defs>
+        <defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#34d399"/><stop offset=".55" stop-color="#06b6d4"/><stop offset="1" stop-color="#fb7185"/></linearGradient></defs>
       </svg><div class="ctr"><div class="score">${rec.score}</div><div class="lbl">Score récup</div></div></div>
       <div class="recdate">📅 ${dStr}</div>
       <div class="recstate" style="color:${st.c}">${st.t}</div>
@@ -627,10 +632,10 @@ function renderRecovery(){
 
   if(hasData){const sl=sleepScore(tk);if(sl){const slCard=el("div","card clickable");
     slCard.onclick=()=>openSleepDetail(tk);
-    slCard.innerHTML=`<h2><span class="dot" style="background:#6366f1"></span>Indice de sommeil</h2>
+    slCard.innerHTML=`<h2><span class="dot" style="background:#06b6d4"></span>Indice de sommeil</h2>
       <div style="display:flex;align-items:center;gap:18px">
         <div style="font-size:42px;font-weight:760;letter-spacing:-.03em;color:${sl.c}">${sl.score}</div>
-        <div style="flex:1"><div style="height:9px;border-radius:6px;background:var(--track);overflow:hidden"><div style="height:100%;width:${sl.score}%;background:linear-gradient(90deg,#2dd4bf,#6366f1)"></div></div>
+        <div style="flex:1"><div style="height:9px;border-radius:6px;background:var(--track);overflow:hidden"><div style="height:100%;width:${sl.score}%;background:linear-gradient(90deg,#34d399,#06b6d4)"></div></div>
         <div class="otsub" style="margin-top:8px">${sl.txt}</div></div></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">${sl.parts.map(p=>`<span class="pill">${p}</span>`).join("")}</div>
       <div class="seelink">Voir le détail du calcul →</div>`;
@@ -655,7 +660,7 @@ function openRecoveryDetail(dk){recDetailDay=dk=dk||Object.keys(S.days).sort().p
    <div class="detailbox" style="margin-top:4px;font-size:12px"><b>Méthode :</b> chaque métrique du jour est comparée à ta ligne de base personnelle (moyenne ± écart-type des 30 derniers jours). Score composant = 50 + 22 × z, où z = nombre d'écarts-types au-dessus (VFC) ou en dessous (FC repos, resp.) de ta normale — borné 0–100. Le sommeil est noté par rapport à ton objectif. Score final = moyenne pondérée (poids affichés), renormalisée si une donnée manque.</div>`:`<p class="muted">Pas assez de données ce jour.</p>`}
    <h3 style="font-size:16px;margin-top:18px">Évolution</h3>
    ${periodChips(recHistPeriod,"setRecHist")}
-   ${lineChart(ser,"#6366f1",null)}
+   ${lineChart(ser,"#06b6d4",null)}
    <div style="margin-top:12px"><div class="kv"><span>Score moyen</span><b>${avg}</b></div>
    ${tr?`<div class="kv"><span>Tendance (7 derniers j)</span><b style="color:${tr.dir==="up"?"var(--good)":tr.dir==="down"?"var(--bad)":"var(--txt2)"}">${tr.dir==="up"?"▲ en hausse":tr.dir==="down"?"▼ en baisse":"= stable"} (${tr.delta>0?"+":""}${tr.delta} pts)</b></div>`:""}
    <div class="kv"><span>Jours mesurés</span><b>${vals.length}</b></div></div>`);
@@ -664,8 +669,8 @@ function openOvertrainingDetail(){const ot=overtraining();if(!ot)return;
   const ser=loadSeries();const last=ser[ser.length-1];
   const trend=recoveryTrend();
   openSheet(`<h3>Risque de surentraînement : ${ot.band.t}</h3><div class="sub">Comment il est calculé</div>
-   <div class="kv"><span>ATL · charge aiguë<br><small class="muted">moyenne lissée de tes charges sur 7 j</small></span><b style="color:#d946ef">${round(last.atl,1)}</b></div>
-   <div class="kv"><span>CTL · charge chronique<br><small class="muted">moyenne lissée sur 42 j (ta tolérance construite)</small></span><b style="color:#0ea5a4">${round(last.ctl,1)}</b></div>
+   <div class="kv"><span>ATL · charge aiguë<br><small class="muted">moyenne lissée de tes charges sur 7 j</small></span><b style="color:#fb7185">${round(last.atl,1)}</b></div>
+   <div class="kv"><span>CTL · charge chronique<br><small class="muted">moyenne lissée sur 42 j (ta tolérance construite)</small></span><b style="color:#10b981">${round(last.ctl,1)}</b></div>
    <div class="kv"><span>ACWR = ATL ÷ CTL<br><small class="muted">${round(last.atl,1)} ÷ ${round(last.ctl,1)}</small></span><b style="color:${ot.band.c}">${ot.acwr}</b></div>
    <div class="kv"><span>TSB · fraîcheur = CTL − ATL</span><b>${ot.tsb>0?"+":""}${ot.tsb}</b></div>
    ${trend?`<div class="kv"><span>Tendance de récupération (7 j)</span><b style="color:${trend.dir==="down"?"var(--bad)":"var(--txt)"}">${trend.dir==="up"?"▲":trend.dir==="down"?"▼ (malus appliqué)":"="} ${trend.delta>0?"+":""}${trend.delta} pts</b></div>`:""}
@@ -681,11 +686,11 @@ function openSleepDetail(dk){dk=dk||Object.keys(S.days).sort().pop()||todayKey()
    ${sl.compComp!=null?`<div class="kv"><span>Profondeur<br><small class="muted">${fmtSleepH(dr)} de profond + REM = ${Math.round(day.sleep>0?dr/day.sleep*100:0)} % de la nuit (cible 40 %)</small></span><b>${Math.round(sl.compComp)}/100 <small class="muted" style="font-weight:600">× 30 %</small></b></div>`:""}
    <div class="detailbox" style="font-size:12px"><b>Méthode :</b> score = moyenne pondérée des composantes ci-dessus (poids renormalisés si une donnée manque). La durée est notée par rapport à ton objectif ; la régularité pénalise les heures de coucher variables (±1 h d'écart-type ≈ 40/100) ; la profondeur vise ≈ 40 % de sommeil profond + REM, la fourchette physiologique normale.</div>
    <h3 style="font-size:16px;margin-top:18px">Évolution · 30 j</h3>
-   ${lineChart(ser,"#6366f1",null)}`);}
+   ${lineChart(ser,"#06b6d4",null)}`);}
 
 let calMonth=new Date().getMonth(),calYear=new Date().getFullYear(),loadPeriod=90;
 function setLoadPeriod(d){loadPeriod=d;renderTraining();}
-const WPALETTE=["#f97316","#06b6d4","#3b82f6","#10b981","#14b8a6","#d946ef","#8b5cf6","#ef4444","#0ea5a4","#ec4899","#eab308","#22c55e","#a855f7","#0ea5e9"];
+const WPALETTE=["#f97316","#06b6d4","#3b82f6","#10b981","#14b8a6","#fb7185","#38bdf8","#ef4444","#10b981","#ec4899","#eab308","#22c55e","#a855f7","#0ea5e9"];
 function hashColor(s){let h=0;s=s||"";for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return WPALETTE[h%WPALETTE.length];}
 function normWorkoutName(n){const s=(n||"").trim().toLowerCase();
  if(s==="autre"||s==="other"||s==="freestyle")return"Freestyle";
@@ -693,7 +698,7 @@ function normWorkoutName(n){const s=(n||"").trim().toLowerCase();
  if(/traditionnel|traditional/.test(s))return"Rééducation";
  return (n&&n.trim())||"Séance";}
 function workoutColor(n){const s=(n||"").toLowerCase();
- if(/musculation/.test(s))return"#6366f1";if(/rééduc|reeduc|réeduc/.test(s))return"#f59e0b";if(/freestyle/.test(s))return"#d946ef";
+ if(/musculation/.test(s))return"#06b6d4";if(/rééduc|reeduc|réeduc/.test(s))return"#f59e0b";if(/freestyle/.test(s))return"#fb7185";
  if(/cours|run|jog|trail/.test(s))return"#f97316";if(/vélo|velo|cycl|bike/.test(s))return"#06b6d4";
  if(/nage|swim|piscine/.test(s))return"#3b82f6";if(/yoga|mobil|étire|etire|stretch|pilates/.test(s))return"#10b981";
  if(/marche|walk|rando/.test(s))return"#14b8a6";if(/foot|tennis|basket|rugby|hand|boxe/.test(s))return"#ec4899";
@@ -709,15 +714,15 @@ function renderTraining(){
   const sum=el("div","card glass");
   sum.innerHTML=`<h2><span class="dot"></span>Charge d'entraînement</h2>
    <div class="loadrow">
-     <div class="loadbox"><div class="lv" style="color:#0ea5a4">${last?round(last.ctl):0}</div><div class="ll">CTL · Forme</div><div class="ld muted">chronique 42j</div></div>
-     <div class="loadbox"><div class="lv" style="color:#d946ef">${last?round(last.atl):0}</div><div class="ll">ATL · Fatigue</div><div class="ld muted">aiguë 7j</div></div>
+     <div class="loadbox"><div class="lv" style="color:#10b981">${last?round(last.ctl):0}</div><div class="ll">CTL · Forme</div><div class="ld muted">chronique 42j</div></div>
+     <div class="loadbox"><div class="lv" style="color:#fb7185">${last?round(last.atl):0}</div><div class="ll">ATL · Fatigue</div><div class="ld muted">aiguë 7j</div></div>
      <div class="loadbox"><div class="lv" style="color:${fs.c}">${last?(last.tsb>0?"+":"")+round(last.tsb):0}</div><div class="ll">TSB · Fraîcheur</div><div class="ld" style="color:${fs.c}">${fs.t}</div></div>
    </div>
    ${periodChips(loadPeriod,"setLoadPeriod")}
-   <div style="display:flex;gap:14px;align-items:center;font-size:11px;color:var(--txt2);margin-bottom:6px;flex-wrap:wrap"><span style="color:#0ea5a4">━ CTL · forme</span><span style="color:#d946ef">━ ATL · fatigue</span><span style="color:#6366f1">▮ charge/jour</span></div>
+   <div style="display:flex;gap:14px;align-items:center;font-size:11px;color:var(--txt2);margin-bottom:6px;flex-wrap:wrap"><span style="color:#10b981">━ CTL · forme</span><span style="color:#fb7185">━ ATL · fatigue</span><span style="color:#06b6d4">▮ charge/jour</span></div>
    <div style="font-size:10.5px;color:var(--txt3);margin-bottom:2px">↕ axe vertical : charge quotidienne en UA sRPE (RPE × minutes)</div>
    ${dualBarLine(ser.slice(-loadPeriod))}
-   <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);font-size:12px;color:var(--txt2);line-height:1.65"><b>Comment lire :</b> chaque barre = la <b>charge d'une journée</b> en <b>sRPE de Foster</b> (effort perçu × durée — la méthode validée scientifiquement pour la musculation ; renseigne ton RPE après chaque séance pour une mesure fiable). La courbe <b style="color:#0ea5a4">turquoise (CTL)</b> = ta forme de fond (moyenne lissée sur 42 j). La courbe <b style="color:#d946ef">rose (ATL)</b> = ta fatigue récente (7 j). Le <b>TSB</b> (fraîcheur) = CTL − ATL : <span style="color:var(--good)">positif = frais/affûté</span>, <span style="color:var(--bad)">négatif = fatigué</span>.</div>`;
+   <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);font-size:12px;color:var(--txt2);line-height:1.65"><b>Comment lire :</b> chaque barre = la <b>charge d'une journée</b> en <b>sRPE de Foster</b> (effort perçu × durée — la méthode validée scientifiquement pour la musculation ; renseigne ton RPE après chaque séance pour une mesure fiable). La courbe <b style="color:#10b981">verte (CTL)</b> = ta forme de fond (moyenne lissée sur 42 j). La courbe <b style="color:#fb7185">rose (ATL)</b> = ta fatigue récente (7 j). Le <b>TSB</b> (fraîcheur) = CTL − ATL : <span style="color:var(--good)">positif = frais/affûté</span>, <span style="color:var(--bad)">négatif = fatigué</span>.</div>`;
   root.appendChild(sum);
 
   // ---- Analyse scientifique hebdomadaire (Foster : monotonie, contrainte) ----
@@ -728,7 +733,7 @@ function renderTraining(){
     const dB=wk.delta==null?{c:"var(--txt3)"}:wk.delta>30?{c:"var(--bad)"}:wk.delta>10?{c:"var(--warn)"}:{c:"var(--good)"};
     const aB=ot2?(ot2.acwr>=0.8&&ot2.acwr<=1.3?"var(--good)":(ot2.acwr<=1.5?"var(--warn)":"var(--bad)")):"var(--txt3)";
     const sci=el("div","card");
-    sci.innerHTML=`<h2><span class="dot" style="background:#8b5cf6"></span>Analyse scientifique · 7 derniers jours</h2>
+    sci.innerHTML=`<h2><span class="dot" style="background:#38bdf8"></span>Analyse scientifique · 7 derniers jours</h2>
      <div class="loadrow" style="grid-template-columns:repeat(2,1fr)">
        <div class="loadbox clickable" onclick="openSciDetail('load')"><div class="lv">${wk.load.toLocaleString("fr-FR")}</div><div class="ll">Charge hebdo (UA)</div><div class="ld" style="color:${dB.c}">${wk.delta==null?"1ʳᵉ semaine mesurée":(wk.delta>0?"+":"")+wk.delta+" % vs sem. préc."}</div></div>
        <div class="loadbox clickable" onclick="openSciDetail('mono')"><div class="lv" style="color:${mB.c}">${wk.mono}</div><div class="ll">Monotonie</div><div class="ld" style="color:${mB.c}">${mB.t}</div></div>
@@ -746,12 +751,12 @@ function renderTraining(){
     const maxT=Math.max(...last8.map(k=>tw[k]));
     const bw2=600/last8.length;
     const bars=last8.map((k,i)=>{const h=Math.max(4,(tw[k]/maxT)*108);const x=i*bw2+bw2*0.15;
-      return `<rect x="${round(x,1)}" y="${round(150-22-h,1)}" width="${round(bw2*0.7,1)}" height="${round(h,1)}" rx="4" fill="${k===curWk?'#8b5cf6':hexA('#8b5cf6',.4)}"/>
+      return `<rect x="${round(x,1)}" y="${round(150-22-h,1)}" width="${round(bw2*0.7,1)}" height="${round(h,1)}" rx="4" fill="${k===curWk?'#38bdf8':hexA('#38bdf8',.4)}"/>
         <text x="${round(x+bw2*0.35,1)}" y="${round(Math.max(10,150-22-h-5),1)}" text-anchor="middle" fill="var(--txt2)" font-size="10" font-weight="600">${(tw[k]/1000).toFixed(1)}t</text>
         <text x="${round(x+bw2*0.35,1)}" y="144" text-anchor="middle" fill="var(--txt3)" font-size="9.5">${k.slice(8,10)}/${k.slice(5,7)}</text>`;}).join("");
     const dT=prevT>0&&curT>0?Math.round((curT-prevT)/prevT*100):null;
     const ton=el("div","card");
-    ton.innerHTML=`<h2><span class="dot" style="background:#6366f1"></span>Tonnage musculation · par semaine</h2>
+    ton.innerHTML=`<h2><span class="dot" style="background:#06b6d4"></span>Tonnage musculation · par semaine</h2>
      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px"><div style="font-size:28px;font-weight:740">${Math.round(curT).toLocaleString("fr-FR")} kg</div><div class="muted">cette semaine${dT!=null?` · <b style="color:${dT>30?'var(--bad)':dT>10?'var(--warn)':'var(--good)'}">${dT>0?"+":""}${dT} %</b> vs précédente`:""}</div></div>
      <svg viewBox="0 0 600 150" style="width:100%;height:150px" preserveAspectRatio="none">${bars}</svg>
      <p class="muted" style="margin-top:8px;font-size:11.5px">Volume-charge = Σ kg × séries × reps des séances cochées ✓ dans ton plan de force — la mesure de référence du volume en musculation, indépendante de la fréquence cardiaque.</p>`;
@@ -789,7 +794,7 @@ function renderCalTab(){
       const cell=el("div","calday"+(dk===tk?" today":""));
       if(ws.length)cell.style.background=hexA(workoutColor(ws[0].name),.13);
       const totMin=ws.reduce((a,w)=>a+(w.durationMin||0),0);
-      cell.innerHTML=`<div class="dn">${d}</div>`+(ws.length?`<div class="wbars">${ws.slice(0,3).map(w=>`<span class="wbar" style="background:${workoutColor(w.name)}"></span>`).join("")}</div><div class="wmin">${totMin?Math.round(totMin)+"′":""}</div>`:"");
+      cell.innerHTML=`<div class="dn">${d}</div>`+(ws.length?`<div class="wlabs">${ws.slice(0,2).map(w=>`<div class="wlab"><i style="background:${workoutColor(w.name)}"></i><span>${escapeHtml(w.name)}</span></div>`).join("")}${ws.length>2?`<div class="wlab"><span>+${ws.length-2} autre${ws.length>3?"s":""}</span></div>`:""}</div><div class="wmin">${totMin?Math.round(totMin)+"′":""}</div>`:"");
       cell.onclick=()=>openDayWorkouts(dk);grid.appendChild(cell);}
     // légende : types d'entraînement présents ce mois, chacun sa couleur
     const types={};const ym=calYear+"-"+pad(calMonth+1);const wbd2=workoutsByDay();
@@ -804,14 +809,15 @@ function renderCalTab(){
     for(let d=1;d<=dim;d++){const dk=calYear+"-"+pad(calMonth+1)+"-"+pad(d);const ps=pbd[dk]||[];const past=dk<tk;
       const cell=el("div","calday"+(dk===tk?" today":""));
       if(past){cell.style.opacity=".32";cell.innerHTML=`<div class="dn">${d}</div>`;grid.appendChild(cell);continue;}
-      if(ps.length)cell.style.background=hexA("#6366f1",.13);
-      cell.innerHTML=`<div class="dn">${d}</div>`+(ps.length?`<div class="wbars">${ps.slice(0,3).map(p=>`<span class="wbar" style="background:${workoutColor(p.label)}"></span>`).join("")}</div><div class="wmin">${ps.length>1?ps.length+" séances":"1 séance"}</div>`:"");
+      if(ps.length)cell.style.background=hexA("#06b6d4",.13);
+      const shortLbl=p=>{const parts=(p.label||"").split(" · ");return parts.length>1?parts.slice(1).join(" "):(p.label||"Séance");};
+      cell.innerHTML=`<div class="dn">${d}</div>`+(ps.length?`<div class="wlabs">${ps.slice(0,2).map(p=>`<div class="wlab"><i style="background:${workoutColor(p.label)}"></i><span>${escapeHtml(shortLbl(p))}</span></div>`).join("")}${ps.length>2?`<div class="wlab"><span>+${ps.length-2}</span></div>`:""}</div>`:"");
       cell.onclick=()=>openDayPlan(dk);grid.appendChild(cell);}
     cal.insertAdjacentHTML("beforeend",`<p class="muted" style="margin-top:12px;font-size:11.5px">Tes séances à venir, programmées depuis l'onglet <b>Notes</b> (icône 📅 à côté de chaque séance). Les jours passés s'effacent automatiquement.</p>`);
     // liste des prochaines séances programmées
     const next=[...S.plan].sort((a,b)=>a.date.localeCompare(b.date)).slice(0,8);
     if(next.length){const lc=el("div","card");
-      lc.innerHTML=`<h2><span class="dot" style="background:#6366f1"></span>Prochaines séances</h2>`+next.map(p=>{const dObj=parseDate(p.date);const dStr=dObj?dObj.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}):p.date;
+      lc.innerHTML=`<h2><span class="dot" style="background:#06b6d4"></span>Prochaines séances</h2>`+next.map(p=>{const dObj=parseDate(p.date);const dStr=dObj?dObj.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}):p.date;
         return `<div class="kv"><span style="text-transform:capitalize">${dStr}</span><b>${escapeHtml(p.label)}</b></div>`;}).join("");
       root.appendChild(lc);}
     else root.appendChild(el("div","empty",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><p>Aucune séance programmée.<br>Va dans <b>Notes</b> et touche l'icône 📅 à côté d'une séance pour la planifier.</p>`));
@@ -906,11 +912,11 @@ function renderNotes(){
   S.notes.filter(n=>(n.type==="force"||n.type==="freestyle")&&!n.archived).forEach(n=>root.appendChild(renderForceCard(n)));
   const free=S.notes.filter(n=>n.type!=="force"&&n.type!=="freestyle"&&!n.archived).sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.updated||0)-(a.updated||0));
   if(free.length){const grid=el("div","notegrid");
-    free.forEach(n=>{const c=el("div","note"+(n.pinned?" pin":"")+(n.collapsed?" mini":""));c.style.borderLeftColor="#0ea5a4";
+    free.forEach(n=>{const c=el("div","note"+(n.pinned?" pin":"")+(n.collapsed?" mini":""));c.style.borderLeftColor="#10b981";
       const pl=planOf(n.id,-1);
       c.innerHTML=`<svg class="pinbtn" viewBox="0 0 24 24" fill="${n.pinned?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="M12 17v5M9 10.76V3h6v7.76l3 3.24v2H6v-2z"/></svg>
         <span class="colbtn" title="${n.collapsed?'Agrandir':'Réduire'}">${n.collapsed?"▸":"▾"}</span>
-        <div class="ntag" style="color:#0ea5a4">Note${pl?` <span style="color:var(--acc2)">· 📅 ${pl.date.slice(8,10)}/${pl.date.slice(5,7)}</span>`:""}</div>
+        <div class="ntag" style="color:#10b981">Note${pl?` <span style="color:var(--acc2)">· 📅 ${pl.date.slice(8,10)}/${pl.date.slice(5,7)}</span>`:""}</div>
         <div class="nt">${escapeHtml(n.title||"Sans titre")}</div>
         <div class="nb">${escapeHtml((n.body||"").slice(0,240))}</div>
         <div class="nd">${new Date(n.updated||n.created).toLocaleDateString("fr-FR",{day:"numeric",month:"short"})}</div>`;
@@ -981,7 +987,7 @@ function openForceProgress(id,ei){const n=S.notes.find(x=>x.id===id);if(!n)retur
   openSheet(`<h3>Progression — ${escapeHtml(exos[ei]||"")}</h3>
    <div class="sub">${fromPlan?"Charges planifiées du cycle (coche des séances ✓ pour suivre ta progression réelle)":"1RM estimé sur tes "+done.length+" séances faites"}</div>
    ${chips}
-   ${lineChart(ser,"#6366f1",null,180,"kg")}
+   ${lineChart(ser,"#06b6d4",null,180,"kg")}
    <div style="margin-top:16px">
    <div class="kv"><span>1RM estimé actuel (Epley)</span><b>${last!=null?last+" kg":"—"}</b></div>
    <div class="kv"><span>Meilleur 1RM estimé</span><b>${vals.length?Math.max(...vals)+" kg":"—"}</b></div>
