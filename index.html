@@ -117,8 +117,9 @@ header{padding:calc(var(--safe-t) + 16px) 22px 10px;display:flex;align-items:cen
 .chips{display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap}
 .chip{padding:7px 13px;border-radius:20px;background:var(--surface);border:1px solid var(--border);color:var(--txt2);font-size:12.5px;font-weight:650;cursor:pointer;transition:.15s;box-shadow:var(--sh2)}
 .chip.on{background:var(--txt);color:#fff;border-color:var(--txt)}
-.bigchart{width:100%;height:180px}
+.bigchart{width:100%;height:180px;display:block}
 .chartlbls{display:flex;justify-content:space-between;font-size:11px;color:var(--txt3);margin-top:8px}
+.charttip{display:none;position:absolute;top:-6px;left:50%;transform:translate(-50%,-100%);background:var(--txt);color:var(--bg2);padding:6px 11px;border-radius:9px;font-size:11.5px;font-weight:600;pointer-events:none;white-space:nowrap;z-index:6;box-shadow:var(--sh2)}
 .btn{border:none;border-radius:14px;padding:12px 18px;font-size:14px;font-weight:650;cursor:pointer;font-family:inherit;transition:.16s;display:inline-flex;align-items:center;gap:8px;justify-content:center}
 .btn.primary{background:var(--grad);color:#fff;box-shadow:0 8px 20px rgba(99,102,241,.3)}
 .btn.primary:hover{filter:brightness(1.05)}
@@ -464,6 +465,34 @@ function weeklyStats(){const lm=dailyLoadMap();const d=lastNDays(14).map(k=>lm[k
 // Tonnage musculation : Σ kg × séries × reps des lignes cochées ✓ du plan de force,
 // regroupé par semaine (lundi). Le volume-charge est la mesure de référence du
 // volume en force, indépendante de la FC.
+// Fiche de détail des indicateurs scientifiques (carte Analyse de l'onglet Forme)
+function openSciDetail(kind){if(kind==="acwr"){openOvertrainingDetail();return;}
+  const wk=weeklyStats();if(!wk)return;const lm=dailyLoadMap();
+  const days7=lastNDays(7);const vals=days7.map(k=>lm[k]||0);
+  const mean=wk.load/7;const sd=Math.sqrt(vals.reduce((x,y)=>x+(y-mean)*(y-mean),0)/7);
+  const dayRows=days7.map(k=>{const v=Math.round(lm[k]||0);const dObj=parseDate(k);
+    return `<div class="kv"><span style="text-transform:capitalize">${dObj?dObj.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric"}):k}</span><b style="color:${v?'var(--txt)':'var(--txt3)'}">${v?v+" UA":"repos"}</b></div>`;}).join("");
+  if(kind==="load"){
+    openSheet(`<h3>Charge hebdo : ${wk.load.toLocaleString("fr-FR")} UA</h3><div class="sub">Somme des charges sRPE des 7 derniers jours</div>
+     ${dayRows}
+     <div class="kv"><span><b>Total 7 jours</b></span><b>${wk.load.toLocaleString("fr-FR")} UA</b></div>
+     <div class="kv"><span>Semaine précédente</span><b>${wk.prev.toLocaleString("fr-FR")} UA</b></div>
+     ${wk.delta!=null?`<div class="kv"><span>Variation</span><b style="color:${wk.delta>30?'var(--bad)':wk.delta>10?'var(--warn)':'var(--good)'}">${wk.delta>0?"+":""}${wk.delta} %</b></div>`:""}
+     <div class="detailbox" style="font-size:12px"><b>Calcul :</b> charge d'une séance = RPE × minutes (sRPE de Foster) ; la charge hebdo additionne tes 7 derniers jours. <b>Interprétation :</b> une progression durable se fait par paliers de <b>+5 à +10 % par semaine</b> maximum. Au-delà de +10 % (orange) le risque de blessure de surcharge augmente ; au-delà de +30 % (rouge) tu es dans la zone la plus accidentogène — particulièrement sensible pour tes adducteurs.</div>`);
+  }else if(kind==="mono"){
+    openSheet(`<h3>Monotonie : ${wk.mono}</h3><div class="sub">Variabilité de ta charge sur 7 jours (Foster)</div>
+     ${dayRows}
+     <div class="kv"><span>Charge moyenne / jour</span><b>${round(mean,1)} UA</b></div>
+     <div class="kv"><span>Écart-type des charges</span><b>${round(sd,1)} UA</b></div>
+     <div class="kv"><span>Monotonie = moyenne ÷ écart-type</span><b>${wk.mono}</b></div>
+     <div class="detailbox" style="font-size:12px"><b>Interprétation :</b> <span style="color:var(--good)">&lt; 1,5 = bien variée</span> · <span style="color:var(--warn)">1,5–2 = un peu monotone</span> · <span style="color:var(--bad)">&gt; 2 = trop monotone</span>. S'entraîner avec la même charge tous les jours (monotonie haute) augmente le risque de blessure et de surmenage <b>même si la charge totale ne change pas</b> (Foster, 1998). Le remède : alterner jours lourds, jours légers et vrais jours de repos — le repos complet fait baisser la monotonie.</div>`);
+  }else if(kind==="strain"){
+    openSheet(`<h3>Contrainte (strain) : ${wk.strain.toLocaleString("fr-FR")}</h3><div class="sub">Charge hebdo × monotonie (Foster)</div>
+     <div class="kv"><span>Charge hebdo</span><b>${wk.load.toLocaleString("fr-FR")} UA</b></div>
+     <div class="kv"><span>Monotonie</span><b>${wk.mono}</b></div>
+     <div class="kv"><span>Contrainte = ${wk.load.toLocaleString("fr-FR")} × ${wk.mono}</span><b>${wk.strain.toLocaleString("fr-FR")}</b></div>
+     <div class="detailbox" style="font-size:12px"><b>Interprétation :</b> la contrainte combine le volume de travail ET sa répétitivité — c'est le meilleur prédicteur de Foster pour les blessures et infections, dont les pics précèdent souvent l'incident de quelques jours. Repères : <span style="color:var(--good)">&lt; 3 000 = maîtrisée</span> · <span style="color:var(--warn)">3 000–6 000 = soutenue</span> · <span style="color:var(--bad)">&gt; 6 000 = très élevée</span>. Deux leviers pour la faire baisser : réduire la charge, ou garder la charge mais mieux la répartir (variation = monotonie plus basse).</div>`);
+  }}
 function mondayKey(dk){const d=parseDate(dk);d.setDate(d.getDate()-((d.getDay()+6)%7));return fmtKey(d);}
 function tonnageByWeek(){const weeks={};
  S.notes.filter(n=>n.type==="force").forEach(n=>{(n.rows||[]).forEach(r=>{
@@ -479,21 +508,50 @@ function spark(series,color,h=34){const vals=series.map(p=>p.value);const has=va
  series.forEach((p,i)=>{if(p.value==null)return;const px=x(i),py=y(p.value);d+=(started?"L":"M")+round(px,1)+" "+round(py,1)+" ";started=true;lastPt=[px,py];});
  const id="g"+Math.random().toString(36).slice(2,7);let area=d?d+`L ${round(x(n-1),1)} ${h} L ${round(x(0),1)} ${h} Z`:"";
  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".3"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><path d="${area}" fill="url(#${id})"/><path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>${lastPt?`<circle cx="${round(lastPt[0],1)}" cy="${round(lastPt[1],1)}" r="2.6" fill="${color}"/>`:""}</svg>`;}
-function lineChart(series,color,fmtFn,h=180){const w=600;const vals=series.map(p=>p.value).filter(v=>v!=null);
+/* ---------- Graphiques interactifs : ticks de dates sur l'axe X + valeur au survol/tap ---------- */
+const CHARTS={};
+function fmtTick(s){s=String(s||"");if(/^\d{4}-\d{2}-\d{2}/.test(s))return s.slice(8,10)+"/"+s.slice(5,7);return s.length>9?s.slice(0,9)+"…":s;}
+function xTicks(series,x,h){const n=series.length;if(!n)return "";
+ const idxs=[...new Set([0,Math.round((n-1)/3),Math.round(2*(n-1)/3),n-1])];
+ return idxs.map(i=>`<text x="${round(x(i),1)}" y="${h-5}" text-anchor="${i===0?'start':i===n-1?'end':'middle'}" fill="var(--txt3)" font-size="10">${fmtTick(series[i].date)}</text>`).join("");}
+function chartWrap(svg,id){return `<div style="position:relative;touch-action:pan-y" onpointermove="chartMove(event,'${id}')" onpointerdown="chartMove(event,'${id}')" onpointerleave="chartLeave('${id}')">${svg}<div class="charttip" id="${id}_tip"></div></div>`;}
+function chartMove(e,id){const c=CHARTS[id];const svg=document.getElementById(id);const tip=document.getElementById(id+"_tip");if(!c||!svg||!tip)return;
+ const r=svg.getBoundingClientRect();if(!r.width)return;
+ const vx=(e.clientX-r.left)/r.width*c.w;
+ const n=c.series.length;const fx=i=>c.padL+i/Math.max(1,n-1)*(c.w-c.padL-c.padR);
+ let best=-1,bd=1e9;
+ c.series.forEach((p,i)=>{if(c.type==="line"&&p.value==null)return;const dd=Math.abs(fx(i)-vx);if(dd<bd){bd=dd;best=i;}});
+ if(best<0)return;const p=c.series[best];const px=fx(best);
+ const cur=document.getElementById(id+"_cur");
+ if(cur){cur.style.display="";const l=cur.querySelector("line");if(l){l.setAttribute("x1",px);l.setAttribute("x2",px);}
+  const circ=cur.querySelector("circle");if(circ&&c.type==="line"){circ.setAttribute("cx",px);circ.setAttribute("cy",c.y(p.value));}}
+ tip.style.display="block";
+ if(c.type==="dual")tip.innerHTML=`<b>${fmtTick(p.date)}</b> · charge ${round(p.load)} · <span style="color:#2dd4bf">CTL ${round(p.ctl)}</span> · <span style="color:#f0a3f7">ATL ${round(p.atl)}</span>`;
+ else tip.innerHTML=`<b>${fmtTick(p.date)}</b> · ${c.fmtFn?c.fmtFn(p.value):round(p.value,Math.abs(p.value)<10?1:0).toLocaleString("fr-FR")}${c.unit?" "+c.unit:""}`;
+ const tipX=clamp(px/c.w*r.width,55,r.width-55);
+ tip.style.left=tipX+"px";}
+function chartLeave(id){const tip=document.getElementById(id+"_tip");if(tip)tip.style.display="none";
+ const cur=document.getElementById(id+"_cur");if(cur)cur.style.display="none";}
+function lineChart(series,color,fmtFn,h=180,unit){const w=600;const vals=series.map(p=>p.value).filter(v=>v!=null);
  if(!vals.length)return `<div class="bigchart" style="display:grid;place-items:center;color:var(--txt3);font-size:13px">Pas de données sur cette période</div>`;
  let mn=Math.min(...vals),mx=Math.max(...vals);const p=(mx-mn)*0.12||1;mn-=p;mx+=p;
- const n=series.length;const x=i=>44+i/(n-1)*(w-54);const y=v=>h-24-((v-mn)/(mx-mn))*(h-44);let d="",started=false;const pts=[];
+ const n=series.length;const x=i=>44+i/Math.max(1,n-1)*(w-54);const y=v=>h-24-((v-mn)/(mx-mn))*(h-44);let d="",started=false;const pts=[];
  series.forEach((pt,i)=>{if(pt.value==null)return;const px=x(i),py=y(pt.value);d+=(started?"L":"M")+round(px,1)+" "+round(py,1)+" ";started=true;pts.push([px,py]);});
  const id="lg"+Math.random().toString(36).slice(2,7);const area=d+`L ${round(x(n-1),1)} ${h-24} L ${round(x(0),1)} ${h-24} Z`;
  let grid="";for(let g=0;g<=3;g++){const gy=24+g/3*(h-48);const gv=mx-(g/3)*(mx-mn);grid+=`<line x1="44" y1="${round(gy,1)}" x2="${w}" y2="${round(gy,1)}" stroke="var(--grid)" stroke-width="1"/><text x="2" y="${round(gy+3,1)}" fill="var(--txt3)" font-size="10">${fmtFn?fmtFn(gv):round(gv,Math.abs(mx)<10?1:0)}</text>`;}
- return `<svg class="bigchart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".32"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>${grid}<path d="${area}" fill="url(#${id})"/><path d="${d}" fill="none" stroke="${color}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>${pts.length?`<circle cx="${round(pts[pts.length-1][0],1)}" cy="${round(pts[pts.length-1][1],1)}" r="3.5" fill="${color}"/>`:""}</svg>`;}
+ CHARTS[id]={type:"line",series,fmtFn,unit,w,h,padL:44,padR:10,y};
+ const cur=`<g id="${id}_cur" style="display:none"><line y1="20" y2="${h-24}" stroke="var(--border2)" stroke-width="1" stroke-dasharray="3 3"/><circle r="4.5" fill="${color}" stroke="var(--bg2)" stroke-width="2"/></g>`;
+ return chartWrap(`<svg id="${id}" class="bigchart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><linearGradient id="${id}g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".32"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>${grid}${xTicks(series,x,h)}<path d="${area}" fill="url(#${id}g)"/><path d="${d}" fill="none" stroke="${color}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>${pts.length?`<circle cx="${round(pts[pts.length-1][0],1)}" cy="${round(pts[pts.length-1][1],1)}" r="3.5" fill="${color}"/>`:""}${cur}</svg>`,id);}
 function dualBarLine(ser,h=190){const w=600;if(!ser.length)return "<div class='bigchart'></div>";
  const maxLoad=Math.max(10,...ser.map(s=>Math.max(s.load,s.ctl,s.atl)));const n=ser.length;const bw=Math.max(1.2,(w-54)/n*0.7);
  const x=i=>44+i/(Math.max(1,n-1))*(w-54);const y=v=>h-22-(v/maxLoad)*(h-40);let bars="",ctlP="",atlP="";
  ser.forEach((s,i)=>{const px=x(i);if(s.load>0)bars+=`<rect x="${round(px-bw/2,1)}" y="${round(y(s.load),1)}" width="${round(bw,1)}" height="${round(h-22-y(s.load),1)}" rx="1" fill="${hexA('#6366f1',.32)}"/>`;
   ctlP+=(i?"L":"M")+round(px,1)+" "+round(y(s.ctl),1)+" ";atlP+=(i?"L":"M")+round(px,1)+" "+round(y(s.atl),1)+" ";});
  let grid="";for(let g=0;g<=3;g++){const gy=20+g/3*(h-40);grid+=`<line x1="44" y1="${round(gy,1)}" x2="${w}" y2="${round(gy,1)}" stroke="var(--grid)"/><text x="2" y="${round(gy+3,1)}" fill="var(--txt3)" font-size="10">${round(maxLoad-(g/3)*maxLoad)}</text>`;}
- return `<svg class="bigchart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${grid}${bars}<path d="${atlP}" fill="none" stroke="#d946ef" stroke-width="2.2"/><path d="${ctlP}" fill="none" stroke="#0ea5a4" stroke-width="2.6"/></svg>`;}
+ const id="db"+Math.random().toString(36).slice(2,7);
+ CHARTS[id]={type:"dual",series:ser,w,h,padL:44,padR:10,y};
+ const cur=`<g id="${id}_cur" style="display:none"><line y1="18" y2="${h-22}" stroke="var(--border2)" stroke-width="1" stroke-dasharray="3 3"/></g>`;
+ return chartWrap(`<svg id="${id}" class="bigchart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${grid}${xTicks(ser,x,h)}${bars}<path d="${atlP}" fill="none" stroke="#d946ef" stroke-width="2.2"/><path d="${ctlP}" fill="none" stroke="#0ea5a4" stroke-width="2.6"/>${cur}</svg>`,id);}
 
 function sleepScore(dayKey){const day=S.days[dayKey];if(!day||day.sleep==null)return null;
   const goal=S.settings.sleepGoal||8;const durComp=clamp(day.sleep/goal*100,0,100);
@@ -518,7 +576,7 @@ function sleepScore(dayKey){const day=S.days[dayKey];if(!day||day.sleep==null)re
   else if(score>=60){c="var(--acc)";txt="Bon sommeil. Stabilise tes heures de coucher pour gagner encore en régularité.";}
   else if(score>=40){c="var(--warn)";txt="Sommeil à améliorer : durée et régularité conditionnent ta récupération tissulaire.";}
   else{c="var(--bad)";txt="Sommeil insuffisant ou irrégulier — priorité vu ton historique adducteurs/pubalgie.";}
-  return{score,c,txt,parts};}
+  return{score,c,txt,parts,regComp,regPart,compComp};}
 let recPeriod=30;
 function setRecPeriod(d){recPeriod=d;renderRecovery();}
 function renderRecovery(){
@@ -542,8 +600,8 @@ function renderRecovery(){
       <div class="recstate" style="color:${st.c}">${st.t}</div>
       <div class="recsub">${st.d}</div>${trHtml}
       <div style="margin-top:10px;display:flex;gap:7px;flex-wrap:wrap;justify-content:center">${["hrv","rhr","sleep","resp"].filter(k=>rec.comps[k]!=null).map(k=>`<span class="pill">${METRIC_MAP[k].label} ${Math.round(rec.comps[k])}</span>`).join("")}</div>
-      <div class="seelink">Voir l'évolution du score →</div></div>`;
-    recCard.onclick=openRecoveryHistory;
+      <div class="seelink">Voir le détail du calcul →</div></div>`;
+    recCard.onclick=()=>openRecoveryDetail(tk);
   }else{
     recCard.classList.remove("clickable");
     recCard.innerHTML=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><p>Importez vos données via la synchronisation, ou saisissez vos chiffres pour générer votre score de récupération.</p><button class="btn primary" style="margin-top:16px" onclick="openImportHelp()">Synchroniser / importer</button></div>`;
@@ -552,41 +610,78 @@ function renderRecovery(){
 
   const otCard=el("div","card");
   if(ot){const left=clamp(ot.acwr/2*100,2,98);
+    otCard.classList.add("clickable");otCard.onclick=openOvertrainingDetail;
     otCard.innerHTML=`<h2><span class="dot" style="background:${ot.band.c}"></span>Risque de surentraînement</h2>
       <div class="otcard"><div class="otlabel" style="color:${ot.band.c}">${ot.band.t}</div>
       <div class="otsub">Sur ta période d'entraînement actuelle, d'après le ratio charge aiguë/chronique (ACWR) et ton équilibre de fraîcheur.</div>
       <div class="zonebar"><span class="zonemarker" style="left:${left}%"></span></div>
       <div class="zoneticks"><span>0.8</span><span>zone optimale</span><span>1.5</span><span>+</span></div>
       <div class="otmetric"><b style="color:${ot.band.c}">${ot.acwr}</b><span>ACWR (idéal 0,8–1,3)</span></div>
-      <div class="otmetric"><b>${ot.tsb>0?"+":""}${ot.tsb}</b><span>TSB · fraîcheur</span></div></div>`;
+      <div class="otmetric"><b>${ot.tsb>0?"+":""}${ot.tsb}</b><span>TSB · fraîcheur</span></div>
+      <div class="seelink">Voir le détail du calcul →</div></div>`;
   }else{
     otCard.innerHTML=`<h2><span class="dot"></span>Risque de surentraînement</h2><p class="muted" style="padding:18px 0;text-align:center">Enregistre quelques entraînements pour activer l'indicateur (basé sur l'ACWR).</p>`;
   }
   herorow.appendChild(otCard);
   root.appendChild(herorow);
 
-  if(hasData){const sl=sleepScore(tk);if(sl){const slCard=el("div","card");
+  if(hasData){const sl=sleepScore(tk);if(sl){const slCard=el("div","card clickable");
+    slCard.onclick=()=>openSleepDetail(tk);
     slCard.innerHTML=`<h2><span class="dot" style="background:#6366f1"></span>Indice de sommeil</h2>
       <div style="display:flex;align-items:center;gap:18px">
         <div style="font-size:42px;font-weight:760;letter-spacing:-.03em;color:${sl.c}">${sl.score}</div>
         <div style="flex:1"><div style="height:9px;border-radius:6px;background:var(--track);overflow:hidden"><div style="height:100%;width:${sl.score}%;background:linear-gradient(90deg,#2dd4bf,#6366f1)"></div></div>
         <div class="otsub" style="margin-top:8px">${sl.txt}</div></div></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">${sl.parts.map(p=>`<span class="pill">${p}</span>`).join("")}</div>`;
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">${sl.parts.map(p=>`<span class="pill">${p}</span>`).join("")}</div>
+      <div class="seelink">Voir le détail du calcul →</div>`;
     root.appendChild(slCard);}}
 
   root.appendChild(el("div","",`<button class="addbtn" onclick="openDayEntry()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Saisir / corriger mes données du jour</button>`));
 }
-let recHistPeriod=90;
-function setRecHist(d){recHistPeriod=d;openRecoveryHistory();}
-function openRecoveryHistory(){const ser=recoveryHistory(recHistPeriod);const vals=ser.filter(p=>p.value!=null).map(p=>p.value);
+let recHistPeriod=90,recDetailDay=null;
+function setRecHist(d){recHistPeriod=d;openRecoveryDetail(recDetailDay);}
+function openRecoveryDetail(dk){recDetailDay=dk=dk||Object.keys(S.days).sort().pop()||todayKey();
+  const rec=recovery(dk);const day=S.days[dk]||{};const W={hrv:40,rhr:25,sleep:25,resp:10};
+  // détail par composante : valeur du jour, ligne de base 30 j, score /100, poids
+  const rows=["hrv","rhr","sleep","resp"].map(k=>{const m=METRIC_MAP[k];if(!rec||rec.comps[k]==null)return "";
+    let base="";
+    if(k==="sleep")base=`objectif ${fmtSleepH(S.settings.sleepGoal||8)}`;
+    else{const b=baseline(k,dk);base=b?`base 30 j : ${m.sleep?fmtSleepH(b.mean):round(b.mean,m.dec)} ±${round(b.sd,m.dec)}`:"";}
+    return `<div class="kv"><span>${m.label}<br><small class="muted">${day[k]!=null?fmtVal(k,day[k])+(m.unit&&!m.sleep?" "+m.unit:""):"—"} · ${base}</small></span><b>${Math.round(rec.comps[k])}/100 <small class="muted" style="font-weight:600">× ${W[k]} %</small></b></div>`;}).join("");
+  const ser=recoveryHistory(recHistPeriod);const vals=ser.filter(p=>p.value!=null).map(p=>p.value);
   const avg=vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):"—";const tr=recoveryTrend();
-  openSheet(`<h3>Évolution du score de récupération</h3><div class="sub">Tendance de ta récupération dans le temps</div>
+  openSheet(`<h3>Score de récupération${rec?" : "+rec.score:""}</h3><div class="sub">${dk.split("-").reverse().join("/")} — comment il est calculé</div>
+   ${rec?`<div style="margin-bottom:6px">${rows}</div>
+   <div class="detailbox" style="margin-top:4px;font-size:12px"><b>Méthode :</b> chaque métrique du jour est comparée à ta ligne de base personnelle (moyenne ± écart-type des 30 derniers jours). Score composant = 50 + 22 × z, où z = nombre d'écarts-types au-dessus (VFC) ou en dessous (FC repos, resp.) de ta normale — borné 0–100. Le sommeil est noté par rapport à ton objectif. Score final = moyenne pondérée (poids affichés), renormalisée si une donnée manque.</div>`:`<p class="muted">Pas assez de données ce jour.</p>`}
+   <h3 style="font-size:16px;margin-top:18px">Évolution</h3>
    ${periodChips(recHistPeriod,"setRecHist")}
    ${lineChart(ser,"#6366f1",null)}
-   <div style="margin-top:16px"><div class="kv"><span>Score moyen</span><b>${avg}</b></div>
+   <div style="margin-top:12px"><div class="kv"><span>Score moyen</span><b>${avg}</b></div>
    ${tr?`<div class="kv"><span>Tendance (7 derniers j)</span><b style="color:${tr.dir==="up"?"var(--good)":tr.dir==="down"?"var(--bad)":"var(--txt2)"}">${tr.dir==="up"?"▲ en hausse":tr.dir==="down"?"▼ en baisse":"= stable"} (${tr.delta>0?"+":""}${tr.delta} pts)</b></div>`:""}
    <div class="kv"><span>Jours mesurés</span><b>${vals.length}</b></div></div>`);
 }
+function openOvertrainingDetail(){const ot=overtraining();if(!ot)return;
+  const ser=loadSeries();const last=ser[ser.length-1];
+  const trend=recoveryTrend();
+  openSheet(`<h3>Risque de surentraînement : ${ot.band.t}</h3><div class="sub">Comment il est calculé</div>
+   <div class="kv"><span>ATL · charge aiguë<br><small class="muted">moyenne lissée de tes charges sur 7 j</small></span><b style="color:#d946ef">${round(last.atl,1)}</b></div>
+   <div class="kv"><span>CTL · charge chronique<br><small class="muted">moyenne lissée sur 42 j (ta tolérance construite)</small></span><b style="color:#0ea5a4">${round(last.ctl,1)}</b></div>
+   <div class="kv"><span>ACWR = ATL ÷ CTL<br><small class="muted">${round(last.atl,1)} ÷ ${round(last.ctl,1)}</small></span><b style="color:${ot.band.c}">${ot.acwr}</b></div>
+   <div class="kv"><span>TSB · fraîcheur = CTL − ATL</span><b>${ot.tsb>0?"+":""}${ot.tsb}</b></div>
+   ${trend?`<div class="kv"><span>Tendance de récupération (7 j)</span><b style="color:${trend.dir==="down"?"var(--bad)":"var(--txt)"}">${trend.dir==="up"?"▲":trend.dir==="down"?"▼ (malus appliqué)":"="} ${trend.delta>0?"+":""}${trend.delta} pts</b></div>`:""}
+   <div class="kv"><span>Risque global</span><b style="color:${ot.band.c}">${ot.risk}/100 · ${ot.band.t}</b></div>
+   <div class="detailbox" style="font-size:12px"><b>Interprétation :</b> l'ACWR compare ce que tu fais cette semaine à ce que ton corps a l'habitude d'encaisser. <b>0,8–1,3 = zone sûre</b> (recherche de Gabbett). En dessous de 0,8 tu désentraînes ; au-dessus de 1,3 le risque de blessure grimpe vite (+18 pts de risque si TSB &lt; −30, +10 si ta récupération se dégrade). Vu ton historique adducteurs/pubalgie, évite de dépasser 1,3 plus de quelques jours.</div>`);}
+function openSleepDetail(dk){dk=dk||Object.keys(S.days).sort().pop()||todayKey();
+  const sl=sleepScore(dk);if(!sl)return;const day=S.days[dk]||{};const goal=S.settings.sleepGoal||8;
+  const dr=(day.sleepDeep||0)+(day.sleepRem||0);
+  const ser=lastNDays(30).map(k2=>{const s2=sleepScore(k2);return{date:k2,value:s2?s2.score:null};});
+  openSheet(`<h3>Indice de sommeil : ${sl.score}</h3><div class="sub">${dk.split("-").reverse().join("/")} — comment il est calculé</div>
+   <div class="kv"><span>Durée<br><small class="muted">${fmtSleepH(day.sleep)} dormi · objectif ${fmtSleepH(goal)}</small></span><b>${Math.round(clamp((day.sleep||0)/goal*100,0,100))}/100 <small class="muted" style="font-weight:600">× 45 %</small></b></div>
+   ${sl.regPart?`<div class="kv"><span>Régularité<br><small class="muted">${sl.regPart} sur les 7 derniers jours</small></span><b>${Math.round(sl.regComp)}/100 <small class="muted" style="font-weight:600">× 25 %</small></b></div>`:""}
+   ${sl.compComp!=null?`<div class="kv"><span>Profondeur<br><small class="muted">${fmtSleepH(dr)} de profond + REM = ${Math.round(day.sleep>0?dr/day.sleep*100:0)} % de la nuit (cible 40 %)</small></span><b>${Math.round(sl.compComp)}/100 <small class="muted" style="font-weight:600">× 30 %</small></b></div>`:""}
+   <div class="detailbox" style="font-size:12px"><b>Méthode :</b> score = moyenne pondérée des composantes ci-dessus (poids renormalisés si une donnée manque). La durée est notée par rapport à ton objectif ; la régularité pénalise les heures de coucher variables (±1 h d'écart-type ≈ 40/100) ; la profondeur vise ≈ 40 % de sommeil profond + REM, la fourchette physiologique normale.</div>
+   <h3 style="font-size:16px;margin-top:18px">Évolution · 30 j</h3>
+   ${lineChart(ser,"#6366f1",null)}`);}
 
 let calMonth=new Date().getMonth(),calYear=new Date().getFullYear(),loadPeriod=90;
 function setLoadPeriod(d){loadPeriod=d;renderTraining();}
@@ -622,7 +717,6 @@ function renderTraining(){
    <div style="display:flex;gap:14px;align-items:center;font-size:11px;color:var(--txt2);margin-bottom:6px;flex-wrap:wrap"><span style="color:#0ea5a4">━ CTL · forme</span><span style="color:#d946ef">━ ATL · fatigue</span><span style="color:#6366f1">▮ charge/jour</span></div>
    <div style="font-size:10.5px;color:var(--txt3);margin-bottom:2px">↕ axe vertical : charge quotidienne en UA sRPE (RPE × minutes)</div>
    ${dualBarLine(ser.slice(-loadPeriod))}
-   <div class="chartlbls"><span>${ser.length>loadPeriod?ser[ser.length-loadPeriod].date.split("-").reverse().slice(0,2).join("/"):(ser[0]?ser[0].date.slice(5):"")}</span><span>↔ dates · aujourd'hui</span></div>
    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);font-size:12px;color:var(--txt2);line-height:1.65"><b>Comment lire :</b> chaque barre = la <b>charge d'une journée</b> en <b>sRPE de Foster</b> (effort perçu × durée — la méthode validée scientifiquement pour la musculation ; renseigne ton RPE après chaque séance pour une mesure fiable). La courbe <b style="color:#0ea5a4">turquoise (CTL)</b> = ta forme de fond (moyenne lissée sur 42 j). La courbe <b style="color:#d946ef">rose (ATL)</b> = ta fatigue récente (7 j). Le <b>TSB</b> (fraîcheur) = CTL − ATL : <span style="color:var(--good)">positif = frais/affûté</span>, <span style="color:var(--bad)">négatif = fatigué</span>.</div>`;
   root.appendChild(sum);
 
@@ -636,12 +730,12 @@ function renderTraining(){
     const sci=el("div","card");
     sci.innerHTML=`<h2><span class="dot" style="background:#8b5cf6"></span>Analyse scientifique · 7 derniers jours</h2>
      <div class="loadrow" style="grid-template-columns:repeat(2,1fr)">
-       <div class="loadbox"><div class="lv">${wk.load.toLocaleString("fr-FR")}</div><div class="ll">Charge hebdo (UA)</div><div class="ld" style="color:${dB.c}">${wk.delta==null?"1ʳᵉ semaine mesurée":(wk.delta>0?"+":"")+wk.delta+" % vs sem. préc."}</div></div>
-       <div class="loadbox"><div class="lv" style="color:${mB.c}">${wk.mono}</div><div class="ll">Monotonie</div><div class="ld" style="color:${mB.c}">${mB.t}</div></div>
-       <div class="loadbox"><div class="lv" style="color:${sB.c}">${wk.strain.toLocaleString("fr-FR")}</div><div class="ll">Contrainte (strain)</div><div class="ld" style="color:${sB.c}">${sB.t}</div></div>
-       <div class="loadbox"><div class="lv" style="color:${aB}">${ot2?ot2.acwr:"—"}</div><div class="ll">ACWR</div><div class="ld muted">zone sûre 0,8–1,3</div></div>
+       <div class="loadbox clickable" onclick="openSciDetail('load')"><div class="lv">${wk.load.toLocaleString("fr-FR")}</div><div class="ll">Charge hebdo (UA)</div><div class="ld" style="color:${dB.c}">${wk.delta==null?"1ʳᵉ semaine mesurée":(wk.delta>0?"+":"")+wk.delta+" % vs sem. préc."}</div></div>
+       <div class="loadbox clickable" onclick="openSciDetail('mono')"><div class="lv" style="color:${mB.c}">${wk.mono}</div><div class="ll">Monotonie</div><div class="ld" style="color:${mB.c}">${mB.t}</div></div>
+       <div class="loadbox clickable" onclick="openSciDetail('strain')"><div class="lv" style="color:${sB.c}">${wk.strain.toLocaleString("fr-FR")}</div><div class="ll">Contrainte (strain)</div><div class="ld" style="color:${sB.c}">${sB.t}</div></div>
+       <div class="loadbox clickable" onclick="openSciDetail('acwr')"><div class="lv" style="color:${aB}">${ot2?ot2.acwr:"—"}</div><div class="ll">ACWR</div><div class="ld muted">zone sûre 0,8–1,3</div></div>
      </div>
-     <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--txt2);line-height:1.65"><b>Repères (Foster) :</b> une <b>monotonie &gt; 2</b> (s'entraîner pareil tous les jours) augmente le risque de blessure même à charge constante — alterne jours lourds et légers. La <b>contrainte</b> = charge × monotonie : ses pics précèdent souvent blessures et infections. Une hausse de charge hebdo <b>&gt; +10 %</b> est une progression rapide à surveiller — particulièrement important vu ton historique adducteurs/pubalgie.</div>`;
+     <p class="muted" style="margin-top:10px;font-size:11.5px">Touche un score pour voir le détail du calcul et son interprétation.</p>`;
     root.appendChild(sci);}
 
   // ---- Tonnage musculation hebdomadaire (volume-charge du plan de force) ----
@@ -887,8 +981,7 @@ function openForceProgress(id,ei){const n=S.notes.find(x=>x.id===id);if(!n)retur
   openSheet(`<h3>Progression — ${escapeHtml(exos[ei]||"")}</h3>
    <div class="sub">${fromPlan?"Charges planifiées du cycle (coche des séances ✓ pour suivre ta progression réelle)":"1RM estimé sur tes "+done.length+" séances faites"}</div>
    ${chips}
-   ${lineChart(ser,"#6366f1",null)}
-   <div class="chartlbls"><span>${ser.length?escapeHtml(ser[0].date):""}</span><span>${ser.length?escapeHtml(ser[ser.length-1].date):""}</span></div>
+   ${lineChart(ser,"#6366f1",null,180,"kg")}
    <div style="margin-top:16px">
    <div class="kv"><span>1RM estimé actuel (Epley)</span><b>${last!=null?last+" kg":"—"}</b></div>
    <div class="kv"><span>Meilleur 1RM estimé</span><b>${vals.length?Math.max(...vals)+" kg":"—"}</b></div>
@@ -987,7 +1080,7 @@ function openMetricDetail(k){mdKey=k;const m=METRIC_MAP[k];const ser=seriesFor(k
   const mn=vals.length?fmtVal(k,Math.min(...vals)):"—";const mx=vals.length?fmtVal(k,Math.max(...vals)):"—";const b=baseline(k,todayKey(),60);const lv=latestVal(k);
   openSheet(`<h3>${m.label}</h3><div class="sub">Évolution dans le temps</div>
    ${periodChips(mdPeriod,"setMdPeriod")}
-   ${lineChart(ser,m.color,fmtFn)}
+   ${lineChart(ser,m.color,fmtFn,180,m.sleep?null:m.unit)}
    <div style="margin-top:16px"><div class="kv"><span>Dernière valeur</span><b>${lv?fmtVal(k,lv.value)+(m.unit&&!m.sleep?" "+m.unit:""):"—"}</b></div>
    <div class="kv"><span>Moyenne</span><b>${avg}${m.unit&&!m.sleep?" "+m.unit:""}</b></div>
    <div class="kv"><span>Min / Max</span><b>${mn} / ${mx}${m.unit&&!m.sleep?" "+m.unit:""}</b></div>
