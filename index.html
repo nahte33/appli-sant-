@@ -306,9 +306,57 @@ const KEY="vitalis_v1";
 const DEFAULT={settings:{userName:"",sex:"M",age:30,hrMax:0,hrRest:0,sleepGoal:8,apiProvider:"anthropic",apiKey:"",apiModel:"",syncUrl:"",syncToken:""},
   days:{},workouts:[],notes:[],supps:[],ai:[]};
 let S=load();
-S.workouts.forEach(w=>{if(w)w.name=normWorkoutName(w.name);});save();
+S.rev=S.rev||0;
+S.deleted=S.deleted||{};["notes","workouts","supps"].forEach(k=>S.deleted[k]=S.deleted[k]||{});
+S.workouts.forEach(w=>{if(w){w.name=normWorkoutName(w.name);w.trimp=trimp(w);}});save(false);
 function load(){try{const r=JSON.parse(localStorage.getItem(KEY));if(r)return Object.assign({},DEFAULT,r,{settings:Object.assign({},DEFAULT.settings,r.settings||{})});}catch(e){}return JSON.parse(JSON.stringify(DEFAULT));}
-function save(){localStorage.setItem(KEY,JSON.stringify(S));}
+// bump=false : écriture locale pure (migration, fusion) — sinon on horodate et on
+// programme l'envoi de l'état vers le Worker pour les autres appareils.
+function save(bump){if(bump!==false){S.rev=Date.now();schedulePush();}localStorage.setItem(KEY,JSON.stringify(S));}
+
+/* ---------- Sync multi-appareils : l'état complet de l'app vit aussi dans le KV ---------- */
+let pushTimer=null;
+function stateUrl(){return S.settings.syncUrl.replace(/\/+$/,"")+"/state?token="+encodeURIComponent(S.settings.syncToken);}
+function canSync(){return !!(S.settings.syncUrl&&S.settings.syncToken);}
+function schedulePush(){if(!canSync())return;clearTimeout(pushTimer);pushTimer=setTimeout(pushState,1500);}
+function exportableState(){const st=JSON.parse(JSON.stringify(S));delete st.settings.apiKey;return st;}// la clé API ne quitte jamais l'appareil
+async function pushState(){if(!canSync())return;clearTimeout(pushTimer);pushTimer=null;
+  try{const r=await fetch(stateUrl(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(exportableState())});
+    if(r.status===409){await pullState();return;}// un autre appareil a écrit plus récent : on récupère et fusionne
+    if(r.ok){S.settings.lastPush=Date.now();save(false);updateSyncBadge();}
+  }catch(e){}}
+async function pullState(){if(!canSync())return false;
+  try{const r=await fetch(stateUrl(),{cache:"no-store"});if(!r.ok)return false;
+    const remote=await r.json();
+    if(!remote){pushState();return false;}// premier appareil : on initialise le cloud
+    if((remote.rev||0)===(S.rev||0))return false;
+    mergeState(remote);return true;
+  }catch(e){return false;}}
+// Fusion : union des collections (par id, le plus récemment modifié gagne),
+// les suppressions sont propagées via S.deleted (tombstones).
+function mergeState(remote){
+  const ts=x=>(x&&(x.updated||x.created))||0;
+  const localNewer=(S.rev||0)>=(remote.rev||0);
+  const A=localNewer?S:remote,B=localNewer?remote:S;// A = état le plus récent
+  const tombs={};["notes","workouts","supps"].forEach(k=>{tombs[k]={};
+    const a=(S.deleted||{})[k]||{},b=(remote.deleted||{})[k]||{};
+    Object.keys(a).forEach(id=>tombs[k][id]=a[id]);
+    Object.keys(b).forEach(id=>tombs[k][id]=Math.max(tombs[k][id]||0,b[id]));});
+  const days={};
+  new Set(Object.keys(B.days||{}).concat(Object.keys(A.days||{}))).forEach(k=>{days[k]=Object.assign({},(B.days||{})[k],(A.days||{})[k]);});
+  const pick=(list,key)=>{const m={};list.forEach(x=>{if(!x)return;const k=key(x);if(!m[k]||ts(x)>=ts(m[k]))m[k]=x;});return m;};
+  const wkey=w=>w.extId||w.id;
+  const alive=(map,t,key)=>Object.values(map).filter(x=>{const d=t[key(x)];return !d||ts(x)>d;});
+  const wmap=pick((B.workouts||[]).concat(A.workouts||[]),wkey);
+  const nmap=pick((B.notes||[]).concat(A.notes||[]),n=>n.id);
+  const smap=pick((B.supps||[]).concat(A.supps||[]),s=>s.id);
+  S={settings:Object.assign({},DEFAULT.settings,A.settings||{},{apiKey:S.settings.apiKey,syncUrl:S.settings.syncUrl,syncToken:S.settings.syncToken}),
+    days,workouts:alive(wmap,tombs.workouts,wkey),notes:alive(nmap,tombs.notes,n=>n.id),supps:alive(smap,tombs.supps,s=>s.id),
+    ai:(A.ai&&A.ai.length?A.ai:(B.ai||[])),deleted:tombs,rev:Math.max(S.rev||0,remote.rev||0)};
+  save(false);renderAll();}
+// si l'app se ferme avec un envoi en attente, on le termine via sendBeacon
+addEventListener("pagehide",()=>{if(pushTimer&&canSync()){clearTimeout(pushTimer);pushTimer=null;
+  try{navigator.sendBeacon(stateUrl(),new Blob([JSON.stringify(exportableState())],{type:"text/plain"}));}catch(e){}}});
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 
 const $=s=>document.querySelector(s);
@@ -365,9 +413,15 @@ function recoveryTrend(){const h=recoveryHistory(28).filter(p=>p.value!=null);if
  const avg=a=>a.reduce((s,p)=>s+p.value,0)/a.length;const d=avg(recent)-avg(prev);
  return{delta:Math.round(d),dir:d>1.5?"up":d<-1.5?"down":"flat"};}
 
-function trimp(w){const dur=w.durationMin||0;const hrRest=S.settings.hrRest||60;const hrMax=S.settings.hrMax||(220-(S.settings.age||30));
- if(w.avgHr&&hrMax>hrRest&&w.avgHr>hrRest){const ratio=clamp((w.avgHr-hrRest)/(hrMax-hrRest),0,1);const k=S.settings.sex==="F"?1.67:1.92;const c=S.settings.sex==="F"?0.86:0.64;return Math.round(dur*ratio*c*Math.exp(k*ratio));}
- if(w.rpe)return Math.round(w.rpe*dur);return Math.round(dur*0.6);}
+// Charge de séance — méthode sRPE de Foster (RPE × minutes), la référence validée
+// pour la musculation (la FC sous-estime fortement l'effort en force). Priorité :
+// 1) RPE saisi  2) RPE estimé depuis la FC (% de réserve cardiaque, pour le cardio
+// importé sans RPE)  3) séance considérée modérée (RPE 4). Unité : UA (Foster).
+function trimp(w){const dur=w.durationMin||0;if(!dur)return 0;
+ if(w.rpe)return Math.round(w.rpe*dur);
+ const hrRest=S.settings.hrRest||60;const hrMax=S.settings.hrMax||(220-(S.settings.age||30));
+ if(w.avgHr&&hrMax>hrRest&&w.avgHr>hrRest){const ratio=clamp((w.avgHr-hrRest)/(hrMax-hrRest),0,1);return Math.round(clamp(ratio*10,1,10)*dur);}
+ return Math.round(dur*4);}
 function workoutsByDay(){const m={};S.workouts.forEach(w=>{(m[w.date]=m[w.date]||[]).push(w);});return m;}
 function dailyLoadMap(){const m={};S.workouts.forEach(w=>{m[w.date]=(m[w.date]||0)+(w.trimp||trimp(w));});return m;}
 function loadSeries(){const lm=dailyLoadMap();const keys=Object.keys(lm);let start=keys.length?keys.sort()[0]:todayKey();
@@ -382,6 +436,30 @@ function overtraining(){const ser=loadSeries();const last=ser[ser.length-1];if(!
  risk=clamp(Math.round(risk),0,100);
  let band;if(risk<35)band={t:"Faible",c:"var(--good)"};else if(risk<65)band={t:"Modéré",c:"var(--warn)"};else band={t:"Élevé",c:"var(--bad)"};
  return{risk,acwr:round(acwr,2),tsb:last.tsb,band};}
+
+// Indicateurs hebdomadaires de Foster : monotonie (charge moyenne ÷ écart-type des
+// charges quotidiennes — l'entraînement trop répétitif blesse même à charge égale)
+// et contrainte/strain (charge hebdo × monotonie — les pics précèdent blessures et
+// infections). Calculés sur les 7 derniers jours, comparés aux 7 précédents.
+function weeklyStats(){const lm=dailyLoadMap();const d=lastNDays(14).map(k=>lm[k]||0);
+ const w0=d.slice(0,7),w1=d.slice(7);const sum=a=>a.reduce((x,y)=>x+y,0);
+ const load=sum(w1),prev=sum(w0);if(!load&&!prev)return null;
+ const mean=load/7;const sd=Math.sqrt(w1.reduce((x,y)=>x+(y-mean)*(y-mean),0)/7);
+ const mono=sd>0?mean/sd:(mean>0?3.5:0);
+ return{load:Math.round(load),prev:Math.round(prev),
+  delta:prev>0?Math.round((load-prev)/prev*100):null,
+  mono:round(mono,2),strain:Math.round(load*mono)};}
+// Tonnage musculation : Σ kg × séries × reps des lignes cochées ✓ du plan de force,
+// regroupé par semaine (lundi). Le volume-charge est la mesure de référence du
+// volume en force, indépendante de la FC.
+function mondayKey(dk){const d=parseDate(dk);d.setDate(d.getDate()-((d.getDay()+6)%7));return fmtKey(d);}
+function tonnageByWeek(){const weeks={};
+ S.notes.filter(n=>n.type==="force").forEach(n=>{(n.rows||[]).forEach(r=>{
+  if(!r.done||!r.doneDate)return;let t=0;
+  (r.data||[]).forEach(dd=>{const kg=parseFloat(String(dd[0]).replace(",", "."));const se=parseFloat(dd[1]),reps=parseFloat(dd[2]);
+   if(!isNaN(kg)&&se>0&&reps>0)t+=Math.abs(kg)*se*reps;});
+  if(t>0){const wk=mondayKey(r.doneDate);weeks[wk]=(weeks[wk]||0)+t;}});});
+ return weeks;}
 
 function spark(series,color,h=34){const vals=series.map(p=>p.value);const has=vals.some(v=>v!=null);const w=140;if(!has)return `<svg class="spark" viewBox="0 0 ${w} ${h}"></svg>`;
  const nums=vals.filter(v=>v!=null);let mn=Math.min(...nums),mx=Math.max(...nums);if(mn===mx){mn-=1;mx+=1;}
@@ -530,11 +608,48 @@ function renderTraining(){
    </div>
    ${periodChips(loadPeriod,"setLoadPeriod")}
    <div style="display:flex;gap:14px;align-items:center;font-size:11px;color:var(--txt2);margin-bottom:6px;flex-wrap:wrap"><span style="color:#0ea5a4">━ CTL · forme</span><span style="color:#d946ef">━ ATL · fatigue</span><span style="color:#6366f1">▮ charge/jour</span></div>
-   <div style="font-size:10.5px;color:var(--txt3);margin-bottom:2px">↕ axe vertical : charge quotidienne en points TRIMP (u.a.)</div>
+   <div style="font-size:10.5px;color:var(--txt3);margin-bottom:2px">↕ axe vertical : charge quotidienne en UA sRPE (RPE × minutes)</div>
    ${dualBarLine(ser.slice(-loadPeriod))}
    <div class="chartlbls"><span>${ser.length>loadPeriod?ser[ser.length-loadPeriod].date.split("-").reverse().slice(0,2).join("/"):(ser[0]?ser[0].date.slice(5):"")}</span><span>↔ dates · aujourd'hui</span></div>
-   <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);font-size:12px;color:var(--txt2);line-height:1.65"><b>Comment lire :</b> chaque barre = la <b>charge d'une journée</b> (intensité × durée, en points TRIMP). La courbe <b style="color:#0ea5a4">turquoise (CTL)</b> = ta forme de fond (moyenne lissée sur 42 j), elle monte quand tu t'entraînes régulièrement. La courbe <b style="color:#d946ef">rose (ATL)</b> = ta fatigue récente (7 j). Le <b>TSB</b> (fraîcheur) = CTL − ATL : <span style="color:var(--good)">positif = frais/affûté</span>, <span style="color:var(--bad)">négatif = fatigué</span>. Unités arbitraires (u.a.) : elles servent à comparer tes périodes entre elles.</div>`;
+   <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);font-size:12px;color:var(--txt2);line-height:1.65"><b>Comment lire :</b> chaque barre = la <b>charge d'une journée</b> en <b>sRPE de Foster</b> (effort perçu × durée — la méthode validée scientifiquement pour la musculation ; renseigne ton RPE après chaque séance pour une mesure fiable). La courbe <b style="color:#0ea5a4">turquoise (CTL)</b> = ta forme de fond (moyenne lissée sur 42 j). La courbe <b style="color:#d946ef">rose (ATL)</b> = ta fatigue récente (7 j). Le <b>TSB</b> (fraîcheur) = CTL − ATL : <span style="color:var(--good)">positif = frais/affûté</span>, <span style="color:var(--bad)">négatif = fatigué</span>.</div>`;
   root.appendChild(sum);
+
+  // ---- Analyse scientifique hebdomadaire (Foster : monotonie, contrainte) ----
+  const wk=weeklyStats();const ot2=overtraining();
+  if(wk){
+    const mB=wk.mono<1.5?{t:"Bien variée",c:"var(--good)"}:wk.mono<2?{t:"Un peu monotone",c:"var(--warn)"}:{t:"Trop monotone",c:"var(--bad)"};
+    const sB=wk.strain<3000?{t:"Maîtrisée",c:"var(--good)"}:wk.strain<6000?{t:"Soutenue",c:"var(--warn)"}:{t:"Très élevée",c:"var(--bad)"};
+    const dB=wk.delta==null?{c:"var(--txt3)"}:wk.delta>30?{c:"var(--bad)"}:wk.delta>10?{c:"var(--warn)"}:{c:"var(--good)"};
+    const aB=ot2?(ot2.acwr>=0.8&&ot2.acwr<=1.3?"var(--good)":(ot2.acwr<=1.5?"var(--warn)":"var(--bad)")):"var(--txt3)";
+    const sci=el("div","card");
+    sci.innerHTML=`<h2><span class="dot" style="background:#8b5cf6"></span>Analyse scientifique · 7 derniers jours</h2>
+     <div class="loadrow" style="grid-template-columns:repeat(2,1fr)">
+       <div class="loadbox"><div class="lv">${wk.load.toLocaleString("fr-FR")}</div><div class="ll">Charge hebdo (UA)</div><div class="ld" style="color:${dB.c}">${wk.delta==null?"1ʳᵉ semaine mesurée":(wk.delta>0?"+":"")+wk.delta+" % vs sem. préc."}</div></div>
+       <div class="loadbox"><div class="lv" style="color:${mB.c}">${wk.mono}</div><div class="ll">Monotonie</div><div class="ld" style="color:${mB.c}">${mB.t}</div></div>
+       <div class="loadbox"><div class="lv" style="color:${sB.c}">${wk.strain.toLocaleString("fr-FR")}</div><div class="ll">Contrainte (strain)</div><div class="ld" style="color:${sB.c}">${sB.t}</div></div>
+       <div class="loadbox"><div class="lv" style="color:${aB}">${ot2?ot2.acwr:"—"}</div><div class="ll">ACWR</div><div class="ld muted">zone sûre 0,8–1,3</div></div>
+     </div>
+     <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--txt2);line-height:1.65"><b>Repères (Foster) :</b> une <b>monotonie &gt; 2</b> (s'entraîner pareil tous les jours) augmente le risque de blessure même à charge constante — alterne jours lourds et légers. La <b>contrainte</b> = charge × monotonie : ses pics précèdent souvent blessures et infections. Une hausse de charge hebdo <b>&gt; +10 %</b> est une progression rapide à surveiller — particulièrement important vu ton historique adducteurs/pubalgie.</div>`;
+    root.appendChild(sci);}
+
+  // ---- Tonnage musculation hebdomadaire (volume-charge du plan de force) ----
+  const tw=tonnageByWeek();const twKeys=Object.keys(tw).sort();
+  if(twKeys.length){
+    const last8=twKeys.slice(-8);const curWk=mondayKey(todayKey());
+    const curT=tw[curWk]||0;const prevT=tw[twKeys[twKeys.indexOf(curWk)-1]]||tw[last8[last8.length-2]]||0;
+    const maxT=Math.max(...last8.map(k=>tw[k]));
+    const bw2=600/last8.length;
+    const bars=last8.map((k,i)=>{const h=Math.max(4,(tw[k]/maxT)*108);const x=i*bw2+bw2*0.15;
+      return `<rect x="${round(x,1)}" y="${round(150-22-h,1)}" width="${round(bw2*0.7,1)}" height="${round(h,1)}" rx="4" fill="${k===curWk?'#8b5cf6':hexA('#8b5cf6',.4)}"/>
+        <text x="${round(x+bw2*0.35,1)}" y="${round(Math.max(10,150-22-h-5),1)}" text-anchor="middle" fill="var(--txt2)" font-size="10" font-weight="600">${(tw[k]/1000).toFixed(1)}t</text>
+        <text x="${round(x+bw2*0.35,1)}" y="144" text-anchor="middle" fill="var(--txt3)" font-size="9.5">${k.slice(8,10)}/${k.slice(5,7)}</text>`;}).join("");
+    const dT=prevT>0&&curT>0?Math.round((curT-prevT)/prevT*100):null;
+    const ton=el("div","card");
+    ton.innerHTML=`<h2><span class="dot" style="background:#6366f1"></span>Tonnage musculation · par semaine</h2>
+     <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px"><div style="font-size:28px;font-weight:740">${Math.round(curT).toLocaleString("fr-FR")} kg</div><div class="muted">cette semaine${dT!=null?` · <b style="color:${dT>30?'var(--bad)':dT>10?'var(--warn)':'var(--good)'}">${dT>0?"+":""}${dT} %</b> vs précédente`:""}</div></div>
+     <svg viewBox="0 0 600 150" style="width:100%;height:150px" preserveAspectRatio="none">${bars}</svg>
+     <p class="muted" style="margin-top:8px;font-size:11.5px">Volume-charge = Σ kg × séries × reps des séances cochées ✓ dans ton plan de force — la mesure de référence du volume en musculation, indépendante de la fréquence cardiaque.</p>`;
+    root.appendChild(ton);}
 
   root.appendChild(el("div","",`<button class="addbtn" onclick="openWorkoutEdit()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ajouter un entraînement</button>`));
 
@@ -623,8 +738,8 @@ function renderNotes(){
   adds.innerHTML=`<button class="btn ghost" style="flex:1;min-width:150px" onclick="openFreeNote()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Note libre</button><button class="btn primary" style="flex:1;min-width:150px" onclick="newForceNote()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Cycle de force</button>`;
   root.appendChild(adds);
   if(!S.notes.length){root.appendChild(el("div","empty",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>Deux types de notes : <b>libre</b> pour écrire ce que tu veux, et <b>cycle de force</b> sous forme de tableau type Excel.</p>`));return;}
-  S.notes.filter(n=>n.type==="force").forEach(n=>root.appendChild(renderForceCard(n)));
-  const free=S.notes.filter(n=>n.type!=="force").sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.updated||0)-(a.updated||0));
+  S.notes.filter(n=>n.type==="force"&&!n.archived).forEach(n=>root.appendChild(renderForceCard(n)));
+  const free=S.notes.filter(n=>n.type!=="force"&&!n.archived).sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.updated||0)-(a.updated||0));
   if(free.length){const grid=el("div","notegrid");
     free.forEach(n=>{const c=el("div","note"+(n.pinned?" pin":""));c.style.borderLeftColor="#0ea5a4";
       c.innerHTML=`<svg class="pinbtn" viewBox="0 0 24 24" fill="${n.pinned?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="M12 17v5M9 10.76V3h6v7.76l3 3.24v2H6v-2z"/></svg>
@@ -635,11 +750,23 @@ function renderNotes(){
       c.querySelector(".pinbtn").onclick=e=>{e.stopPropagation();const o=S.notes.find(x=>x.id===n.id);o.pinned=!o.pinned;o.updated=Date.now();save();renderNotes();};
       c.onclick=()=>viewFreeNote(n.id);grid.appendChild(c);});
     root.appendChild(grid);}
+  // section des notes archivées (repliée par défaut)
+  const arch=S.notes.filter(n=>n.archived).sort((a,b)=>(b.archivedAt||0)-(a.archivedAt||0));
+  if(arch.length){const c=el("div","card");
+    c.innerHTML=`<h2 style="cursor:pointer;margin-bottom:0;user-select:none" onclick="archOpen=!archOpen;renderNotes()"><span class="dot" style="background:var(--txt3)"></span>🗃️ Archivées (${arch.length})<span style="margin-left:auto;font-size:14px">${archOpen?"▾":"▸"}</span></h2>`+
+    (archOpen?`<div style="margin-top:14px">`+arch.map(n=>{const when=n.archivedAt?new Date(n.archivedAt).toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"}):"";
+      return `<div class="kv" style="gap:10px"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--txt)">${n.type==="force"?"🏋️":"📝"} ${escapeHtml(n.title||"Sans titre")}<span class="muted" style="margin-left:8px;font-size:11px">${when}</span></span>
+      <b style="display:flex;gap:6px;flex-shrink:0"><button class="btn ghost" style="padding:6px 11px;font-size:12px" onclick="archiveNote('${n.id}')">Restaurer</button><button class="btn ghost" style="padding:6px 11px;font-size:12px" onclick="delNote('${n.id}')">Suppr.</button></b></div>`;}).join("")+`</div>`:"");
+    root.appendChild(c);}
 }
+let archOpen=false;
+function archiveNote(id){const n=S.notes.find(x=>x.id===id);if(!n)return;
+  n.archived=!n.archived;n.archivedAt=n.archived?Date.now():null;if(n.archived)n.pinned=false;
+  n.updated=Date.now();save();closeSheet();renderNotes();toast(n.archived?"Note archivée":"Note restaurée");}
 function viewFreeNote(id){const n=S.notes.find(x=>x.id===id);if(!n)return;
   openSheet(`<h3>${escapeHtml(n.title||"Sans titre")}</h3>
    <div class="detailbox" style="margin-top:6px">${n.body?escapeHtml(n.body):"<span style='color:var(--txt3)'>(Note vide)</span>"}</div>
-   <div class="sheetbtns"><button class="btn ghost" onclick="delNote('${n.id}')">Supprimer</button><button class="btn primary full" onclick="openFreeNote('${n.id}')">Modifier</button></div>`);}
+   <div class="sheetbtns"><button class="btn ghost" onclick="delNote('${n.id}')">Supprimer</button><button class="btn ghost" onclick="archiveNote('${n.id}')">${n.archived?"Restaurer":"✓ Archiver"}</button><button class="btn primary full" onclick="openFreeNote('${n.id}')">Modifier</button></div>`);}
 function renderForceCard(n){const card=el("div","card fcard");const exos=n.exos||[];
   const rows=n.rows||[];const doneCt=rows.filter(r=>r.done).length;
   const nextIdx=rows.findIndex(r=>!r.done);
@@ -653,7 +780,7 @@ function renderForceCard(n){const card=el("div","card fcard");const exos=n.exos|
     return `<tr class="${cls}">${cells}</tr>`;}).join("");
   const pct=rows.length?Math.round(doneCt/rows.length*100):0;
   card.innerHTML=`<div class="fttitle"><span contenteditable oninput="renameForce('${n.id}',this.textContent)">🏋️ ${escapeHtml(n.title||"Cycle de force")}</span>
-    <span style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="pill" style="color:${doneCt?'var(--good)':'var(--txt2)'}">${doneCt}/${rows.length} faites</span><button class="btn primary" onclick="openForceProgress('${n.id}',0)">📈 Progression</button><button class="btn ghost" onclick="addForceExo('${n.id}')">+ exo</button><button class="btn ghost" onclick="delForceExo('${n.id}')">− exo</button><button class="btn ghost" onclick="addForceRow('${n.id}')">+ ligne</button><button class="btn ghost" onclick="delForceRow('${n.id}')">− ligne</button><button class="btn ghost" onclick="delNote('${n.id}')">Suppr.</button></span></div>
+    <span style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="pill" style="color:${doneCt?'var(--good)':'var(--txt2)'}">${doneCt}/${rows.length} faites</span><button class="btn primary" onclick="openForceProgress('${n.id}',0)">📈 Progression</button><button class="btn ghost" onclick="addForceExo('${n.id}')">+ exo</button><button class="btn ghost" onclick="delForceExo('${n.id}')">− exo</button><button class="btn ghost" onclick="addForceRow('${n.id}')">+ ligne</button><button class="btn ghost" onclick="delForceRow('${n.id}')">− ligne</button><button class="btn ghost" ${doneCt===rows.length&&rows.length?'style="color:var(--good)"':''} onclick="archiveNote('${n.id}')">🗃️ Archiver</button><button class="btn ghost" onclick="delNote('${n.id}')">Suppr.</button></span></div>
     <div style="height:7px;border-radius:5px;background:var(--track);overflow:hidden;margin-bottom:12px"><div style="height:100%;width:${pct}%;background:var(--grad)"></div></div>
     <div class="ftwrap"><table class="ft"><thead><tr>${head1}</tr><tr>${head2}</tr></thead><tbody>${body}</tbody></table></div>
     <p class="muted" style="margin-top:10px;font-size:11.5px">Coche ✓ quand la séance est faite — la ligne surlignée en violet est ta prochaine séance. Orange = lourde · bleu = volume.</p>`;
@@ -731,8 +858,8 @@ function renderSupps(){
       <div class="supstreak"><b>${streak}</b>jours</div>
       <div class="deldot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></div></div>
       <div style="display:flex;gap:3px;flex-wrap:wrap;width:100%;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">${strip}</div>`;
-    item.querySelector(".supcheck").onclick=()=>{s.log=s.log||{};if(s.log[tk])delete s.log[tk];else s.log[tk]=true;save();renderSupps();};
-    item.querySelector(".deldot").onclick=e=>{e.stopPropagation();if(confirm("Supprimer "+s.name+" ?")){S.supps=S.supps.filter(x=>x.id!==s.id);save();renderSupps();}};
+    item.querySelector(".supcheck").onclick=()=>{s.log=s.log||{};if(s.log[tk])delete s.log[tk];else s.log[tk]=true;s.updated=Date.now();save();renderSupps();};
+    item.querySelector(".deldot").onclick=e=>{e.stopPropagation();if(confirm("Supprimer "+s.name+" ?")){S.deleted.supps[s.id]=Date.now();S.supps=S.supps.filter(x=>x.id!==s.id);save();renderSupps();}};
     item.querySelector(".supmeta").onclick=()=>openSupp(s.id);root.appendChild(item);});
 }
 function suppStreak(s){if(!s.log)return 0;let c=0;const d=new Date();for(;;){if(s.log[fmtKey(d)]){c++;d.setDate(d.getDate()-1);}else break;if(c>999)break;}return c;}
@@ -802,9 +929,9 @@ function markRow(rid,n){document.querySelectorAll("#"+rid+" button").forEach(b=>
 function saveWorkout(id){const g=i=>$("#"+i).value;const w=id?S.workouts.find(x=>x.id===id):{id:uid(),created:Date.now()};
   w.name=g("w_name").trim()||"Séance";w.date=g("w_date")||todayKey();w.durationMin=parseFloat(g("w_dur"))||0;
   w.avgHr=parseInt(g("w_avghr"))||null;w.maxHr=parseInt(g("w_maxhr"))||null;w.calories=parseInt(g("w_cal"))||null;
-  w.rpe=tmpRpe||null;w.painDuring=tmpPainD;w.painAfter=tmpPainA;w.detail=g("w_detail");w.trimp=trimp(w);
+  w.rpe=tmpRpe||null;w.painDuring=tmpPainD;w.painAfter=tmpPainA;w.detail=g("w_detail");w.trimp=trimp(w);w.updated=Date.now();
   if(!id)S.workouts.push(w);save();closeSheet();renderTraining();toast("Entraînement enregistré");}
-function delWorkout(id){if(confirm("Supprimer cet entraînement ?")){S.workouts=S.workouts.filter(x=>x.id!==id);save();closeSheet();renderTraining();}}
+function delWorkout(id){if(confirm("Supprimer cet entraînement ?")){const w=S.workouts.find(x=>x.id===id);if(w)S.deleted.workouts[w.extId||w.id]=Date.now();S.workouts=S.workouts.filter(x=>x.id!==id);save();closeSheet();renderTraining();}}
 function openDayWorkouts(dk){const ws=workoutsByDay()[dk]||[];const dObj=parseDate(dk);const dStr=dObj?dObj.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}):dk;
   openSheet(`<h3 style="text-transform:capitalize">${dStr}</h3><div class="sub">${ws.length?ws.length+" entraînement(s)":"Aucun entraînement"}</div>
    ${ws.map(w=>{const col=workoutColor(w.name);return `<div class="wkitem" onclick="openWorkoutView('${w.id}')"><div class="wko" style="background:${hexA(col,.16)}">${workoutIcon(w.name)}</div><div class="wkmeta"><div class="wkn">${escapeHtml(w.name)}</div><div class="wks">${fmtMin(w.durationMin||0)}${w.avgHr?" · "+w.avgHr+" bpm":""}${w.rpe?" · RPE "+w.rpe:""}</div></div><div class="wkload"><b style="color:${col}">${w.trimp||trimp(w)}</b><span>charge</span></div></div>`;}).join("")}
@@ -823,7 +950,7 @@ function saveFreeNote(id){const t=$("#n_title").value.trim(),b=$("#n_body").valu
   if(id){const n=S.notes.find(x=>x.id===id);n.title=t;n.body=b;n.pinned=p;n.type="free";n.updated=Date.now();}
   else S.notes.push({id:uid(),type:"free",title:t,body:b,pinned:p,created:Date.now(),updated:Date.now()});
   save();closeSheet();renderNotes();toast("Note enregistrée");}
-function delNote(id){if(confirm("Supprimer cette note ?")){S.notes=S.notes.filter(x=>x.id!==id);save();closeSheet();renderNotes();}}
+function delNote(id){if(confirm("Supprimer cette note ?")){S.deleted.notes[id]=Date.now();S.notes=S.notes.filter(x=>x.id!==id);save();closeSheet();renderNotes();}}
 
 function openSupp(id){const s=id?S.supps.find(x=>x.id===id):null;
   openSheet(`<h3>${s?"Modifier le complément":"Nouveau complément"}</h3><div class="sub">Nom, dosage et fréquence</div>
@@ -833,9 +960,9 @@ function openSupp(id){const s=id?S.supps.find(x=>x.id===id):null;
    <div class="sheetbtns">${s?`<button class="btn ghost" onclick="delSupp('${s.id}')">Supprimer</button>`:`<button class="btn ghost" onclick="closeSheet()">Annuler</button>`}<button class="btn primary full" onclick="saveSupp('${s?s.id:""}')">Enregistrer</button></div>`);
 }
 function saveSupp(id){const n=$("#s_name").value.trim();if(!n){toast("Indiquez un nom");return;}const dose=$("#s_dose").value.trim(),freq=$("#s_freq").value.trim();
-  if(id){const s=S.supps.find(x=>x.id===id);s.name=n;s.dosage=dose;s.freq=freq;}else S.supps.push({id:uid(),name:n,dosage:dose,freq:freq,log:{},created:Date.now()});
+  if(id){const s=S.supps.find(x=>x.id===id);s.name=n;s.dosage=dose;s.freq=freq;s.updated=Date.now();}else S.supps.push({id:uid(),name:n,dosage:dose,freq:freq,log:{},created:Date.now(),updated:Date.now()});
   save();closeSheet();renderSupps();toast("Complément enregistré");}
-function delSupp(id){if(confirm("Supprimer ?")){S.supps=S.supps.filter(x=>x.id!==id);save();closeSheet();renderSupps();}}
+function delSupp(id){if(confirm("Supprimer ?")){S.deleted.supps[id]=Date.now();S.supps=S.supps.filter(x=>x.id!==id);save();closeSheet();renderSupps();}}
 
 function openSettings(){const s=S.settings;
   openSheet(`<h3>Réglages</h3><div class="sub">Profil, zones FC, sync et assistant IA</div>
@@ -846,7 +973,7 @@ function openSettings(){const s=S.settings;
    <div><label>FC repos (bpm)</label><input type="number" id="set_hrrest" value="${s.hrRest||""}" placeholder="ex: 55"></div></div>
    <label>Objectif sommeil (h)</label><input type="number" step="0.5" id="set_sleep" value="${s.sleepGoal||8}">
    <div style="height:1px;background:var(--border);margin:22px 0"></div>
-   <h3 style="font-size:16px;padding-right:0">Sync automatique (Cloudflare)</h3><div class="sub">Vitalis récupère vos données à chaque ouverture.</div>
+   <h3 style="font-size:16px;padding-right:0">Sync automatique (Cloudflare)</h3><div class="sub">Données Apple Watch + toutes vos saisies (séances, notes, compléments) synchronisées entre vos appareils. Seule la clé API reste locale.</div>
    <label>URL du Worker</label><input id="set_syncurl" value="${escapeHtml(s.syncUrl||"")}" placeholder="https://vitalis-sync.xxx.workers.dev">
    <label>Jeton de lecture (READ_TOKEN)</label><input id="set_synctoken" value="${escapeHtml(s.syncToken||"")}" placeholder="votre jeton de lecture">
    <button class="btn ghost full" style="margin-top:12px" onclick="saveSettings(true)">Tester la synchronisation</button>
@@ -866,10 +993,11 @@ function saveSettings(testSync){const g=i=>$("#"+i).value;const s=S.settings;
   save();if(testSync){fetchSync(false);return;}closeSheet();renderAll();toast("Réglages enregistrés");}
 async function fetchSync(silent){const u=S.settings.syncUrl,t=S.settings.syncToken;if(!u){if(!silent)toast("Renseignez l'URL du Worker");return;}
   if(!silent)toast("Synchronisation...");
+  const pulled=await pullState();// 1. récupère les saisies faites sur les autres appareils
   try{const sep=u.includes("?")?"&":"?";const r=await fetch(u+sep+"token="+encodeURIComponent(t),{cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status);
-    const j=await r.json();const a=ingestHAE(j);renderAll();if(!silent)closeSheet();
-    toast(a.metrics||a.workouts?`Sync OK · ${a.days.size} jour(s), ${a.workouts} séance(s)`:"Sync OK · à jour");
-  }catch(err){if(!silent)toast("Échec : "+err.message);}}
+    const j=await r.json();const a=ingestHAE(j);renderAll();if(!silent)closeSheet();// 2. données Apple Watch
+    toast(a.metrics||a.workouts||pulled?`Sync OK · ${a.days.size} jour(s), ${a.workouts} séance(s)${pulled?" · appareils fusionnés":""}`:"Sync OK · à jour");
+  }catch(err){if(pulled)renderAll();if(!silent)toast("Échec : "+err.message);}}
 function exportData(){const blob=new Blob([JSON.stringify(S,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="vitalis-sauvegarde-"+todayKey()+".json";a.click();}
 function importBackup(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);if(d.days&&d.settings){S=Object.assign({},DEFAULT,d);save();closeSheet();renderAll();toast("Sauvegarde restaurée");}else throw 0;}catch(err){toast("Fichier invalide");}};r.readAsText(f);}
 
@@ -919,6 +1047,8 @@ function buildContext(){const tk=Object.keys(S.days).sort().pop()||todayKey();co
     recuperation:rec?{score:rec.score,composantes:rec.comps,date:tk}:null,
     surentrainement:ot?{risque:ot.band.t,acwr:ot.acwr,tsb:ot.tsb}:null,
     charge:last?{ctl_forme:last.ctl,atl_fatigue:last.atl,tsb_fraicheur:last.tsb,etat:formState(last.tsb).t}:null,
+    analyseHebdo:weeklyStats(),
+    tonnageMuscuParSemaine:tonnageByWeek(),
     sante7jours:recentDays,entrainementsRecents:recentW,complements:supToday,
     notes:S.notes.map(n=>n.type==="force"?{type:"cycle de force",titre:n.title,exercices:n.exos,plan:(n.rows||[]).map(r=>({sem:r.sem,seance:r.seance,faite:!!r.done,charges:(n.exos||[]).map((e,i)=>e+" "+((r.data[i]||[]).join("kg ×")))}))}:{type:"note libre",titre:n.title,contenu:n.body})};}
 function openAI(){const hasKey=!!S.settings.apiKey;

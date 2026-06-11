@@ -24,6 +24,40 @@ export default {
     // Pré-vol CORS (au cas où)
     if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
 
+    // -------- /state : sauvegarde de l'état de l'app (sync multi-appareils) --------
+    // L'app pousse son état complet (séances, notes, compléments, réglages) après
+    // chaque modification, et le relit à l'ouverture. Authentifié par READ_TOKEN
+    // (le jeton personnel de l'app) — WRITE_TOKEN reste réservé à Health Auto Export.
+    if (url.pathname.endsWith("/state")) {
+      const token = url.searchParams.get("token");
+      if (token !== env.READ_TOKEN) return json({ error: "unauthorized" }, 401, cors);
+
+      if (req.method === "POST") {
+        let state;
+        try { state = await req.json(); }
+        catch { return json({ error: "invalid json" }, 400, cors); }
+        if (!state || typeof state.rev !== "number")
+          return json({ error: "missing rev" }, 400, cors);
+        // protection : on n'écrase pas un état plus récent (écriture concurrente)
+        const cur = await env.HEALTH.get("appstate");
+        if (cur) {
+          try {
+            const curRev = JSON.parse(cur).rev || 0;
+            if (curRev > state.rev) return json({ ok: false, stale: true, rev: curRev }, 409, cors);
+          } catch {}
+        }
+        await env.HEALTH.put("appstate", JSON.stringify(state));
+        return json({ ok: true, rev: state.rev }, 200, cors);
+      }
+
+      if (req.method === "GET") {
+        const stored = await env.HEALTH.get("appstate");
+        return new Response(stored || "null", { headers: { ...cors, "Content-Type": "application/json" } });
+      }
+
+      return json({ error: "method not allowed" }, 405, cors);
+    }
+
     // -------- POST : réception depuis Health Auto Export --------
     if (req.method === "POST") {
       const auth = req.headers.get("authorization") || "";
