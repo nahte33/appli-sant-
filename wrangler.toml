@@ -10,3 +10,9 @@ compatibility_date = "2026-01-01"
 [[kv_namespaces]]
 binding = "HEALTH"
 id = "REMPLACER_PAR_VOTRE_KV_NAMESPACE_ID"
+
+# Notification du matin (UTC) : 05h30 UTC = 7h30 Paris en été, 6h30 en hiver.
+# Si le Worker est collé manuellement dans le dashboard, ajoutez ce déclencheur
+# dans Settings → Triggers → Cron Triggers.
+[triggers]
+crons = ["30 5 * * *"]

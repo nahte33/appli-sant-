@@ -227,6 +227,8 @@ textarea{resize:vertical;min-height:90px;line-height:1.5}
 .msg{max-width:86%;padding:12px 15px;border-radius:18px;font-size:14px;line-height:1.55;white-space:pre-wrap;word-wrap:break-word}
 .msg.u{align-self:flex-end;background:var(--grad);color:#fff;border-bottom-right-radius:5px}
 .msg.a{align-self:flex-start;background:var(--surface2);border:1px solid var(--border);border-bottom-left-radius:5px}
+.msg.a code{background:var(--track);padding:1px 5px;border-radius:5px;font-size:12.5px;font-family:ui-monospace,monospace}
+.msg.a pre{background:var(--track);padding:9px 11px;border-radius:9px;font-size:12px;font-family:ui-monospace,monospace;overflow-x:auto;margin:7px 0;white-space:pre-wrap}
 .msg.sys{align-self:center;background:transparent;color:var(--txt3);font-size:12.5px;text-align:center;max-width:100%}
 .chatin{display:flex;gap:9px;padding-top:10px;border-top:1px solid var(--border)}
 .chatin input{flex:1}
@@ -584,11 +586,58 @@ function sleepScore(dayKey){const day=S.days[dayKey];if(!day||day.sleep==null)re
   return{score,c,txt,parts,regComp,regPart,compComp};}
 let recPeriod=30;
 function setRecPeriod(d){recPeriod=d;renderRecovery();}
+/* ---------- Carte "Aujourd'hui" : verdict du jour + séance prévue + suppléments + saisies en attente ---------- */
+function recentPain(){const ws=[...S.workouts].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3);
+  return ws.length?Math.max(...ws.map(w=>Math.max(w.painDuring||0,w.painAfter||0))):0;}
+function incompleteWorkouts(){return S.workouts.filter(w=>!w.rpe&&(w.durationMin||0)>0)
+  .sort((a,b)=>b.date.localeCompare(a.date)).slice(0,10);}
+function todayVerdict(){const tk2=Object.keys(S.days).sort().pop();const rec=tk2?recovery(tk2):null;const ot=overtraining();
+  const pain=recentPain();
+  if(!rec&&!ot)return{t:"Importe ou saisis des données pour obtenir ton verdict du jour",c:"var(--txt3)",ic:"📊"};
+  const score=rec?rec.score:65;const acwr=ot?ot.acwr:1;
+  if(pain>=4)return{t:"Douleur récente élevée ("+pain+"/10) — remplace le bas du corps par ta rééducation",c:"var(--bad)",ic:"🩹"};
+  if(score<40||acwr>1.5)return{t:"Récupération faible"+(acwr>1.5?" et charge aiguë trop haute":"")+" — repos actif ou séance très légère",c:"var(--bad)",ic:"🛑"};
+  if(score<60||acwr>1.3||pain>=2)return{t:(pain>=2?"Douleur légère à surveiller — ":"")+"séance technique ou volume contrôlé recommandé",c:"var(--warn)",ic:"⚠️"};
+  return{t:"Feu vert — ton corps est prêt pour la séance prévue, y compris lourde",c:"var(--good)",ic:"✅"};}
+function renderTodayCard(root){const tk=todayKey();
+  const plans=S.plan.filter(p=>p.date===tk);
+  const v=todayVerdict();
+  const total=S.supps.length;const taken=S.supps.filter(s=>s.log&&s.log[tk]).length;
+  const inc=incompleteWorkouts();
+  const dStr=new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
+  const card=el("div","card glass");
+  card.innerHTML=`<h2><span class="dot" style="background:${v.c}"></span>Aujourd'hui · <span style="text-transform:capitalize">${dStr}</span></h2>
+   <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:12px">
+     <div style="font-size:26px;line-height:1">${v.ic}</div>
+     <div style="font-size:14.5px;font-weight:650;line-height:1.45;color:${v.c}">${v.t}</div>
+   </div>
+   <div class="kv"><span>🗓️ Séance prévue</span><b style="text-align:right;min-width:0">${plans.length?plans.map(p=>escapeHtml(planLabel(p))).join("<br>"):`<span class="muted" style="font-weight:500">rien de programmé</span>`}</b></div>
+   <div class="kv"><span>💊 Compléments</span><b style="color:${total&&taken===total?'var(--good)':'var(--txt)'}">${total?taken+"/"+total+" pris":"—"}</b></div>
+   ${inc.length?`<button class="btn ghost full" style="margin-top:12px;color:var(--warn);border-color:var(--warn)" onclick="openQuickLog('${inc[0].id}')">⚡ ${inc.length} séance${inc.length>1?"s":""} à compléter (RPE + douleur)</button>`:""}`;
+  root.appendChild(card);}
+/* Saisie post-séance express : RPE → douleur pendant → douleur après, enchaîne les séances en attente */
+function openQuickLog(id){const w=S.workouts.find(x=>x.id===id);if(!w)return;
+  tmpRpe=w.rpe||0;tmpPainD=w.painDuring||0;tmpPainA=w.painAfter||0;
+  const dObj=parseDate(w.date);const dStr=dObj?dObj.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}):w.date;
+  const remaining=incompleteWorkouts().length;
+  openSheet(`<h3>⚡ ${escapeHtml(w.name)}</h3><div class="sub" style="text-transform:capitalize">${dStr} · ${fmtMin(w.durationMin||0)}${w.avgHr?" · "+w.avgHr+" bpm":""}${remaining>1?" · "+(remaining-1)+" autre(s) en attente":""}</div>
+   <label>RPE — effort perçu (1–10)</label><div class="rpe" id="rpeRow">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button onclick="tmpRpe=${n};markRow('rpeRow',${n})" class="${tmpRpe===n?'on':''}">${n}</button>`).join("")}</div>
+   <label>Douleur pendant (0–10)</label><div class="rpe" id="pdRow">${[0,1,2,3,4,5,6,7,8,9,10].map(n=>`<button onclick="tmpPainD=${n};markRow('pdRow',${n})" class="${tmpPainD===n?'on':''}">${n}</button>`).join("")}</div>
+   <label>Douleur après (0–10)</label><div class="rpe" id="paRow">${[0,1,2,3,4,5,6,7,8,9,10].map(n=>`<button onclick="tmpPainA=${n};markRow('paRow',${n})" class="${tmpPainA===n?'on':''}">${n}</button>`).join("")}</div>
+   <div class="sheetbtns"><button class="btn ghost" onclick="closeSheet()">Plus tard</button><button class="btn primary full" onclick="saveQuickLog('${w.id}')">Enregistrer${remaining>1?" → suivante":""}</button></div>`);}
+function saveQuickLog(id){const w=S.workouts.find(x=>x.id===id);if(!w)return;
+  if(!tmpRpe){toast("Choisis ton RPE");return;}
+  w.rpe=tmpRpe;w.painDuring=tmpPainD;w.painAfter=tmpPainA;w.trimp=trimp(w);w.updated=Date.now();
+  save();
+  const next=incompleteWorkouts()[0];
+  if(next){openQuickLog(next.id);toast("Enregistré ✓ — suivante");}
+  else{closeSheet();renderAll();toast("Toutes tes séances sont à jour 💪");}}
 function renderRecovery(){
   const root=$("#tab-recovery");root.innerHTML="";
   const hasData=Object.keys(S.days).length>0;
   const tk=latestVal("hrv")?latestVal("hrv").date:(Object.keys(S.days).sort().pop()||todayKey());
   const rec=hasData?recovery(tk):null;const ot=hasData?overtraining():null;
+  renderTodayCard(root);
   const herorow=el("div","herorow");
 
   const recCard=el("div","card glass clickable");
@@ -767,7 +816,12 @@ function renderTraining(){
 }
 
 /* ---------- Onglet Calendrier : vue réelle (Apple Watch) + vue prévisionnelle ---------- */
-let calView="real";
+let calView="real",calTypeFilter="all";
+function matchWorkoutType(name,f){if(f==="all")return true;const s=(name||"").toLowerCase();
+  if(f==="muscu")return /musculation|muscu|force|strength/.test(s);
+  if(f==="free")return /freestyle/.test(s);
+  if(f==="reeduc")return /rééduc|reeduc|réeduc/.test(s);
+  return true;}
 const planOf=(noteId,ri)=>S.plan.find(p=>p.noteId===noteId&&p.row===ri);
 // Libellé toujours dérivé de la note : renommer une séance ou une note met
 // automatiquement à jour le calendrier prévisionnel. Le label stocké ne sert
@@ -798,7 +852,11 @@ function renderCalTab(){
   for(let i=0;i<startDow;i++)grid.appendChild(el("div","calday empty"));
   const tk=todayKey();
   if(calView==="real"){
-    const wbd=workoutsByDay();
+    // filtre par type de séance
+    cal.insertAdjacentHTML("afterbegin",`<div class="chips" style="margin-bottom:10px">`+
+      [["all","Toutes"],["muscu","🏋️ Musculation"],["free","🤸 Freestyle"],["reeduc","🩹 Rééducation"]]
+      .map(([k,l])=>`<div class="chip${calTypeFilter===k?' on':''}" onclick="calTypeFilter='${k}';renderCalTab()">${l}</div>`).join("")+`</div>`);
+    const wbd={};S.workouts.filter(w=>matchWorkoutType(w.name,calTypeFilter)).forEach(w=>{(wbd[w.date]=wbd[w.date]||[]).push(w);});
     for(let d=1;d<=dim;d++){const dk=calYear+"-"+pad(calMonth+1)+"-"+pad(d);const ws=wbd[dk]||[];
       const cell=el("div","calday"+(dk===tk?" today":""));
       if(ws.length)cell.style.background=hexA(workoutColor(ws[0].name),.13);
@@ -806,8 +864,8 @@ function renderCalTab(){
       cell.innerHTML=`<div class="dn">${d}</div>`+(ws.length?`<div class="wlabs">${ws.slice(0,2).map(w=>`<div class="wlab"><i style="background:${workoutColor(w.name)}"></i><span>${escapeHtml(w.name)}</span></div>`).join("")}${ws.length>2?`<div class="wlab"><span>+${ws.length-2} autre${ws.length>3?"s":""}</span></div>`:""}</div><div class="wmin">${totMin?Math.round(totMin)+"′":""}</div>`:"");
       cell.onclick=()=>openDayWorkouts(dk);grid.appendChild(cell);}
     // légende : types d'entraînement présents ce mois, chacun sa couleur
-    const types={};const ym=calYear+"-"+pad(calMonth+1);const wbd2=workoutsByDay();
-    Object.keys(wbd2).forEach(dk=>{if(dk.indexOf(ym)===0)wbd2[dk].forEach(w=>{types[w.name]=workoutColor(w.name);});});
+    const types={};const ym=calYear+"-"+pad(calMonth+1);
+    Object.keys(wbd).forEach(dk=>{if(dk.indexOf(ym)===0)wbd[dk].forEach(w=>{types[w.name]=workoutColor(w.name);});});
     const tnames=Object.keys(types);
     if(tnames.length){const lg=el("div");lg.style.cssText="display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)";
       lg.innerHTML=tnames.map(nm=>`<span style="display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--txt2);font-weight:650"><i style="width:10px;height:10px;border-radius:3px;background:${types[nm]}"></i>${escapeHtml(nm)}</span>`).join("");
@@ -939,6 +997,10 @@ function renderNotes(){
   const adds=el("div");adds.style.cssText="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap";
   adds.innerHTML=`<button class="btn ghost" style="flex:1;min-width:130px" onclick="openFreeNote()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Note libre</button><button class="btn primary" style="flex:1;min-width:130px" onclick="newForceNote()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Cycle de force</button><button class="btn ghost" style="flex:1;min-width:130px;color:var(--acc3)" onclick="newFreestyleNote()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Programme freestyle</button>`;
   root.appendChild(adds);
+  // recherche : filtre l'affichage sans re-render (le focus reste dans le champ)
+  const srch=el("div","");srch.style.cssText="margin-bottom:14px";
+  srch.innerHTML=`<input id="noteSearch" placeholder="🔍 Rechercher dans les notes (titre, contenu, exercice...)" value="${escapeHtml(noteQuery)}" oninput="noteQuery=this.value;filterNotes()">`;
+  root.appendChild(srch);
   if(!S.notes.length){root.appendChild(el("div","empty",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>Trois types de notes : <b>libre</b> pour écrire, <b>cycle de force</b> (kg × séries × reps) et <b>programme freestyle</b> (temps par exercice).</p>`));return;}
   S.notes.filter(n=>(n.type==="force"||n.type==="freestyle")&&!n.archived).forEach(n=>root.appendChild(renderForceCard(n)));
   const free=S.notes.filter(n=>n.type!=="force"&&n.type!=="freestyle"&&!n.archived).sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.updated||0)-(a.updated||0));
@@ -963,8 +1025,12 @@ function renderNotes(){
       return `<div class="kv" style="gap:10px"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--txt)">${n.type==="force"?"🏋️":n.type==="freestyle"?"🤸":"📝"} ${escapeHtml(n.title||"Sans titre")}<span class="muted" style="margin-left:8px;font-size:11px">${when}</span></span>
       <b style="display:flex;gap:6px;flex-shrink:0"><button class="btn ghost" style="padding:6px 11px;font-size:12px" onclick="archiveNote('${n.id}')">Restaurer</button><button class="btn ghost" style="padding:6px 11px;font-size:12px" onclick="delNote('${n.id}')">Suppr.</button></b></div>`;}).join("")+`</div>`:"");
     root.appendChild(c);}
+  filterNotes();
 }
-let archOpen=false;
+let archOpen=false,noteQuery="";
+function filterNotes(){const q=(noteQuery||"").toLowerCase().trim();
+  document.querySelectorAll("#tab-notes .fcard, #tab-notes .note").forEach(c=>{
+    c.style.display=!q||c.textContent.toLowerCase().includes(q)?"":"none";});}
 function archiveNote(id){const n=S.notes.find(x=>x.id===id);if(!n)return;
   n.archived=!n.archived;n.archivedAt=n.archived?Date.now():null;if(n.archived)n.pinned=false;
   n.updated=Date.now();save();closeSheet();renderNotes();toast(n.archived?"Note archivée":"Note restaurée");}
@@ -981,7 +1047,7 @@ function renderForceCard(n){const card=el("div","card fcard");const exos=n.exos|
   const pct=rows.length?Math.round(doneCt/rows.length*100):0;
   const icon=isFs?"🤸":"🏋️";
   const titleRow=`<div class="fttitle"><span style="display:flex;align-items:center;gap:8px;min-width:0"><button class="btn ghost" style="padding:6px 10px;font-size:13px" title="${n.collapsed?'Agrandir':'Réduire'}" onclick="toggleNoteCollapse('${n.id}')">${n.collapsed?"▸":"▾"}</button><span contenteditable oninput="renameForce('${n.id}',this.textContent)">${icon} ${escapeHtml(n.title||(isFs?"Programme freestyle":"Cycle de force"))}</span></span>
-    <span style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="pill" style="color:${doneCt?'var(--good)':'var(--txt2)'}">${doneCt}/${rows.length} faites</span>${n.collapsed?"":(isFs?"":`<button class="btn primary" onclick="openForceProgress('${n.id}',0)">📈 Progression</button>`)+`<button class="btn ghost" onclick="addForceExo('${n.id}')">+ exo</button><button class="btn ghost" onclick="delForceExo('${n.id}')">− exo</button><button class="btn ghost" onclick="addForceRow('${n.id}')">+ ligne</button><button class="btn ghost" onclick="delForceRow('${n.id}')">− ligne</button><button class="btn ghost" ${doneCt===rows.length&&rows.length?'style="color:var(--good)"':''} onclick="archiveNote('${n.id}')">🗃️ Archiver</button><button class="btn ghost" onclick="delNote('${n.id}')">Suppr.</button>`}</span></div>`;
+    <span style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="pill" style="color:${doneCt?'var(--good)':'var(--txt2)'}">${doneCt}/${rows.length} faites</span>${n.collapsed?"":(isFs?"":`<button class="btn primary" onclick="openForceProgress('${n.id}',0)">📈 Progression</button>`)+`<button class="btn ghost" style="color:var(--acc2)" onclick="openSeriesPlanner('${n.id}')">📅 Série</button><button class="btn ghost" onclick="addForceExo('${n.id}')">+ exo</button><button class="btn ghost" onclick="delForceExo('${n.id}')">− exo</button><button class="btn ghost" onclick="addForceRow('${n.id}')">+ ligne</button><button class="btn ghost" onclick="delForceRow('${n.id}')">− ligne</button><button class="btn ghost" ${doneCt===rows.length&&rows.length?'style="color:var(--good)"':''} onclick="archiveNote('${n.id}')">🗃️ Archiver</button><button class="btn ghost" onclick="delNote('${n.id}')">Suppr.</button>`}</span></div>`;
   if(n.collapsed){card.innerHTML=titleRow+`<div style="height:7px;border-radius:5px;background:var(--track);overflow:hidden;margin-top:4px"><div style="height:100%;width:${pct}%;background:var(--grad)"></div></div>`;return card;}
   const head1=`<th></th><th></th><th></th><th></th>`+exos.map(e=>`<th class="grp" colspan="${NF}">${escapeHtml(e)}</th>`).join("");
   const head2=`<th>✓</th><th>📅</th><th>Sem.</th><th>Séance</th>`+exos.map(()=>FIELDS.map((f,fi)=>`<th class="${fi===0?'grp':''}">${f}</th>`).join("")).join("");
@@ -999,6 +1065,32 @@ function renderForceCard(n){const card=el("div","card fcard");const exos=n.exos|
     <p class="muted" style="margin-top:10px;font-size:11.5px">✓ = séance faite · 📅 = programmer sur le calendrier prévisionnel — la ligne violette est ta prochaine séance.${isFs?" Temps en minutes par exercice.":" Orange = lourde · bleu = volume."}</p>`;
   return card;}
 function toggleNoteCollapse(id){const n=S.notes.find(x=>x.id===id);if(!n)return;n.collapsed=!n.collapsed;n.updated=Date.now();save();renderNotes();}
+/* ---------- Planification en série : programme N séances sur des jours fixes en un clic ---------- */
+let tmpDows=new Set();
+function openSeriesPlanner(id){const n=S.notes.find(x=>x.id===id);if(!n)return;tmpDows=new Set();
+  const pending=(n.rows||[]).filter((r,ri)=>!r.done&&!planOf(id,ri)).length;
+  if(!pending){toast("Toutes les séances sont déjà faites ou programmées");return;}
+  const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);
+  openSheet(`<h3>📅 Planifier en série</h3><div class="sub">${escapeHtml(n.title||"")} — ${pending} séance(s) restante(s) non programmée(s)</div>
+   <label>Tes jours d'entraînement</label>
+   <div class="rpe" id="dowRow">${["Lu","Ma","Me","Je","Ve","Sa","Di"].map((d,i)=>`<button onclick="toggleDow(${i},this)">${d}</button>`).join("")}</div>
+   <div class="row2"><div><label>Nombre de séances</label><input type="number" id="sp_count" value="${Math.min(8,pending)}" min="1" max="${pending}" inputmode="numeric"></div>
+   <div><label>À partir du</label><input type="date" id="sp_start" value="${fmtKey(tomorrow)}" min="${todayKey()}"></div></div>
+   <p class="muted" style="margin-top:10px;font-size:12px">Les prochaines séances non faites du tableau seront posées dans l'ordre sur tes jours choisis. Si tu décales une séance, les suivantes ne bougent pas — replanifie en série pour tout recaler.</p>
+   <div class="sheetbtns"><button class="btn ghost" onclick="closeSheet()">Annuler</button><button class="btn primary full" onclick="runSeriesPlan('${id}')">Planifier</button></div>`);}
+function toggleDow(i,btn){if(tmpDows.has(i))tmpDows.delete(i);else tmpDows.add(i);btn.classList.toggle("on");}
+function runSeriesPlan(id){const n=S.notes.find(x=>x.id===id);if(!n)return;
+  if(!tmpDows.size){toast("Choisis au moins un jour");return;}
+  const count=clamp(parseInt($("#sp_count").value)||1,1,80);
+  const start=parseDate($("#sp_start").value||todayKey())||new Date();
+  const targets=(n.rows||[]).map((r,ri)=>({r,ri})).filter(x=>!x.r.done&&!planOf(id,x.ri)).slice(0,count);
+  const cur=new Date(start);let placed=0;
+  for(const t of targets){
+    while(!tmpDows.has((cur.getDay()+6)%7))cur.setDate(cur.getDate()+1);
+    const ex={id:uid(),noteId:id,row:t.ri,date:fmtKey(cur),created:Date.now(),updated:Date.now()};
+    ex.label=planLabel(ex);S.plan.push(ex);placed++;
+    cur.setDate(cur.getDate()+1);}
+  save();closeSheet();renderNotes();toast(placed+" séance(s) programmée(s) — visible(s) dans l'Agenda");}
 function toggleForceDone(id,ri){const n=S.notes.find(x=>x.id===id);if(!n||!n.rows[ri])return;const r=n.rows[ri];
   if(r.done){delete r.done;delete r.doneDate;}else{r.done=true;r.doneDate=todayKey();}
   n.updated=Date.now();save();renderNotes();}
@@ -1204,9 +1296,13 @@ function openSettings(){const s=S.settings;
    <label>Jeton de lecture (READ_TOKEN)</label><input id="set_synctoken" value="${escapeHtml(s.syncToken||"")}" placeholder="votre jeton de lecture">
    <button class="btn ghost full" style="margin-top:12px" onclick="saveSettings(true)">Tester la synchronisation</button>
    <div style="height:1px;background:var(--border);margin:22px 0"></div>
+   <h3 style="font-size:16px;padding-right:0">Notifications</h3><div class="sub">Rappel chaque matin : séance prévue + compléments. Sur iPhone, l'app doit être installée sur l'écran d'accueil (iOS 16.4+).</div>
+   ${s.pushOn?`<div class="row2"><button class="btn ghost" onclick="testPush()">Tester</button><button class="btn ghost" style="color:var(--bad)" onclick="disablePush()">Désactiver</button></div>`
+     :`<button class="btn primary full" onclick="enablePush()">🔔 Activer les notifications</button>`}
+   <div style="height:1px;background:var(--border);margin:22px 0"></div>
    <h3 style="font-size:16px;padding-right:0">Assistant IA</h3><div class="sub">Votre clé reste stockée uniquement sur cet appareil.</div>
    <label>Fournisseur</label><select id="set_provider"><option value="anthropic" ${s.apiProvider==="anthropic"?"selected":""}>Anthropic (Claude)</option><option value="openai" ${s.apiProvider==="openai"?"selected":""}>OpenAI (GPT)</option></select>
-   <label>Modèle (optionnel)</label><input id="set_model" value="${escapeHtml(s.apiModel||"")}" placeholder="auto: claude-sonnet-4 / gpt-4o">
+   <label>Modèle (optionnel)</label><input id="set_model" value="${escapeHtml(s.apiModel||"")}" placeholder="auto: claude-opus-4-8 / gpt-4o">
    <label>Clé API</label><input id="set_apikey" type="password" value="${escapeHtml(s.apiKey||"")}" placeholder="sk-... / sk-ant-...">
    <div style="height:1px;background:var(--border);margin:22px 0"></div>
    <div class="row2"><button class="btn ghost" onclick="exportData()">Exporter</button><button class="btn ghost" onclick="$('#fileInput2').click()">Importer sauvegarde</button></div>
@@ -1224,6 +1320,38 @@ async function fetchSync(silent){const u=S.settings.syncUrl,t=S.settings.syncTok
     const j=await r.json();const a=ingestHAE(j);renderAll();if(!silent)closeSheet();// 2. données Apple Watch
     toast(a.metrics||a.workouts||pulled?`Sync OK · ${a.days.size} jour(s), ${a.workouts} séance(s)${pulled?" · appareils fusionnés":""}`:"Sync OK · à jour");
   }catch(err){if(pulled)renderAll();if(!silent)toast("Échec : "+err.message);}}
+/* ---------- Notifications push ---------- */
+function b64uToU8(s){s=s.replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="=";const b=atob(s);return Uint8Array.from(b,c=>c.charCodeAt(0));}
+function pushUrl(path){return S.settings.syncUrl.replace(/\/+$/,"")+path+"?token="+encodeURIComponent(S.settings.syncToken);}
+async function enablePush(){
+  if(!canSync()){toast("Configure d'abord la sync (URL + jeton) juste au-dessus");return;}
+  if(!("serviceWorker"in navigator)||!("PushManager"in window)||!("Notification"in window)){toast("Non supporté ici — installe l'app sur l'écran d'accueil");return;}
+  try{
+    const perm=await Notification.requestPermission();
+    if(perm!=="granted"){toast("Permission refusée dans le navigateur");return;}
+    const reg=await navigator.serviceWorker.ready;
+    const kr=await fetch(pushUrl("/push/key"));
+    if(!kr.ok)throw new Error("le Worker ne connaît pas /push — redéploie-le");
+    const{key}=await kr.json();
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64uToU8(key)});
+    const r=await fetch(pushUrl("/push/subscribe"),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(sub)});
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    S.settings.pushOn=true;save(false);
+    toast("Notifications activées ✓ — rappel chaque matin");openSettings();
+  }catch(e){toast("Échec : "+e.message);}}
+async function disablePush(){
+  try{
+    if("serviceWorker"in navigator){const reg=await navigator.serviceWorker.ready;
+      const sub=await reg.pushManager.getSubscription();
+      if(sub){if(canSync())try{await fetch(pushUrl("/push/unsubscribe"),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({endpoint:sub.endpoint})});}catch(e){}
+        await sub.unsubscribe();}}
+    S.settings.pushOn=false;save(false);toast("Notifications désactivées");openSettings();
+  }catch(e){toast("Échec : "+e.message);}}
+async function testPush(){if(!canSync())return;
+  try{const r=await fetch(pushUrl("/push/test"),{method:"POST"});const j=await r.json();
+    toast(j.sent?"Notification de test envoyée à "+j.sent+" appareil(s)":"Aucun appareil abonné");
+  }catch(e){toast("Échec : "+e.message);}}
 function exportData(){const blob=new Blob([JSON.stringify(S,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="vitalis-sauvegarde-"+todayKey()+".json";a.click();}
 function importBackup(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);if(d.days&&d.settings){S=Object.assign({},DEFAULT,d);save();closeSheet();renderAll();toast("Sauvegarde restaurée");}else throw 0;}catch(err){toast("Fichier invalide");}};r.readAsText(f);}
 
@@ -1280,27 +1408,88 @@ function buildContext(){const tk=Object.keys(S.days).sort().pop()||todayKey();co
       :n.type==="freestyle"?{type:"programme freestyle",titre:n.title,archivee:!!n.archived,exercices:n.exos,plan:(n.rows||[]).map(r=>({seance:r.seance,faite:!!r.done,minutes:(n.exos||[]).map((e,i)=>e+" "+((r.data[i]||[""])[0]||"?")+" min")}))}
       :{type:"note libre",titre:n.title,archivee:!!n.archived,contenu:n.body}),
     seancesProgrammees:S.plan.map(p=>({date:p.date,seance:planLabel(p)}))};}
+const NOTE_RE=/```vitalis-note\s*([\s\S]*?)```/;
+// mini-rendu markdown (échappé d'abord — pas d'injection possible)
+function mdToHtml(s){let h=escapeHtml(s||"");
+  h=h.replace(/```[a-z-]*\n?([\s\S]*?)```/g,(m,c)=>`<pre>${c.trim()}</pre>`);
+  h=h.replace(/^#{1,4}\s?(.+)$/gm,'<b style="display:block;margin:8px 0 2px;font-size:15px">$1</b>');
+  h=h.replace(/\*\*([^*\n]+)\*\*/g,"<b>$1</b>");
+  h=h.replace(/(^|[\s(])\*([^*\n]+)\*/g,"$1<i>$2</i>");
+  h=h.replace(/`([^`\n]+)`/g,"<code>$1</code>");
+  h=h.replace(/^[-*]\s/gm,"• ");
+  return h;}
 function openAI(){const hasKey=!!S.settings.apiKey;
-  openSheet(`<div class="aihead"><div class="av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.6 4.6L18 8.2l-4.4 1.6L12 14l-1.6-4.2L6 8.2l4.4-1.6z"/></svg></div><div class="t"><b>Assistant Vitalis</b><span>${hasKey?"Accès complet à tes données":"Clé API requise (Réglages)"}</span></div></div>
+  openSheet(`<div class="aihead"><div class="av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.6 4.6L18 8.2l-4.4 1.6L12 14l-1.6-4.2L6 8.2l4.4-1.6z"/></svg></div><div class="t" style="flex:1"><b>Assistant Vitalis</b><span>${hasKey?"Rapports, conseils et création de programmes":"Clé API requise (Réglages)"}</span></div>
+   <button onclick="clearChat()" title="Vider la conversation" style="background:rgba(255,255,255,.18);border:none;border-radius:10px;width:34px;height:34px;color:#fff;cursor:pointer;display:grid;place-items:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button></div>
    <div class="chatwrap"><div class="chatmsgs" id="chatMsgs"></div>
    <div class="chatin"><input id="chatInput" placeholder="Pose ta question..." onkeydown="if(event.key==='Enter')aiSend()"><button onclick="aiSend()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div></div>`);
   renderChat();}
+function clearChat(){if(!S.ai.length){return;}if(confirm("Vider la conversation ?")){S.ai=[];save();renderChat();}}
+function suggestChip(q){const inp=$("#chatInput");if(inp){inp.value=q;aiSend();}}
 function renderChat(){const c=$("#chatMsgs");if(!c)return;c.innerHTML="";
-  const list=S.ai.length?S.ai:[{role:"sys",content:S.settings.apiKey?"Pose ta question — j'ai accès à ta récupération, ta charge, tes séances, tes compléments et tes notes.":"⚙️ Ajoute ta clé API dans les Réglages pour activer l'assistant."}];
-  list.forEach(m=>{const d=el("div","msg "+(m.role==="user"?"u":m.role==="assistant"?"a":"sys"));d.textContent=m.content;c.appendChild(d);});c.scrollTop=c.scrollHeight;}
+  if(!S.ai.length){
+    const hasKey=!!S.settings.apiKey;
+    const d=el("div","msg sys");d.textContent=hasKey?"Pose ta question — j'ai accès à toutes tes données.":"⚙️ Ajoute ta clé API dans les Réglages pour activer l'assistant.";c.appendChild(d);
+    if(hasKey){const sug=el("div");sug.style.cssText="display:flex;flex-direction:column;gap:7px;align-self:center;width:100%;max-width:380px;margin-top:6px";
+      sug.innerHTML=["Fais-moi un rapport détaillé de ma semaine","Puis-je faire ma séance lourde aujourd'hui ?","Crée-moi un programme de rééducation adducteurs","Comment évolue ma récupération ce mois-ci ?"]
+        .map(q=>`<button class="btn ghost" style="font-size:13px;padding:10px 14px" onclick="suggestChip('${q.replace(/'/g,"\\'")}')">${q}</button>`).join("");
+      c.appendChild(sug);}
+    return;}
+  S.ai.forEach((m,i)=>{const d=el("div","msg "+(m.role==="user"?"u":m.role==="assistant"?"a":"sys"));
+    if(m.role==="assistant"){let txt=m.content||"";let payload=null;
+      const mm=txt.match(NOTE_RE);
+      if(mm){try{payload=JSON.parse(mm[1]);}catch(e){}txt=txt.replace(NOTE_RE,"").trim();}
+      d.innerHTML=mdToHtml(txt);
+      if(payload&&payload.titre){const btn=el("button","btn primary");btn.style.cssText="margin-top:10px;padding:9px 14px;font-size:13px;width:100%";
+        btn.textContent="➕ Créer la note « "+payload.titre+" »";btn.onclick=()=>createNoteFromAI(i);d.appendChild(btn);}}
+    else d.textContent=m.content;
+    c.appendChild(d);});
+  c.scrollTop=c.scrollHeight;}
+// Crée une note (cycle de force, freestyle ou libre) à partir du bloc JSON produit par l'assistant
+function createNoteFromAI(idx){const m=S.ai[idx];if(!m)return;
+  const mm=(m.content||"").match(NOTE_RE);if(!mm){toast("Bloc note introuvable");return;}
+  let p;try{p=JSON.parse(mm[1]);}catch(e){toast("Format de note invalide");return;}
+  const type=p.type==="force"?"force":p.type==="freestyle"?"freestyle":"free";
+  if(type==="free"){
+    S.notes.push({id:uid(),type:"free",title:String(p.titre||"Note de l'assistant"),body:String(p.contenu||""),created:Date.now(),updated:Date.now()});}
+  else{
+    const exos=Array.isArray(p.exercices)?p.exercices.map(String):[];
+    if(!exos.length){toast("Exercices manquants dans la note");return;}
+    const NF=type==="force"?3:1;
+    const seances=Array.isArray(p.seances)?p.seances:[];
+    if(!seances.length){toast("Séances manquantes dans la note");return;}
+    const rows=seances.map((s,i)=>({sem:String(s.sem||"S"+(i+1)),seance:String(s.seance||"Séance "+(i+1)),
+      data:exos.map((e,ei)=>{let v=(Array.isArray(s.valeurs)?s.valeurs[ei]:null);
+        let arr=Array.isArray(v)?v.map(x=>String(x==null?"":x)):[String(v==null?"":v)];
+        while(arr.length<NF)arr.push("");return arr.slice(0,NF);})}));
+    S.notes.push({id:uid(),type,title:String(p.titre||"Programme de l'assistant"),exos,rows,created:Date.now(),updated:Date.now()});}
+  save();closeSheet();switchTab("notes");renderNotes();toast("Note créée ✓");}
 async function aiSend(){const inp=$("#chatInput");const q=inp.value.trim();if(!q)return;
   if(!S.settings.apiKey){toast("Ajoutez votre clé API dans les Réglages");openSettings();return;}
   inp.value="";S.ai.push({role:"user",content:q});save();renderChat();
   const c=$("#chatMsgs");const typing=el("div","msg a");typing.innerHTML='<div class="typing"><i></i><i></i><i></i></div>';c.appendChild(typing);c.scrollTop=c.scrollHeight;
   const ctx=buildContext();
-  const sys=`Tu es le coach santé & performance intégré à l'app Vitalis de ${S.settings.userName||"l'utilisateur"}. Tu as accès en temps réel à TOUTES ses données ci-dessous (récupération, risque de surentraînement ACWR, VFC, FC repos, sommeil, charge CTL/ATL/TSB, entraînements, compléments, notes). Réponds en français, concis, concret et personnalisé en t'appuyant sur ces chiffres. Donne des conseils actionnables pour adapter ses entraînements et optimiser sa récupération. Tu n'es pas médecin: pour toute question de santé sérieuse, recommande un professionnel.\n\nDONNÉES (JSON):\n${JSON.stringify(ctx)}`;
+  const sys=`Tu es le coach santé & performance intégré à l'app Vitalis de ${S.settings.userName||"l'utilisateur"}. Tu as accès en temps réel à TOUTES ses données ci-dessous (récupération, risque de surentraînement ACWR, VFC, FC repos, sommeil, charge sRPE CTL/ATL/TSB, monotonie/contrainte de Foster, tonnage, entraînements avec douleur, compléments, notes et séances programmées). Réponds en français, concret et personnalisé en t'appuyant sur ces chiffres. Important: l'utilisateur a un historique de pubalgie/douleurs adducteurs — surveille toujours les signaux de douleur. Tu n'es pas médecin: pour toute question de santé sérieuse, recommande un professionnel.
+
+CAPACITÉS SPÉCIALES :
+1. RAPPORTS DÉTAILLÉS — quand on te demande un rapport, un bilan ou une analyse, produis une réponse longue et structurée en markdown (titres ###, listes à puces, gras pour les chiffres clés), avec les valeurs exactes tirées des données, les tendances, et des recommandations hiérarchisées.
+2. CRÉATION DE NOTES D'ENTRAÎNEMENT — quand on te demande de créer un programme ou une note, explique d'abord brièvement ta proposition, puis termine ta réponse par EXACTEMENT un bloc de ce format (l'app affichera un bouton "Créer la note") :
+\`\`\`vitalis-note
+{"type":"force","titre":"Mon cycle","exercices":["Back Squat","Soulevé de Terre"],"seances":[{"sem":"S1","seance":"1 · Lourde","valeurs":[[60,5,3],[80,4,3]]},{"sem":"S1","seance":"2 · Volume","valeurs":[[50,4,6],[70,3,6]]}]}
+\`\`\`
+Règles du bloc: "type" = "force" (valeurs = [kg, séries, reps] par exercice), "freestyle" (valeurs = [minutes] par exercice), ou "free" (alors utilise {"type":"free","titre":"...","contenu":"texte"}). "valeurs" est un tableau aligné sur "exercices". JSON valide obligatoire, pas de commentaires dedans.
+
+DONNÉES (JSON):
+${JSON.stringify(ctx)}`;
   try{let reply;
     if(S.settings.apiProvider==="openai"){const model=S.settings.apiModel||"gpt-4o";
-      const r=await fetch("https://api.openai.com/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+S.settings.apiKey},body:JSON.stringify({model,messages:[{role:"system",content:sys},...S.ai.filter(m=>m.role!=="sys").slice(-12).map(m=>({role:m.role,content:m.content}))]})});
+      const r=await fetch("https://api.openai.com/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+S.settings.apiKey},body:JSON.stringify({model,max_tokens:8000,messages:[{role:"system",content:sys},...S.ai.filter(m=>m.role!=="sys").slice(-12).map(m=>({role:m.role,content:m.content}))]})});
       const j=await r.json();if(j.error)throw new Error(j.error.message);reply=j.choices[0].message.content;
-    }else{const model=S.settings.apiModel||"claude-sonnet-4-20250514";
-      const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":S.settings.apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model,max_tokens:1024,system:sys,messages:S.ai.filter(m=>m.role!=="sys").slice(-12).map(m=>({role:m.role,content:m.content}))})});
-      const j=await r.json();if(j.error)throw new Error(j.error.message);reply=j.content.map(b=>b.text||"").join("");}
+    }else{const model=S.settings.apiModel||"claude-opus-4-8";
+      const body={model,max_tokens:8000,system:sys,messages:S.ai.filter(m=>m.role!=="sys").slice(-12).map(m=>({role:m.role,content:m.content}))};
+      if(/opus-4-[678]|sonnet-4-6|fable/.test(model))body.thinking={type:"adaptive"};
+      const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":S.settings.apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify(body)});
+      const j=await r.json();if(j.error)throw new Error(j.error.message);reply=j.content.filter(b=>b.type==="text").map(b=>b.text||"").join("");}
     typing.remove();S.ai.push({role:"assistant",content:reply});save();renderChat();
   }catch(err){typing.remove();S.ai.push({role:"assistant",content:"⚠️ Erreur : "+err.message+"\n\nVérifie ta clé API et le modèle dans les Réglages."});save();renderChat();}}
 

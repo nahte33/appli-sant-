@@ -1,5 +1,5 @@
 // Service worker Vitalis — réseau d'abord (l'app reste à jour), cache en secours (hors-ligne).
-const CACHE = "vitalis-v2";
+const CACHE = "vitalis-v3";
 const ASSETS = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
@@ -12,6 +12,25 @@ self.addEventListener("activate", e => {
       .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
+});
+
+// Notifications push (envoyées par le Worker Cloudflare chaque matin)
+self.addEventListener("push", e => {
+  let d = {};
+  try { d = e.data.json(); } catch (err) { d = { body: e.data ? e.data.text() : "" }; }
+  e.waitUntil(self.registration.showNotification(d.title || "Vitalis", {
+    body: d.body || "",
+    icon: "icon-192.png",
+    badge: "icon-192.png",
+    data: { url: (d && d.url) || "./" },
+  }));
+});
+self.addEventListener("notificationclick", e => {
+  e.notification.close();
+  e.waitUntil(clients.matchAll({ type: "window", includeUncontrolled: true }).then(list => {
+    for (const c of list) if ("focus" in c) return c.focus();
+    return clients.openWindow(e.notification.data && e.notification.data.url || "./");
+  }));
 });
 
 self.addEventListener("fetch", e => {

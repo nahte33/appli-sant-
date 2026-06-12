@@ -58,6 +58,42 @@ export default {
       return json({ error: "method not allowed" }, 405, cors);
     }
 
+    // -------- /push : notifications quotidiennes (Web Push) --------
+    // /push/key        GET  → clé publique VAPID (générée et stockée au 1er appel)
+    // /push/subscribe  POST → enregistre l'abonnement du navigateur
+    // /push/unsubscribe POST → le retire
+    // /push/test       POST → envoie une notification immédiatement
+    if (url.pathname.includes("/push/")) {
+      const token = url.searchParams.get("token");
+      if (token !== env.READ_TOKEN) return json({ error: "unauthorized" }, 401, cors);
+
+      if (url.pathname.endsWith("/push/key") && req.method === "GET") {
+        const v = await getVapid(env);
+        return json({ key: v.publicRaw }, 200, cors);
+      }
+      if (url.pathname.endsWith("/push/subscribe") && req.method === "POST") {
+        let sub; try { sub = await req.json(); } catch { return json({ error: "invalid json" }, 400, cors); }
+        if (!sub || !sub.endpoint || !sub.keys) return json({ error: "invalid subscription" }, 400, cors);
+        const subs = JSON.parse((await env.HEALTH.get("subs")) || "[]")
+          .filter(s => s.endpoint !== sub.endpoint);
+        subs.push(sub);
+        await env.HEALTH.put("subs", JSON.stringify(subs));
+        return json({ ok: true, count: subs.length }, 200, cors);
+      }
+      if (url.pathname.endsWith("/push/unsubscribe") && req.method === "POST") {
+        let b; try { b = await req.json(); } catch { return json({ error: "invalid json" }, 400, cors); }
+        const subs = JSON.parse((await env.HEALTH.get("subs")) || "[]")
+          .filter(s => s.endpoint !== (b && b.endpoint));
+        await env.HEALTH.put("subs", JSON.stringify(subs));
+        return json({ ok: true, count: subs.length }, 200, cors);
+      }
+      if (url.pathname.endsWith("/push/test") && req.method === "POST") {
+        const n = await sendDaily(env, true);
+        return json({ ok: true, sent: n }, 200, cors);
+      }
+      return json({ error: "not found" }, 404, cors);
+    }
+
     // -------- POST : réception depuis Health Auto Export --------
     if (req.method === "POST") {
       const auth = req.headers.get("authorization") || "";
@@ -92,7 +128,122 @@ export default {
 
     return json({ error: "method not allowed" }, 405, cors);
   },
+
+  // Cron (configuré dans wrangler.toml ou le dashboard) : notification du matin
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(sendDaily(env, false));
+  },
 };
+
+/* ==================== Web Push (RFC 8291 / VAPID) ==================== */
+
+const b64u = {
+  enc(buf) { let s = ""; const a = new Uint8Array(buf); for (let i = 0; i < a.length; i++) s += String.fromCharCode(a[i]);
+    return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); },
+  dec(str) { str = str.replace(/-/g, "+").replace(/_/g, "/"); while (str.length % 4) str += "=";
+    const bin = atob(str); return Uint8Array.from(bin, c => c.charCodeAt(0)); },
+};
+function concatBuf(...arrs) { const len = arrs.reduce((a, x) => a + x.length, 0);
+  const out = new Uint8Array(len); let o = 0; for (const a of arrs) { out.set(a, o); o += a.length; } return out; }
+
+// Paire de clés VAPID auto-générée au premier appel et conservée dans le KV
+async function getVapid(env) {
+  let v = await env.HEALTH.get("vapid", "json");
+  if (!v) {
+    const kp = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign"]);
+    v = {
+      privateJwk: await crypto.subtle.exportKey("jwk", kp.privateKey),
+      publicRaw: b64u.enc(await crypto.subtle.exportKey("raw", kp.publicKey)),
+    };
+    await env.HEALTH.put("vapid", JSON.stringify(v));
+  }
+  return v;
+}
+
+async function vapidAuth(env, endpoint) {
+  const v = await getVapid(env);
+  const enc = new TextEncoder();
+  const head = b64u.enc(enc.encode(JSON.stringify({ typ: "JWT", alg: "ES256" })));
+  const claims = b64u.enc(enc.encode(JSON.stringify({
+    aud: new URL(endpoint).origin,
+    exp: Math.floor(Date.now() / 1000) + 12 * 3600,
+    sub: "mailto:push@vitalis.app",
+  })));
+  const key = await crypto.subtle.importKey("jwk", v.privateJwk, { name: "ECDSA", namedCurve: "P-256" }, false, ["sign"]);
+  const sig = await crypto.subtle.sign({ name: "ECDSA", hash: "SHA-256" }, key, enc.encode(head + "." + claims));
+  return `vapid t=${head}.${claims}.${b64u.enc(sig)}, k=${v.publicRaw}`;
+}
+
+async function hkdf(salt, ikm, info, len) {
+  const key = await crypto.subtle.importKey("raw", ikm, "HKDF", false, ["deriveBits"]);
+  return new Uint8Array(await crypto.subtle.deriveBits({ name: "HKDF", hash: "SHA-256", salt, info }, key, len * 8));
+}
+
+// Chiffrement du payload pour un abonnement (aes128gcm, RFC 8291)
+async function encryptPayload(sub, text) {
+  const enc = new TextEncoder();
+  const uaPub = b64u.dec(sub.keys.p256dh);   // clé publique du navigateur (65 octets)
+  const auth = b64u.dec(sub.keys.auth);      // secret d'authentification (16 octets)
+  const asKp = await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, true, ["deriveBits"]);
+  const asPub = new Uint8Array(await crypto.subtle.exportKey("raw", asKp.publicKey));
+  const uaKey = await crypto.subtle.importKey("raw", uaPub, { name: "ECDH", namedCurve: "P-256" }, false, []);
+  const ecdh = new Uint8Array(await crypto.subtle.deriveBits({ name: "ECDH", public: uaKey }, asKp.privateKey, 256));
+  const ikm = await hkdf(auth, ecdh, concatBuf(enc.encode("WebPush: info\0"), uaPub, asPub), 32);
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const cek = await hkdf(salt, ikm, enc.encode("Content-Encoding: aes128gcm\0"), 16);
+  const nonce = await hkdf(salt, ikm, enc.encode("Content-Encoding: nonce\0"), 12);
+  const plain = concatBuf(enc.encode(text), new Uint8Array([2])); // 0x02 = délimiteur du dernier bloc
+  const aes = await crypto.subtle.importKey("raw", cek, "AES-GCM", false, ["encrypt"]);
+  const cipher = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv: nonce }, aes, plain));
+  const header = new Uint8Array(16 + 4 + 1 + 65);  // salt | rs | idlen | clé publique éphémère
+  header.set(salt, 0);
+  new DataView(header.buffer).setUint32(16, 4096);
+  header[20] = 65;
+  header.set(asPub, 21);
+  return concatBuf(header, cipher);
+}
+
+async function sendPush(env, sub, payload) {
+  const body = await encryptPayload(sub, JSON.stringify(payload));
+  const res = await fetch(sub.endpoint, {
+    method: "POST",
+    headers: {
+      "TTL": "86400",
+      "Urgency": "normal",
+      "Content-Encoding": "aes128gcm",
+      "Content-Type": "application/octet-stream",
+      "Authorization": await vapidAuth(env, sub.endpoint),
+    },
+    body,
+  });
+  return res.status;
+}
+
+// Construit et envoie la notification du jour à tous les appareils abonnés.
+// Contenu tiré de l'état de l'app dans le KV : séances programmées + compléments.
+async function sendDaily(env, isTest) {
+  const subs = JSON.parse((await env.HEALTH.get("subs")) || "[]");
+  if (!subs.length) return 0;
+  const state = JSON.parse((await env.HEALTH.get("appstate")) || "null");
+  const today = new Date().toISOString().slice(0, 10);
+  const plans = state && Array.isArray(state.plan) ? state.plan.filter(p => p.date === today) : [];
+  const nSupps = state && Array.isArray(state.supps) ? state.supps.length : 0;
+  let body = plans.length
+    ? "🏋️ " + plans.map(p => p.label || "Séance").join(" · ")
+    : "Pas de séance programmée — jour de récupération ?";
+  if (nSupps) body += "\n💊 " + nSupps + " complément(s) à prendre";
+  const payload = { title: isTest ? "Vitalis — test ✓" : "Vitalis — ton programme du jour", body, url: "./" };
+  const keep = []; let sent = 0;
+  for (const sub of subs) {
+    try {
+      const st = await sendPush(env, sub, payload);
+      if (st === 404 || st === 410) continue; // abonnement mort : on le retire
+      keep.push(sub); if (st >= 200 && st < 300) sent++;
+    } catch (e) { keep.push(sub); }
+  }
+  if (keep.length !== subs.length) await env.HEALTH.put("subs", JSON.stringify(keep));
+  return sent;
+}
 
 /* -------------------- utilitaires -------------------- */
 function json(obj, status, headers) {
