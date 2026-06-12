@@ -769,6 +769,15 @@ function renderTraining(){
 /* ---------- Onglet Calendrier : vue réelle (Apple Watch) + vue prévisionnelle ---------- */
 let calView="real";
 const planOf=(noteId,ri)=>S.plan.find(p=>p.noteId===noteId&&p.row===ri);
+// Libellé toujours dérivé de la note : renommer une séance ou une note met
+// automatiquement à jour le calendrier prévisionnel. Le label stocké ne sert
+// que de secours si la note a été supprimée.
+function planLabel(p){const n=S.notes.find(x=>x.id===p.noteId);
+  if(!n)return p.label||"Séance";
+  if(p.row<0)return n.title||"Séance";
+  const r=(n.rows||[])[p.row];if(!r)return p.label||n.title||"Séance";
+  const seance=((r.sem||"")+" "+(r.seance||"")).trim();
+  return seance?(n.title||"Séance")+" · "+seance:(n.title||"Séance");}
 // le prévisionnel s'efface au fil des jours : les séances passées sont purgées
 function purgePlan(){const tk=todayKey();const n=S.plan.length;S.plan=S.plan.filter(p=>p.date>=tk);if(S.plan.length!==n)save(false);}
 function planByDay(){const m={};S.plan.forEach(p=>{(m[p.date]=m[p.date]||[]).push(p);});return m;}
@@ -810,23 +819,46 @@ function renderCalTab(){
       const cell=el("div","calday"+(dk===tk?" today":""));
       if(past){cell.style.opacity=".32";cell.innerHTML=`<div class="dn">${d}</div>`;grid.appendChild(cell);continue;}
       if(ps.length)cell.style.background=hexA("#06b6d4",.13);
-      const shortLbl=p=>{const parts=(p.label||"").split(" · ");return parts.length>1?parts.slice(1).join(" "):(p.label||"Séance");};
-      cell.innerHTML=`<div class="dn">${d}</div>`+(ps.length?`<div class="wlabs">${ps.slice(0,2).map(p=>`<div class="wlab"><i style="background:${workoutColor(p.label)}"></i><span>${escapeHtml(shortLbl(p))}</span></div>`).join("")}${ps.length>2?`<div class="wlab"><span>+${ps.length-2}</span></div>`:""}</div>`:"");
+      const shortLbl=p=>{const l=planLabel(p);const parts=l.split(" · ");return parts.length>1?parts.slice(1).join(" "):l;};
+      cell.innerHTML=`<div class="dn">${d}</div>`+(ps.length?`<div class="wlabs">${ps.slice(0,2).map(p=>`<div class="wlab"><i style="background:${workoutColor(planLabel(p))}"></i><span>${escapeHtml(shortLbl(p))}</span></div>`).join("")}${ps.length>2?`<div class="wlab"><span>+${ps.length-2}</span></div>`:""}</div>`:"");
       cell.onclick=()=>openDayPlan(dk);grid.appendChild(cell);}
     cal.insertAdjacentHTML("beforeend",`<p class="muted" style="margin-top:12px;font-size:11.5px">Tes séances à venir, programmées depuis l'onglet <b>Notes</b> (icône 📅 à côté de chaque séance). Les jours passés s'effacent automatiquement.</p>`);
     // liste des prochaines séances programmées
     const next=[...S.plan].sort((a,b)=>a.date.localeCompare(b.date)).slice(0,8);
     if(next.length){const lc=el("div","card");
       lc.innerHTML=`<h2><span class="dot" style="background:#06b6d4"></span>Prochaines séances</h2>`+next.map(p=>{const dObj=parseDate(p.date);const dStr=dObj?dObj.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}):p.date;
-        return `<div class="kv"><span style="text-transform:capitalize">${dStr}</span><b>${escapeHtml(p.label)}</b></div>`;}).join("");
+        return `<div class="kv"><span style="text-transform:capitalize">${dStr}</span><b>${escapeHtml(planLabel(p))}</b></div>`;}).join("");
       root.appendChild(lc);}
     else root.appendChild(el("div","empty",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><p>Aucune séance programmée.<br>Va dans <b>Notes</b> et touche l'icône 📅 à côté d'une séance pour la planifier.</p>`));
   }
 }
 function openDayPlan(dk){const ps=planByDay()[dk]||[];const dObj=parseDate(dk);const dStr=dObj?dObj.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}):dk;
   openSheet(`<h3 style="text-transform:capitalize">${dStr}</h3><div class="sub">${ps.length?ps.length+" séance(s) programmée(s)":"Rien de prévu ce jour"}</div>
-   ${ps.map(p=>`<div class="kv"><span>${escapeHtml(p.label)}</span><b style="display:flex;gap:6px"><button class="btn ghost" style="padding:6px 11px;font-size:12px" onclick="openProgramSheet('${p.noteId}',${p.row})">Modifier</button><button class="btn ghost" style="padding:6px 11px;font-size:12px" onclick="removePlan('${p.id}')">Retirer</button></b></div>`).join("")}
-   ${ps.length?"":`<p class="muted" style="margin-top:8px">Programme tes séances depuis l'onglet Notes (icône 📅).</p>`}`);}
+   ${ps.map(p=>`<div class="kv"><span>${escapeHtml(planLabel(p))}</span><b style="display:flex;gap:6px"><button class="btn ghost" style="padding:6px 11px;font-size:12px" onclick="openProgramSheet('${p.noteId}',${p.row})">Modifier</button><button class="btn ghost" style="padding:6px 11px;font-size:12px" onclick="removePlan('${p.id}')">Retirer</button></b></div>`).join("")}
+   <div class="sheetbtns"><button class="btn primary full" onclick="openPlanPicker('${dk}')">+ Programmer une séance ce jour</button></div>`);}
+// Sélecteur depuis le calendrier : choisir une note, puis une séance précise
+function openPlanPicker(dk,noteId){const dObj=parseDate(dk);const dStr=dObj?dObj.toLocaleDateString("fr-FR",{day:"numeric",month:"long"}):dk;
+  if(!noteId){const notes=S.notes.filter(n=>!n.archived);
+    if(!notes.length){toast("Crée d'abord une note dans l'onglet Notes");return;}
+    openSheet(`<h3>➕ Programmer le ${dStr}</h3><div class="sub">1. Choisis une note</div>
+     ${notes.map(n=>{const icon=n.type==="force"?"🏋️":n.type==="freestyle"?"🤸":"📝";
+       const sub=n.type==="force"?"Cycle de force · "+(n.rows||[]).length+" séances":n.type==="freestyle"?"Programme freestyle · "+(n.rows||[]).length+" séances":"Note libre";
+       const col=n.type==="force"?"#06b6d4":n.type==="freestyle"?"#fb7185":"#10b981";
+       return `<div class="wkitem" onclick="openPlanPicker('${dk}','${n.id}')"><div class="wko" style="background:${hexA(col,.16)}">${icon}</div><div class="wkmeta"><div class="wkn">${escapeHtml(n.title||"Sans titre")}</div><div class="wks">${sub}</div></div></div>`;}).join("")}`);
+    return;}
+  const n=S.notes.find(x=>x.id===noteId);if(!n)return;
+  if(n.type!=="force"&&n.type!=="freestyle"){planRowAt(noteId,-1,dk);return;}
+  const rows=n.rows||[];
+  openSheet(`<h3>${n.type==="force"?"🏋️":"🤸"} ${escapeHtml(n.title||"Sans titre")}</h3><div class="sub">2. Choisis la séance à programmer le ${dStr}</div>
+   ${rows.map((r,ri)=>{const pl=planOf(noteId,ri);const seance=((r.sem||"")+" "+(r.seance||"")).trim()||"Séance "+(ri+1);
+     return `<div class="kv" style="cursor:pointer" onclick="planRowAt('${noteId}',${ri},'${dk}')"><span style="color:${r.done?'var(--txt3)':'var(--txt)'}">${escapeHtml(seance)}${r.done?" ✓ faite":""}</span><b style="font-size:12px;color:${pl?'var(--acc2)':'var(--txt3)'}">${pl?"prévue le "+pl.date.split("-").reverse().slice(0,2).join("/"):"choisir →"}</b></div>`;}).join("")}
+   <div class="sheetbtns"><button class="btn ghost full" onclick="openPlanPicker('${dk}')">← Retour aux notes</button></div>`);}
+function planRowAt(noteId,ri,dk){const n=S.notes.find(x=>x.id===noteId);if(!n)return;
+  let ex=planOf(noteId,ri);
+  if(ex){ex.date=dk;ex.updated=Date.now();}
+  else{ex={id:uid(),noteId,row:ri,date:dk,created:Date.now(),updated:Date.now()};S.plan.push(ex);}
+  ex.label=planLabel(ex);
+  save();renderCalTab();openDayPlan(dk);toast("Programmée le "+dk.split("-").reverse().join("/"));}
 function removePlan(id){S.deleted.plan[id]=Date.now();S.plan=S.plan.filter(p=>p.id!==id);save();closeSheet();renderCalTab();toast("Séance retirée du prévisionnel");}
 function openProgramSheet(noteId,ri){const n=S.notes.find(x=>x.id===noteId);if(!n)return;
   const ex=planOf(noteId,ri);
@@ -839,11 +871,10 @@ function openProgramSheet(noteId,ri){const n=S.notes.find(x=>x.id===noteId);if(!
 function planRow(noteId,ri){const d=$("#pl_date").value;if(!d){toast("Choisis une date");return;}
   if(d<todayKey()){toast("Cette date est déjà passée");return;}
   const n=S.notes.find(x=>x.id===noteId);if(!n)return;
-  const r=ri>=0?(n.rows||[])[ri]:null;
-  const label=ri<0?(n.title||"Séance"):((n.title||"Séance")+" · "+((r&&r.sem)||"")+" "+((r&&r.seance)||"")).trim();
   let ex=planOf(noteId,ri);
-  if(ex){ex.date=d;ex.label=label;ex.updated=Date.now();}
-  else S.plan.push({id:uid(),noteId,row:ri,date:d,label,created:Date.now(),updated:Date.now()});
+  if(ex){ex.date=d;ex.updated=Date.now();}
+  else{ex={id:uid(),noteId,row:ri,date:d,created:Date.now(),updated:Date.now()};S.plan.push(ex);}
+  ex.label=planLabel(ex);
   save();closeSheet();renderNotes();toast("Programmée le "+d.split("-").reverse().join("/"));}
 function unplanRow(noteId,ri){const ex=planOf(noteId,ri);if(!ex)return;
   S.deleted.plan[ex.id]=Date.now();S.plan=S.plan.filter(p=>p.id!==ex.id);
@@ -1248,7 +1279,7 @@ function buildContext(){const tk=Object.keys(S.days).sort().pop()||todayKey();co
     notes:S.notes.map(n=>n.type==="force"?{type:"cycle de force",titre:n.title,archivee:!!n.archived,exercices:n.exos,plan:(n.rows||[]).map(r=>({sem:r.sem,seance:r.seance,faite:!!r.done,charges:(n.exos||[]).map((e,i)=>e+" "+((r.data[i]||[]).join("kg ×")))}))}
       :n.type==="freestyle"?{type:"programme freestyle",titre:n.title,archivee:!!n.archived,exercices:n.exos,plan:(n.rows||[]).map(r=>({seance:r.seance,faite:!!r.done,minutes:(n.exos||[]).map((e,i)=>e+" "+((r.data[i]||[""])[0]||"?")+" min")}))}
       :{type:"note libre",titre:n.title,archivee:!!n.archived,contenu:n.body}),
-    seancesProgrammees:S.plan.map(p=>({date:p.date,seance:p.label}))};}
+    seancesProgrammees:S.plan.map(p=>({date:p.date,seance:planLabel(p)}))};}
 function openAI(){const hasKey=!!S.settings.apiKey;
   openSheet(`<div class="aihead"><div class="av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.6 4.6L18 8.2l-4.4 1.6L12 14l-1.6-4.2L6 8.2l4.4-1.6z"/></svg></div><div class="t"><b>Assistant Vitalis</b><span>${hasKey?"Accès complet à tes données":"Clé API requise (Réglages)"}</span></div></div>
    <div class="chatwrap"><div class="chatmsgs" id="chatMsgs"></div>
