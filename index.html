@@ -816,7 +816,7 @@ function renderTraining(){
 }
 
 /* ---------- Onglet Calendrier : vue réelle (Apple Watch) + vue prévisionnelle ---------- */
-let calView="real",calTypeFilter="all";
+let calTypeFilter="all";
 function matchWorkoutType(name,f){if(f==="all")return true;const s=(name||"").toLowerCase();
   if(f==="muscu")return /musculation|muscu|force|strength/.test(s);
   if(f==="free")return /freestyle/.test(s);
@@ -835,14 +835,17 @@ function planLabel(p){const n=S.notes.find(x=>x.id===p.noteId);
 // le prévisionnel s'efface au fil des jours : les séances passées sont purgées
 function purgePlan(){const tk=todayKey();const n=S.plan.length;S.plan=S.plan.filter(p=>p.date>=tk);if(S.plan.length!==n)save(false);}
 function planByDay(){const m={};S.plan.forEach(p=>{(m[p.date]=m[p.date]||[]).push(p);});return m;}
+// Calendrier unifié : le passé montre les séances enregistrées (Apple Watch),
+// les jours à venir montrent le prévisionnel (pointillé). Au passage du jour,
+// la séance prévue est purgée et laisse place à la séance réelle.
 function renderCalTab(){
   const root=$("#tab-cal");root.innerHTML="";purgePlan();
-  root.appendChild(el("div","chips",
-    `<div class="chip${calView==="real"?" on":""}" onclick="calView='real';renderCalTab()">⌚ Réel</div>
-     <div class="chip${calView==="plan"?" on":""}" onclick="calView='plan';renderCalTab()">🗓️ Prévisionnel (${S.plan.length})</div>`));
   const monthNames=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
   const cal=el("div","card");
-  cal.innerHTML=`<div class="calhead"><div class="mlabel">${monthNames[calMonth]} ${calYear}</div>
+  cal.innerHTML=`<div class="chips" style="margin-bottom:10px">`+
+      [["all","Toutes"],["muscu","🏋️ Musculation"],["free","🤸 Freestyle"],["reeduc","🩹 Rééducation"]]
+      .map(([k,l])=>`<div class="chip${calTypeFilter===k?' on':''}" onclick="calTypeFilter='${k}';renderCalTab()">${l}</div>`).join("")+`</div>
+    <div class="calhead"><div class="mlabel">${monthNames[calMonth]} ${calYear}</div>
     <div class="calnav"><div class="iconbtn" onclick="calShift(-1)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></div><div class="iconbtn" onclick="calShift(1)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div></div>
     <div class="calgrid" id="calgrid"></div>`;
   root.appendChild(cal);
@@ -851,49 +854,49 @@ function renderCalTab(){
   const first=new Date(calYear,calMonth,1);let startDow=(first.getDay()+6)%7;const dim=new Date(calYear,calMonth+1,0).getDate();
   for(let i=0;i<startDow;i++)grid.appendChild(el("div","calday empty"));
   const tk=todayKey();
-  if(calView==="real"){
-    // filtre par type de séance
-    cal.insertAdjacentHTML("afterbegin",`<div class="chips" style="margin-bottom:10px">`+
-      [["all","Toutes"],["muscu","🏋️ Musculation"],["free","🤸 Freestyle"],["reeduc","🩹 Rééducation"]]
-      .map(([k,l])=>`<div class="chip${calTypeFilter===k?' on':''}" onclick="calTypeFilter='${k}';renderCalTab()">${l}</div>`).join("")+`</div>`);
-    const wbd={};S.workouts.filter(w=>matchWorkoutType(w.name,calTypeFilter)).forEach(w=>{(wbd[w.date]=wbd[w.date]||[]).push(w);});
-    for(let d=1;d<=dim;d++){const dk=calYear+"-"+pad(calMonth+1)+"-"+pad(d);const ws=wbd[dk]||[];
-      const cell=el("div","calday"+(dk===tk?" today":""));
-      if(ws.length)cell.style.background=hexA(workoutColor(ws[0].name),.13);
-      const totMin=ws.reduce((a,w)=>a+(w.durationMin||0),0);
-      cell.innerHTML=`<div class="dn">${d}</div>`+(ws.length?`<div class="wlabs">${ws.slice(0,2).map(w=>`<div class="wlab"><i style="background:${workoutColor(w.name)}"></i><span>${escapeHtml(w.name)}</span></div>`).join("")}${ws.length>2?`<div class="wlab"><span>+${ws.length-2} autre${ws.length>3?"s":""}</span></div>`:""}</div><div class="wmin">${totMin?Math.round(totMin)+"′":""}</div>`:"");
-      cell.onclick=()=>openDayWorkouts(dk);grid.appendChild(cell);}
-    // légende : types d'entraînement présents ce mois, chacun sa couleur
-    const types={};const ym=calYear+"-"+pad(calMonth+1);
-    Object.keys(wbd).forEach(dk=>{if(dk.indexOf(ym)===0)wbd[dk].forEach(w=>{types[w.name]=workoutColor(w.name);});});
-    const tnames=Object.keys(types);
-    if(tnames.length){const lg=el("div");lg.style.cssText="display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)";
-      lg.innerHTML=tnames.map(nm=>`<span style="display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--txt2);font-weight:650"><i style="width:10px;height:10px;border-radius:3px;background:${types[nm]}"></i>${escapeHtml(nm)}</span>`).join("");
-      cal.appendChild(lg);}
-    cal.insertAdjacentHTML("beforeend",`<p class="muted" style="margin-top:12px;font-size:11.5px">Séances enregistrées (Apple Watch + saisies manuelles). Touche un jour pour le détail.</p>`);
-  }else{
-    const pbd=planByDay();
-    for(let d=1;d<=dim;d++){const dk=calYear+"-"+pad(calMonth+1)+"-"+pad(d);const ps=pbd[dk]||[];const past=dk<tk;
-      const cell=el("div","calday"+(dk===tk?" today":""));
-      if(past){cell.style.opacity=".32";cell.innerHTML=`<div class="dn">${d}</div>`;grid.appendChild(cell);continue;}
-      if(ps.length)cell.style.background=hexA("#06b6d4",.13);
-      const shortLbl=p=>{const l=planLabel(p);const parts=l.split(" · ");return parts.length>1?parts.slice(1).join(" "):l;};
-      cell.innerHTML=`<div class="dn">${d}</div>`+(ps.length?`<div class="wlabs">${ps.slice(0,2).map(p=>`<div class="wlab"><i style="background:${workoutColor(planLabel(p))}"></i><span>${escapeHtml(shortLbl(p))}</span></div>`).join("")}${ps.length>2?`<div class="wlab"><span>+${ps.length-2}</span></div>`:""}</div>`:"");
-      cell.onclick=()=>openDayPlan(dk);grid.appendChild(cell);}
-    cal.insertAdjacentHTML("beforeend",`<p class="muted" style="margin-top:12px;font-size:11.5px">Tes séances à venir, programmées depuis l'onglet <b>Notes</b> (icône 📅 à côté de chaque séance). Les jours passés s'effacent automatiquement.</p>`);
-    // liste des prochaines séances programmées
-    const next=[...S.plan].sort((a,b)=>a.date.localeCompare(b.date)).slice(0,8);
-    if(next.length){const lc=el("div","card");
-      lc.innerHTML=`<h2><span class="dot" style="background:#06b6d4"></span>Prochaines séances</h2>`+next.map(p=>{const dObj=parseDate(p.date);const dStr=dObj?dObj.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}):p.date;
-        return `<div class="kv"><span style="text-transform:capitalize">${dStr}</span><b>${escapeHtml(planLabel(p))}</b></div>`;}).join("");
-      root.appendChild(lc);}
-    else root.appendChild(el("div","empty",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><p>Aucune séance programmée.<br>Va dans <b>Notes</b> et touche l'icône 📅 à côté d'une séance pour la planifier.</p>`));
-  }
+  const wbd={};S.workouts.filter(w=>matchWorkoutType(w.name,calTypeFilter)).forEach(w=>{(wbd[w.date]=wbd[w.date]||[]).push(w);});
+  const pbd=planByDay();
+  const shortLbl=p=>{const l=planLabel(p);const parts=l.split(" · ");return parts.length>1?parts.slice(1).join(" "):l;};
+  for(let d=1;d<=dim;d++){const dk=calYear+"-"+pad(calMonth+1)+"-"+pad(d);
+    const ws=wbd[dk]||[];
+    const ps=dk>=tk?(pbd[dk]||[]):[];// le prévisionnel n'existe que pour aujourd'hui et le futur
+    const cell=el("div","calday"+(dk===tk?" today":""));
+    if(ws.length)cell.style.background=hexA(workoutColor(ws[0].name),.13);
+    else if(ps.length)cell.style.background=hexA("#06b6d4",.10);
+    const totMin=ws.reduce((a,w)=>a+(w.durationMin||0),0);
+    // séances réelles (point plein) puis prévues (point creux), 2 lignes max
+    const items=[
+      ...ws.map(w=>({lbl:w.name,dot:`background:${workoutColor(w.name)}`})),
+      ...ps.map(p=>({lbl:shortLbl(p),dot:`background:transparent;border:1.5px solid ${workoutColor(planLabel(p))};box-sizing:border-box`}))];
+    cell.innerHTML=`<div class="dn">${d}</div>`+(items.length?`<div class="wlabs">${items.slice(0,2).map(it=>`<div class="wlab"><i style="${it.dot}"></i><span>${escapeHtml(it.lbl)}</span></div>`).join("")}${items.length>2?`<div class="wlab"><span>+${items.length-2}</span></div>`:""}</div><div class="wmin">${totMin?Math.round(totMin)+"′":(ps.length?"prévu":"")}</div>`:"");
+    cell.onclick=()=>openDayPlan(dk);grid.appendChild(cell);}
+  // légende : types réels du mois + pastille "prévu"
+  const types={};const ym=calYear+"-"+pad(calMonth+1);
+  Object.keys(wbd).forEach(dk=>{if(dk.indexOf(ym)===0)wbd[dk].forEach(w=>{types[w.name]=workoutColor(w.name);});});
+  const hasPlan=Object.keys(pbd).some(dk=>dk.indexOf(ym)===0&&dk>=tk);
+  const tnames=Object.keys(types);
+  if(tnames.length||hasPlan){const lg=el("div");lg.style.cssText="display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)";
+    lg.innerHTML=tnames.map(nm=>`<span style="display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--txt2);font-weight:650"><i style="width:10px;height:10px;border-radius:3px;background:${types[nm]}"></i>${escapeHtml(nm)}</span>`).join("")
+      +(hasPlan?`<span style="display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--txt2);font-weight:650"><i style="width:10px;height:10px;border-radius:3px;background:transparent;border:1.5px solid var(--acc2);box-sizing:border-box"></i>prévu</span>`:"");
+    cal.appendChild(lg);}
+  cal.insertAdjacentHTML("beforeend",`<p class="muted" style="margin-top:12px;font-size:11.5px">Passé = séances enregistrées (point plein) · futur = séances prévues (point creux). Quand le jour passe, le prévu s'efface et laisse place au réel. Touche un jour pour voir, programmer ou ajouter.</p>`);
+  // liste des prochaines séances programmées
+  const next=[...S.plan].sort((a,b)=>a.date.localeCompare(b.date)).slice(0,8);
+  if(next.length){const lc=el("div","card");
+    lc.innerHTML=`<h2><span class="dot" style="background:#06b6d4"></span>Prochaines séances (${S.plan.length})</h2>`+next.map(p=>{const dObj=parseDate(p.date);const dStr=dObj?dObj.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}):p.date;
+      return `<div class="kv"><span style="text-transform:capitalize">${dStr}</span><b>${escapeHtml(planLabel(p))}</b></div>`;}).join("");
+    root.appendChild(lc);}
 }
-function openDayPlan(dk){const ps=planByDay()[dk]||[];const dObj=parseDate(dk);const dStr=dObj?dObj.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}):dk;
-  openSheet(`<h3 style="text-transform:capitalize">${dStr}</h3><div class="sub">${ps.length?ps.length+" séance(s) programmée(s)":"Rien de prévu ce jour"}</div>
-   ${ps.map(p=>`<div class="kv"><span>${escapeHtml(planLabel(p))}</span><b style="display:flex;gap:6px"><button class="btn ghost" style="padding:6px 11px;font-size:12px" onclick="openProgramSheet('${p.noteId}',${p.row})">Modifier</button><button class="btn ghost" style="padding:6px 11px;font-size:12px" onclick="removePlan('${p.id}')">Retirer</button></b></div>`).join("")}
-   <div class="sheetbtns"><button class="btn primary full" onclick="openPlanPicker('${dk}')">+ Programmer une séance ce jour</button></div>`);}
+// Fiche jour mixte : séances enregistrées + séances prévues + actions
+function openDayPlan(dk){const tk=todayKey();
+  const ws=workoutsByDay()[dk]||[];
+  const ps=dk>=tk?(planByDay()[dk]||[]):[];
+  const dObj=parseDate(dk);const dStr=dObj?dObj.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}):dk;
+  const parts=[];if(ws.length)parts.push(ws.length+" enregistrée(s)");if(ps.length)parts.push(ps.length+" prévue(s)");
+  openSheet(`<h3 style="text-transform:capitalize">${dStr}</h3><div class="sub">${parts.length?parts.join(" · "):"Rien ce jour"}</div>
+   ${ws.map(w=>{const col=workoutColor(w.name);return `<div class="wkitem" onclick="openWorkoutView('${w.id}')"><div class="wko" style="background:${hexA(col,.16)}">${workoutIcon(w.name)}</div><div class="wkmeta"><div class="wkn">${escapeHtml(w.name)}</div><div class="wks">${fmtMin(w.durationMin||0)}${w.avgHr?" · "+w.avgHr+" bpm":""}${w.rpe?" · RPE "+w.rpe:""}</div></div><div class="wkload"><b style="color:${col}">${w.trimp||trimp(w)}</b><span>charge</span></div></div>`;}).join("")}
+   ${ps.map(p=>`<div class="kv"><span>🗓️ ${escapeHtml(planLabel(p))}</span><b style="display:flex;gap:6px"><button class="btn ghost" style="padding:6px 11px;font-size:12px" onclick="openProgramSheet('${p.noteId}',${p.row})">Modifier</button><button class="btn ghost" style="padding:6px 11px;font-size:12px" onclick="removePlan('${p.id}')">Retirer</button></b></div>`).join("")}
+   <div class="sheetbtns">${dk>=tk?`<button class="btn primary full" onclick="openPlanPicker('${dk}')">+ Programmer</button>`:""}<button class="btn ghost full" onclick="openWorkoutForDate('${dk}')">+ Entraînement réel</button></div>`);}
 // Sélecteur depuis le calendrier : choisir une note, puis une séance précise
 function openPlanPicker(dk,noteId){const dObj=parseDate(dk);const dStr=dObj?dObj.toLocaleDateString("fr-FR",{day:"numeric",month:"long"}):dk;
   if(!noteId){const notes=S.notes.filter(n=>!n.archived);
