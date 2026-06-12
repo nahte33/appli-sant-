@@ -137,20 +137,20 @@ header{padding:calc(var(--safe-t) + 16px) 22px 10px;display:flex;align-items:cen
 .calhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .calhead .mlabel{font-size:16px;font-weight:700;text-transform:capitalize}
 .calnav{display:flex;gap:7px}
-.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
-.caldow{text-align:center;font-size:10.5px;color:var(--txt3);font-weight:700;padding-bottom:4px;text-transform:uppercase}
-.calday{aspect-ratio:.72;border-radius:10px;background:var(--surface2);border:1.5px solid transparent;display:flex;flex-direction:column;align-items:center;padding:4px 3px 4px;cursor:pointer;position:relative;transition:.15s;overflow:hidden}
-.calday:hover{border-color:var(--border2)}
-.calday.empty{background:transparent;cursor:default}
-.calday.today{border-color:var(--acc2);box-shadow:0 0 0 2px rgba(6,182,212,.15)}
-.calday .dn{font-size:11.5px;font-weight:700;color:var(--txt2)}
-.calday.today .dn{color:var(--acc2)}
-.calday .wlabs{display:flex;flex-direction:column;gap:2px;width:100%;margin-top:3px;flex:1;min-height:0;overflow:hidden}
-.wlab{display:flex;align-items:center;gap:3px;font-size:8.5px;font-weight:680;color:var(--txt2);line-height:1.2;width:100%;overflow:hidden}
+.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.caldow{text-align:center;font-size:9.5px;color:var(--txt3);font-weight:700;padding-bottom:7px;text-transform:uppercase;letter-spacing:.07em}
+.calday{height:56px;border-radius:9px;background:transparent;display:flex;flex-direction:column;align-items:center;padding:3px 2px;cursor:pointer;position:relative;transition:.15s;overflow:hidden}
+.calday:hover{background:var(--surface2)}
+.calday.empty{cursor:default}
+.calday.empty:hover{background:transparent}
+.calday .dn{font-size:10.5px;font-weight:650;color:var(--txt3);width:18px;height:18px;display:grid;place-items:center;border-radius:50%;flex-shrink:0;line-height:1}
+.calday.today .dn{background:var(--acc2);color:#fff;font-weight:760}
+.calday .wlabs{display:flex;flex-direction:column;gap:1.5px;width:100%;margin-top:1px;flex:1;min-height:0;overflow:hidden}
+.wlab{display:flex;align-items:center;justify-content:center;gap:3px;font-size:8px;font-weight:680;color:var(--txt2);line-height:1.25;width:100%;overflow:hidden}
 .wlab i{width:5px;height:5px;border-radius:2px;flex-shrink:0}
 .wlab span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-@media(min-width:620px){.wlab{font-size:10.5px;gap:4px}.wlab i{width:6px;height:6px}}
-.calday .wmin{font-size:9px;color:var(--txt3);font-weight:700;margin-top:auto}
+.calday .wmin{font-size:8px;color:var(--txt3);font-weight:700;margin-top:auto;line-height:1.2}
+@media(min-width:620px){.calday{height:76px;border-radius:10px}.calday .dn{font-size:11px;width:20px;height:20px}.wlab{font-size:10px;gap:4px}.wlab i{width:6px;height:6px}.calday .wmin{font-size:9px}}
 .wkitem{display:flex;align-items:center;gap:13px;padding:13px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);margin-bottom:9px;cursor:pointer;transition:.15s;box-shadow:var(--sh2)}
 .wkitem:hover{transform:translateY(-2px);box-shadow:var(--sh)}
 .wkitem .wko{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;flex-shrink:0;font-size:21px}
