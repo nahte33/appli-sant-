@@ -218,6 +218,12 @@ input,textarea,select{width:100%;background:var(--surface2);border:1px solid var
 input:focus,textarea:focus,select:focus{outline:none;border-color:var(--acc2);background:var(--surface)}
 textarea{resize:vertical;min-height:90px;line-height:1.5}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modesel{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modebtn{display:flex;flex-direction:column;gap:2px;align-items:flex-start;padding:13px 14px;border-radius:14px;border:1.5px solid var(--border);background:var(--surface2);cursor:pointer;font-family:inherit;text-align:left;transition:.15s}
+.modebtn b{font-size:14.5px;font-weight:700;color:var(--txt)}
+.modebtn span{font-size:11.5px;color:var(--txt3)}
+.modebtn.on{border-color:var(--acc2);background:rgba(6,182,212,.10)}
+.modebtn.on b{color:var(--acc2)}
 .rpe{display:flex;gap:6px;flex-wrap:wrap}
 .rpe button{flex:1;min-width:34px;padding:10px 0;border-radius:10px;background:var(--surface2);border:1px solid var(--border);color:var(--txt2);font-weight:700;cursor:pointer;font-family:inherit}
 .rpe button.on{background:var(--acc2);color:#fff;border-color:var(--acc2)}
@@ -330,12 +336,13 @@ tr.nextrow td{background:rgba(6,182,212,.09)} tr.nextrow td:first-child{box-shad
 <script>
 "use strict";
 const KEY="vitalis_v1";
-const DEFAULT={settings:{userName:"",sex:"M",age:30,hrMax:0,hrRest:0,sleepGoal:8,apiProvider:"anthropic",apiKey:"",apiModel:"",syncUrl:"",syncToken:""},
-  days:{},workouts:[],notes:[],supps:[],ai:[],plan:[]};
+const DEFAULT={settings:{userName:"",sex:"M",age:30,hrMax:0,hrRest:0,sleepGoal:8,mode:"classic",apiProvider:"anthropic",apiKey:"",apiModel:"",syncUrl:"",syncToken:""},
+  days:{},workouts:[],notes:[],supps:[],ai:[],plan:[],pains:[]};
+const isInjured=()=>S.settings.mode==="injured";
 let S=load();
 S.rev=S.rev||0;
-S.plan=S.plan||[];
-S.deleted=S.deleted||{};["notes","workouts","supps","plan"].forEach(k=>S.deleted[k]=S.deleted[k]||{});
+S.plan=S.plan||[];S.pains=S.pains||[];S.settings.mode=S.settings.mode||"classic";
+S.deleted=S.deleted||{};["notes","workouts","supps","plan","pains"].forEach(k=>S.deleted[k]=S.deleted[k]||{});
 // NB : la migration des séances (normalisation des noms + recalcul sRPE) est faite
 // en fin de script — trimp() dépend d'utilitaires const non encore initialisés ici.
 function load(){try{const r=JSON.parse(localStorage.getItem(KEY));if(r)return Object.assign({},DEFAULT,r,{settings:Object.assign({},DEFAULT.settings,r.settings||{})});}catch(e){}return JSON.parse(JSON.stringify(DEFAULT));}
@@ -367,7 +374,7 @@ function mergeState(remote){
   const ts=x=>(x&&(x.updated||x.created))||0;
   const localNewer=(S.rev||0)>=(remote.rev||0);
   const A=localNewer?S:remote,B=localNewer?remote:S;// A = état le plus récent
-  const tombs={};["notes","workouts","supps","plan"].forEach(k=>{tombs[k]={};
+  const tombs={};["notes","workouts","supps","plan","pains"].forEach(k=>{tombs[k]={};
     const a=(S.deleted||{})[k]||{},b=(remote.deleted||{})[k]||{};
     Object.keys(a).forEach(id=>tombs[k][id]=a[id]);
     Object.keys(b).forEach(id=>tombs[k][id]=Math.max(tombs[k][id]||0,b[id]));});
@@ -380,9 +387,10 @@ function mergeState(remote){
   const nmap=pick((B.notes||[]).concat(A.notes||[]),n=>n.id);
   const smap=pick((B.supps||[]).concat(A.supps||[]),s=>s.id);
   const pmap=pick((B.plan||[]).concat(A.plan||[]),p=>p.id);
+  const painmap=pick((B.pains||[]).concat(A.pains||[]),x=>x.id);
   S={settings:Object.assign({},DEFAULT.settings,A.settings||{},{apiKey:S.settings.apiKey,syncUrl:S.settings.syncUrl,syncToken:S.settings.syncToken}),
     days,workouts:alive(wmap,tombs.workouts,wkey),notes:alive(nmap,tombs.notes,n=>n.id),supps:alive(smap,tombs.supps,s=>s.id),
-    plan:alive(pmap,tombs.plan,p=>p.id).filter(p=>p.date>=todayKey()),
+    plan:alive(pmap,tombs.plan,p=>p.id).filter(p=>p.date>=todayKey()),pains:alive(painmap,tombs.pains,x=>x.id),
     ai:(A.ai&&A.ai.length?A.ai:(B.ai||[])),deleted:tombs,rev:Math.max(S.rev||0,remote.rev||0)};
   save(false);renderAll();}
 // si l'app se ferme avec un envoi en attente, on le termine via sendBeacon
@@ -597,10 +605,15 @@ function sleepScore(dayKey){const day=S.days[dayKey];if(!day||day.sleep==null)re
   return{score,c,txt,parts,regComp,regPart,compComp};}
 let recPeriod=30;
 function setRecPeriod(d){recPeriod=d;renderRecovery();}
+/* ---------- Suivi de la douleur (mode blessé uniquement) ---------- */
+function painZones(){return Array.isArray(S.pains)?S.pains:[];}
+function restPainToday(){if(!isInjured())return 0;const rp=(S.days[todayKey()]||{}).restPain||{};
+  const v=Object.values(rp);return v.length?Math.max(...v):0;}
 /* ---------- Carte "Aujourd'hui" : verdict du jour + séance prévue + suppléments + saisies en attente ---------- */
-function recentPain(){const ws=[...S.workouts].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3);
-  return ws.length?Math.max(...ws.map(w=>Math.max(w.painDuring||0,w.painAfter||0))):0;}
-function incompleteWorkouts(){return S.workouts.filter(w=>!w.rpe&&(w.durationMin||0)>0)
+function recentPain(){if(!isInjured())return 0;const ws=[...S.workouts].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3);
+  const sess=ws.length?Math.max(...ws.map(w=>Math.max(w.painDuring||0,w.painAfter||0))):0;
+  return Math.max(sess,restPainToday());}
+function incompleteWorkouts(){return S.workouts.filter(w=>w.needsLog)
   .sort((a,b)=>b.date.localeCompare(a.date)).slice(0,10);}
 function todayVerdict(){const tk2=Object.keys(S.days).sort().pop();const rec=tk2?recovery(tk2):null;const ot=overtraining();
   const pain=recentPain();
@@ -624,21 +637,40 @@ function renderTodayCard(root){const tk=todayKey();
    </div>
    <div class="kv"><span>🗓️ Séance prévue</span><b style="text-align:right;min-width:0">${plans.length?plans.map(p=>escapeHtml(planLabel(p))).join("<br>"):`<span class="muted" style="font-weight:500">rien de programmé</span>`}</b></div>
    <div class="kv"><span>💊 Compléments</span><b style="color:${total&&taken===total?'var(--good)':'var(--txt)'}">${total?taken+"/"+total+" pris":"—"}</b></div>
-   ${inc.length?`<button class="btn ghost full" style="margin-top:12px;color:var(--warn);border-color:var(--warn)" onclick="openQuickLog('${inc[0].id}')">⚡ ${inc.length} séance${inc.length>1?"s":""} à compléter (RPE + douleur)</button>`:""}`;
+   ${inc.length?`<button class="btn ghost full" style="margin-top:12px;color:var(--warn);border-color:var(--warn)" onclick="openQuickLog('${inc[0].id}')">⚡ ${inc.length} séance${inc.length>1?"s":""} à compléter (RPE${isInjured()?" + douleur":""})</button>`:""}`;
   root.appendChild(card);}
+/* Carte "Douleur au repos" — mode blessé uniquement : suivi quotidien par zone */
+function renderRestPainCard(root){if(!isInjured())return;
+  const tk=todayKey();const zones=painZones();
+  const card=el("div","card");
+  if(!zones.length){
+    card.innerHTML=`<h2><span class="dot" style="background:var(--acc3)"></span>🩹 Douleur au repos</h2>
+      <p class="muted" style="padding:6px 0">Crée d'abord tes zones de douleur (localisation) pour suivre ta douleur au repos chaque jour.</p>
+      <button class="btn ghost full" onclick="openSettings()">Gérer mes zones de douleur</button>`;
+    root.appendChild(card);return;}
+  const rp=(S.days[tk]||{}).restPain||{};
+  card.innerHTML=`<h2><span class="dot" style="background:var(--acc3)"></span>🩹 Douleur au repos · aujourd'hui</h2>`+
+    zones.map(z=>{const v=rp[z.id]||0;
+      return `<div style="margin-bottom:10px"><div style="font-weight:650;font-size:13.5px;margin-bottom:5px;display:flex;justify-content:space-between"><span>${escapeHtml(z.location)}</span><b style="color:${v>=4?'var(--bad)':v>=2?'var(--warn)':'var(--txt2)'}">${v}/10</b></div>
+        <div class="rpe" id="rp_${z.id}">${[0,1,2,3,4,5,6,7,8,9,10].map(n=>`<button onclick="setRestPain('${z.id}',${n})" class="${v===n?'on':''}">${n}</button>`).join("")}</div></div>`;}).join("")
+    +`<p class="muted" style="font-size:11px;margin-top:4px">La douleur à froid au réveil est un bon indicateur de récupération tissulaire. Gère tes zones dans Réglages.</p>`;
+  root.appendChild(card);}
+function setRestPain(zid,n){const tk=todayKey();S.days[tk]=S.days[tk]||{};S.days[tk].restPain=S.days[tk].restPain||{};S.days[tk].restPain[zid]=n;
+  markRow("rp_"+zid,n);save();
+  // met à jour la pastille de valeur sans tout re-render
+  const card=document.querySelector("#rp_"+zid);if(card){const b=card.parentElement.querySelector("b");if(b){b.textContent=n+"/10";b.style.color=n>=4?'var(--bad)':n>=2?'var(--warn)':'var(--txt2)';}}}
 /* Saisie post-séance express : RPE → douleur pendant → douleur après, enchaîne les séances en attente */
 function openQuickLog(id){const w=S.workouts.find(x=>x.id===id);if(!w)return;
-  tmpRpe=w.rpe||0;tmpPainD=w.painDuring||0;tmpPainA=w.painAfter||0;
+  tmpRpe=w.rpe||0;
   const dObj=parseDate(w.date);const dStr=dObj?dObj.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}):w.date;
   const remaining=incompleteWorkouts().length;
   openSheet(`<h3>⚡ ${escapeHtml(w.name)}</h3><div class="sub" style="text-transform:capitalize">${dStr} · ${fmtMin(w.durationMin||0)}${w.avgHr?" · "+w.avgHr+" bpm":""}${remaining>1?" · "+(remaining-1)+" autre(s) en attente":""}</div>
    <label>RPE — effort perçu (1–10)</label><div class="rpe" id="rpeRow">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button onclick="tmpRpe=${n};markRow('rpeRow',${n})" class="${tmpRpe===n?'on':''}">${n}</button>`).join("")}</div>
-   <label>Douleur pendant (0–10)</label><div class="rpe" id="pdRow">${[0,1,2,3,4,5,6,7,8,9,10].map(n=>`<button onclick="tmpPainD=${n};markRow('pdRow',${n})" class="${tmpPainD===n?'on':''}">${n}</button>`).join("")}</div>
-   <label>Douleur après (0–10)</label><div class="rpe" id="paRow">${[0,1,2,3,4,5,6,7,8,9,10].map(n=>`<button onclick="tmpPainA=${n};markRow('paRow',${n})" class="${tmpPainA===n?'on':''}">${n}</button>`).join("")}</div>
+   ${painInputsHtml(w.painLog)}
    <div class="sheetbtns"><button class="btn ghost" onclick="closeSheet()">Plus tard</button><button class="btn primary full" onclick="saveQuickLog('${w.id}')">Enregistrer${remaining>1?" → suivante":""}</button></div>`);}
 function saveQuickLog(id){const w=S.workouts.find(x=>x.id===id);if(!w)return;
   if(!tmpRpe){toast("Choisis ton RPE");return;}
-  w.rpe=tmpRpe;w.painDuring=tmpPainD;w.painAfter=tmpPainA;w.trimp=trimp(w);w.updated=Date.now();
+  w.rpe=tmpRpe;applyPainToWorkout(w);w.trimp=trimp(w);delete w.needsLog;w.updated=Date.now();
   save();
   const next=incompleteWorkouts()[0];
   if(next){openQuickLog(next.id);toast("Enregistré ✓ — suivante");}
@@ -649,6 +681,7 @@ function renderRecovery(){
   const tk=latestVal("hrv")?latestVal("hrv").date:(Object.keys(S.days).sort().pop()||todayKey());
   const rec=hasData?recovery(tk):null;const ot=hasData?overtraining():null;
   renderTodayCard(root);
+  renderRestPainCard(root);
 
   if(!rec){
     const recCard=el("div","card glass");
@@ -861,7 +894,7 @@ function planLabel(p){const n=S.notes.find(x=>x.id===p.noteId);
   if(!n)return p.label||"Séance";
   if(p.row<0)return n.title||"Séance";
   const r=(n.rows||[])[p.row];if(!r)return p.label||n.title||"Séance";
-  const seance=((r.sem||"")+" "+(r.seance||"")).trim();
+  const seance=(r.seance||"").trim();
   return seance?(n.title||"Séance")+" · "+seance:(n.title||"Séance");}
 // le prévisionnel s'efface au fil des jours : les séances passées sont purgées
 function purgePlan(){const tk=todayKey();const n=S.plan.length;S.plan=S.plan.filter(p=>p.date>=tk);if(S.plan.length!==n)save(false);}
@@ -1075,19 +1108,19 @@ function renderForceCard(n){const card=el("div","card fcard");const exos=n.exos|
   const titleRow=`<div class="fttitle"><span style="display:flex;align-items:center;gap:8px;min-width:0"><button class="btn ghost" style="padding:6px 10px;font-size:13px" title="${n.collapsed?'Agrandir':'Réduire'}" onclick="toggleNoteCollapse('${n.id}')">${n.collapsed?"▸":"▾"}</button><span contenteditable oninput="renameForce('${n.id}',this.textContent)">${icon} ${escapeHtml(n.title||(isFs?"Programme freestyle":"Cycle de force"))}</span></span>
     <span style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="pill" style="color:${doneCt?'var(--good)':'var(--txt2)'}">${doneCt}/${rows.length} faites</span>${n.collapsed?"":(isFs?"":`<button class="btn primary" onclick="openForceProgress('${n.id}',0)">📈 Progression</button>`)+`<button class="btn ghost" style="color:var(--acc2)" onclick="openSeriesPlanner('${n.id}')">📅 Série</button><button class="btn ghost" onclick="addForceExo('${n.id}')">+ exo</button><button class="btn ghost" onclick="delForceExo('${n.id}')">− exo</button><button class="btn ghost" onclick="addForceRow('${n.id}')">+ ligne</button><button class="btn ghost" onclick="delForceRow('${n.id}')">− ligne</button><button class="btn ghost" ${doneCt===rows.length&&rows.length?'style="color:var(--good)"':''} onclick="archiveNote('${n.id}')">🗃️ Archiver</button><button class="btn ghost" onclick="delNote('${n.id}')">Suppr.</button>`}</span></div>`;
   if(n.collapsed){card.innerHTML=titleRow+`<div style="height:7px;border-radius:5px;background:var(--track);overflow:hidden;margin-top:4px"><div style="height:100%;width:${pct}%;background:var(--grad)"></div></div>`;return card;}
-  const head1=`<th></th><th></th><th></th><th></th>`+exos.map(e=>`<th class="grp" colspan="${NF}">${escapeHtml(e)}</th>`).join("");
-  const head2=`<th>✓</th><th>📅</th><th>Sem.</th><th>Séance</th>`+exos.map(()=>FIELDS.map((f,fi)=>`<th class="${fi===0?'grp':''}">${f}</th>`).join("")).join("");
+  const head1=`<th></th><th></th><th></th>`+exos.map(e=>`<th class="grp" colspan="${NF}">${escapeHtml(e)}</th>`).join("");
+  const head2=`<th>✓</th><th>📅</th><th>Séance</th>`+exos.map(()=>FIELDS.map((f,fi)=>`<th class="${fi===0?'grp':''}">${f}</th>`).join("")).join("");
   const body=rows.map((r,ri)=>{let cls=/lourde/i.test(r.seance)?"heavy":/volume/i.test(r.seance)?"vol":"";
     if(r.done)cls+=" done-row";else if(ri===nextIdx)cls+=" nextrow";
     const pl=planOf(n.id,ri);
     let cells=`<td><button class="donebtn${r.done?' on':''}" title="${r.done?'Faite le '+(r.doneDate||'').split('-').reverse().join('/'):'Marquer comme faite'}" onclick="toggleForceDone('${n.id}',${ri})">✓</button></td>
       <td><button class="planbtn${pl?' on':''}" title="${pl?'Programmée le '+pl.date.split('-').reverse().join('/'):'Programmer sur le calendrier'}" onclick="openProgramSheet('${n.id}',${ri})">${pl?pl.date.slice(8,10)+"/"+pl.date.slice(5,7):"📅"}</button></td>
-      <td class="sem" contenteditable oninput="editForce('${n.id}',${ri},-1,0,this.textContent)">${escapeHtml(r.sem)}</td><td class="sea" contenteditable oninput="editForce('${n.id}',${ri},-1,1,this.textContent)">${escapeHtml(r.seance)}</td>`;
+      <td class="sea" contenteditable oninput="editForce('${n.id}',${ri},-1,1,this.textContent)">${escapeHtml(r.seance)}</td>`;
     (r.data||[]).forEach((d,ei)=>{d.forEach((v,fi)=>{cells+=`<td class="${fi===0?'grp':''}" contenteditable oninput="editForce('${n.id}',${ri},${ei},${fi},this.textContent)">${escapeHtml(String(v))}</td>`;});});
     return `<tr class="${cls}">${cells}</tr>`;}).join("");
   card.innerHTML=titleRow+`
     <div style="height:7px;border-radius:5px;background:var(--track);overflow:hidden;margin-bottom:12px"><div style="height:100%;width:${pct}%;background:var(--grad)"></div></div>
-    <div class="ftwrap"><table class="ft" style="min-width:${isFs?440+exos.length*60:700}px"><thead><tr>${head1}</tr><tr>${head2}</tr></thead><tbody>${body}</tbody></table></div>
+    <div class="ftwrap"><table class="ft" style="min-width:${isFs?390+exos.length*60:640}px"><thead><tr>${head1}</tr><tr>${head2}</tr></thead><tbody>${body}</tbody></table></div>
     <p class="muted" style="margin-top:10px;font-size:11.5px">✓ = séance faite · 📅 = programmer sur le calendrier prévisionnel — la ligne violette est ta prochaine séance.${isFs?" Temps en minutes par exercice.":" Orange = lourde · bleu = volume."}</p>`;
   return card;}
 function toggleNoteCollapse(id){const n=S.notes.find(x=>x.id===id);if(!n)return;n.collapsed=!n.collapsed;n.updated=Date.now();save();renderNotes();}
@@ -1242,18 +1275,33 @@ function openMetricDetail(k){mdKey=k;const m=METRIC_MAP[k];const ser=seriesFor(k
    ${b?`<div class="kv"><span>Ligne de base (60j)</span><b>${m.sleep?fmtSleepH(b.mean):round(b.mean,m.dec)} ±${m.sleep?Math.round(b.sd*60)+"min":round(b.sd,m.dec)}</b></div>`:""}</div>`);
 }
 
-let tmpRpe=0,tmpPainD=0,tmpPainA=0;
+let tmpRpe=0,tmpPainLog={};
+// Inputs de douleur par zone — affichés uniquement en mode blessé. Renvoie "" en mode classique.
+function painInputsHtml(prefill){if(!isInjured())return "";
+  const zones=painZones();const list=zones.length?zones:[{id:"_gen",location:"Douleur générale"}];
+  tmpPainLog={};
+  return `<div style="margin-top:6px;font-size:12.5px;font-weight:680;color:var(--acc3)">🩹 Suivi douleur</div>`+list.map(z=>{const p=(prefill&&prefill[z.id])||{};tmpPainLog[z.id]={d:p.d||0,a:p.a||0};
+    const pid="pd_"+z.id,paid="pa_"+z.id;
+    return `<div style="margin-top:8px;padding:10px;background:var(--surface2);border-radius:12px"><div style="font-weight:650;font-size:13px;margin-bottom:4px">${escapeHtml(z.location)}</div>
+      <label style="margin-top:2px">Pendant (0–10)</label><div class="rpe" id="${pid}">${[0,1,2,3,4,5,6,7,8,9,10].map(n=>`<button onclick="setPain('${z.id}','d',${n},'${pid}')" class="${(p.d||0)===n?'on':''}">${n}</button>`).join("")}</div>
+      <label>Après (0–10)</label><div class="rpe" id="${paid}">${[0,1,2,3,4,5,6,7,8,9,10].map(n=>`<button onclick="setPain('${z.id}','a',${n},'${paid}')" class="${(p.a||0)===n?'on':''}">${n}</button>`).join("")}</div></div>`;}).join("")
+    +(zones.length?"":`<p class="muted" style="font-size:11px;margin-top:6px">Astuce : crée tes zones de douleur précises dans Réglages → Mode blessé.</p>`);}
+function setPain(zid,which,n,rid){tmpPainLog[zid]=tmpPainLog[zid]||{d:0,a:0};tmpPainLog[zid][which]=n;markRow(rid,n);}
+function applyPainToWorkout(w){if(!isInjured())return;// classique : aucun suivi douleur
+  w.painLog={};let md=0,ma=0;for(const zid in tmpPainLog){const p=tmpPainLog[zid];w.painLog[zid]={d:p.d||0,a:p.a||0};md=Math.max(md,p.d||0);ma=Math.max(ma,p.a||0);}
+  w.painDuring=md;w.painAfter=ma;}
 function openWorkoutView(id){const w=S.workouts.find(x=>x.id===id);if(!w)return;const col=workoutColor(w.name);const tl=w.trimp||trimp(w);
   const dObj=parseDate(w.date);const dStr=dObj?dObj.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}):w.date;
+  const painTiles=isInjured()?[["Douleur pdt",(w.painDuring||0)+"/10"],["Douleur après",(w.painAfter||0)+"/10"]]:[];
   const tiles=[["Durée",fmtMin(w.durationMin||0)],["Charge",tl],w.avgHr?["FC moy.",w.avgHr+" bpm"]:null,w.maxHr?["FC max",w.maxHr+" bpm"]:null,
-    w.calories?["Calories",w.calories+" kcal"]:null,w.rpe?["RPE",w.rpe+"/10"]:null,["Douleur pdt",w.painDuring+"/10"],["Douleur après",w.painAfter+"/10"]].filter(Boolean);
+    w.calories?["Calories",w.calories+" kcal"]:null,w.rpe?["RPE",w.rpe+"/10"]:null,...painTiles].filter(Boolean);
   openSheet(`<div class="wvhead"><div class="ic" style="background:${hexA(col,.16)}">${workoutIcon(w.name)}</div><div><div class="t">${escapeHtml(w.name||"Séance")}</div><div class="d">${dStr}</div></div></div>
    <div class="statgrid">${tiles.map(([l,v])=>`<div class="stat"><div class="sv" style="color:${col}">${v}</div><div class="sl">${l}</div></div>`).join("")}</div>
    ${w.detail?`<div class="detailbox">${escapeHtml(w.detail)}</div>`:""}
    <div class="sheetbtns"><button class="btn ghost" onclick="delWorkout('${w.id}')">Supprimer</button><button class="btn primary full" onclick="openWorkoutEdit('${w.id}')">Modifier</button></div>`);
 }
 function openWorkoutEdit(id){const w=id?S.workouts.find(x=>x.id===id):null;
-  tmpRpe=w?w.rpe||0:0;tmpPainD=w?w.painDuring||0:0;tmpPainA=w?w.painAfter||0:0;
+  tmpRpe=w?w.rpe||0:0;
   openSheet(`<h3>${w?"Modifier l'entraînement":"Nouvel entraînement"}</h3><div class="sub">Renseignez les éléments clés</div>
    <label>Nom / type</label><input id="w_name" value="${w?escapeHtml(w.name||""):""}" placeholder="Ex: Muscu haut du corps, Course...">
    <div class="row2"><div><label>Date</label><input type="date" id="w_date" value="${w?w.date:todayKey()}"></div>
@@ -1262,8 +1310,7 @@ function openWorkoutEdit(id){const w=id?S.workouts.find(x=>x.id===id):null;
    <div><label>FC max (bpm)</label><input type="number" id="w_maxhr" value="${w?w.maxHr||"":""}" inputmode="numeric"></div></div>
    <label>Calories (kcal)</label><input type="number" id="w_cal" value="${w?w.calories||"":""}" inputmode="numeric">
    <label>RPE — effort perçu (1–10)</label><div class="rpe" id="rpeRow">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button onclick="tmpRpe=${n};markRow('rpeRow',${n})" class="${tmpRpe===n?'on':''}">${n}</button>`).join("")}</div>
-   <label>Douleur pendant (0–10)</label><div class="rpe" id="pdRow">${[0,1,2,3,4,5,6,7,8,9,10].map(n=>`<button onclick="tmpPainD=${n};markRow('pdRow',${n})" class="${tmpPainD===n?'on':''}">${n}</button>`).join("")}</div>
-   <label>Douleur après (0–10)</label><div class="rpe" id="paRow">${[0,1,2,3,4,5,6,7,8,9,10].map(n=>`<button onclick="tmpPainA=${n};markRow('paRow',${n})" class="${tmpPainA===n?'on':''}">${n}</button>`).join("")}</div>
+   ${painInputsHtml(w&&w.painLog)}
    <label>Détail de la séance (exercices, séries, ressenti...)</label><textarea id="w_detail" placeholder="Ex: Développé couché 4x8 @70kg, tractions 3x10...">${w?escapeHtml(w.detail||""):""}</textarea>
    <div class="sheetbtns"><button class="btn ghost" onclick="closeSheet()">Annuler</button><button class="btn primary full" onclick="saveWorkout('${w?w.id:""}')">Enregistrer</button></div>`);
 }
@@ -1271,7 +1318,7 @@ function markRow(rid,n){document.querySelectorAll("#"+rid+" button").forEach(b=>
 function saveWorkout(id){const g=i=>$("#"+i).value;const w=id?S.workouts.find(x=>x.id===id):{id:uid(),created:Date.now()};
   w.name=g("w_name").trim()||"Séance";w.date=g("w_date")||todayKey();w.durationMin=parseFloat(g("w_dur"))||0;
   w.avgHr=parseInt(g("w_avghr"))||null;w.maxHr=parseInt(g("w_maxhr"))||null;w.calories=parseInt(g("w_cal"))||null;
-  w.rpe=tmpRpe||null;w.painDuring=tmpPainD;w.painAfter=tmpPainA;w.detail=g("w_detail");w.trimp=trimp(w);w.updated=Date.now();
+  w.rpe=tmpRpe||null;applyPainToWorkout(w);w.detail=g("w_detail");w.trimp=trimp(w);delete w.needsLog;w.updated=Date.now();
   if(!id)S.workouts.push(w);save();closeSheet();renderTraining();toast("Entraînement enregistré");}
 function delWorkout(id){if(confirm("Supprimer cet entraînement ?")){const w=S.workouts.find(x=>x.id===id);if(w)S.deleted.workouts[w.extId||w.id]=Date.now();S.workouts=S.workouts.filter(x=>x.id!==id);save();closeSheet();renderTraining();}}
 function openDayWorkouts(dk){const ws=workoutsByDay()[dk]||[];const dObj=parseDate(dk);const dStr=dObj?dObj.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}):dk;
@@ -1322,6 +1369,12 @@ function openSettings(){const s=S.settings;
    <div><label>FC repos (bpm)</label><input type="number" id="set_hrrest" value="${s.hrRest||""}" placeholder="ex: 55"></div></div>
    <label>Objectif sommeil (h)</label><input type="number" step="0.5" id="set_sleep" value="${s.sleepGoal||8}">
    <div style="height:1px;background:var(--border);margin:22px 0"></div>
+   <h3 style="font-size:16px;padding-right:0">Mode de l'application</h3><div class="sub">Le mode blessé ajoute le suivi de la douleur (au repos, pendant et après l'effort).</div>
+   <div class="modesel"><button class="modebtn${s.mode!=="injured"?" on":""}" onclick="setMode('classic')"><b>🏃 Classique</b><span>Sans suivi de douleur</span></button><button class="modebtn${s.mode==="injured"?" on":""}" onclick="setMode('injured')"><b>🩹 Blessé</b><span>Suivi douleur par zone</span></button></div>
+   ${s.mode==="injured"?`<div style="margin-top:14px"><label>Mes zones de douleur</label>
+     ${(S.pains||[]).length?(S.pains||[]).map(z=>`<div class="kv"><span>📍 ${escapeHtml(z.location)}</span><button class="btn ghost" style="padding:6px 11px;font-size:12px" onclick="delPainZone('${z.id}')">Supprimer</button></div>`).join(""):`<p class="muted" style="padding:6px 0">Aucune zone. Ajoute la localisation de chaque douleur à suivre.</p>`}
+     <button class="addbtn" style="margin-top:10px" onclick="addPainZone()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ajouter une zone (ex: Adducteur droit)</button></div>`:""}
+   <div style="height:1px;background:var(--border);margin:22px 0"></div>
    <h3 style="font-size:16px;padding-right:0">Sync automatique (Cloudflare)</h3><div class="sub">Données Apple Watch + toutes vos saisies (séances, notes, compléments) synchronisées entre vos appareils. Seule la clé API reste locale.</div>
    <label>URL du Worker</label><input id="set_syncurl" value="${escapeHtml(s.syncUrl||"")}" placeholder="https://vitalis-sync.xxx.workers.dev">
    <label>Jeton de lecture (READ_TOKEN)</label><input id="set_synctoken" value="${escapeHtml(s.syncToken||"")}" placeholder="votre jeton de lecture">
@@ -1344,6 +1397,14 @@ function saveSettings(testSync){const g=i=>$("#"+i).value;const s=S.settings;
   s.userName=g("set_name").trim();s.sex=g("set_sex");s.age=parseInt(g("set_age"))||30;s.hrMax=parseInt(g("set_hrmax"))||0;s.hrRest=parseInt(g("set_hrrest"))||0;s.sleepGoal=parseFloat(g("set_sleep"))||8;
   s.syncUrl=g("set_syncurl").trim();s.syncToken=g("set_synctoken").trim();s.apiProvider=g("set_provider");s.apiModel=g("set_model").trim();s.apiKey=g("set_apikey").trim();
   save();if(testSync){fetchSync(false);return;}closeSheet();renderAll();toast("Réglages enregistrés");}
+// Mode classique / blessé : conserve les champs déjà saisis avant de redessiner les Réglages
+function setMode(m){const g=i=>{const e=$("#"+i);return e?e.value:null;};
+  if(g("set_name")!=null){const s=S.settings;s.userName=g("set_name").trim();s.sex=g("set_sex");s.age=parseInt(g("set_age"))||30;s.hrMax=parseInt(g("set_hrmax"))||0;s.hrRest=parseInt(g("set_hrrest"))||0;s.sleepGoal=parseFloat(g("set_sleep"))||8;s.syncUrl=(g("set_syncurl")||"").trim();s.syncToken=(g("set_synctoken")||"").trim();}
+  S.settings.mode=m;save();renderAll();openSettings();}
+function addPainZone(){const loc=prompt("Localisation de la douleur (ex: Adducteur droit, Pubis, Genou gauche) :");if(!loc||!loc.trim())return;
+  S.pains.push({id:uid(),location:loc.trim(),created:Date.now(),updated:Date.now()});save();openSettings();toast("Zone ajoutée");}
+function delPainZone(id){const z=S.pains.find(x=>x.id===id);if(!z)return;if(!confirm("Supprimer la zone « "+z.location+" » ?"))return;
+  S.deleted.pains[id]=Date.now();S.pains=S.pains.filter(x=>x.id!==id);save();openSettings();}
 async function fetchSync(silent){const u=S.settings.syncUrl,t=S.settings.syncToken;if(!u){if(!silent)toast("Renseignez l'URL du Worker");return;}
   if(!silent)toast("Synchronisation...");
   const pulled=await pullState();// 1. récupère les saisies faites sur les autres appareils
@@ -1410,7 +1471,10 @@ function ingestHAE(json){let data=json.data||json;let metrics=data.metrics||[];l
     const maxHr=w.maxHeartRate?(w.maxHeartRate.qty||w.maxHeartRate):(w.heartRate&&w.heartRate.max?w.heartRate.max.qty:null);
     const cal=w.activeEnergyBurned?w.activeEnergyBurned.qty:(w.activeEnergy&&w.activeEnergy.qty?w.activeEnergy.qty:(w.totalEnergy?w.totalEnergy.qty:null));
     const extId=w.id||(w.name+"|"+w.start);if(S.workouts.some(x=>x.extId===extId))return;
-    const nw={id:uid(),extId,name:normWorkoutName(w.name),date:dk,durationMin:round(dur,1),avgHr:avgHr?Math.round(avgHr):null,maxHr:maxHr?Math.round(maxHr):null,calories:cal?Math.round(cal):null,rpe:null,painDuring:0,painAfter:0,detail:"",imported:true,created:Date.now()};
+    // needsLog = séance fraîchement enregistrée (aujourd'hui/hier) → on demandera RPE (+ douleur si mode blessé).
+    // Les imports historiques (dates anciennes) n'ouvrent pas de saisie.
+    const yk=fmtKey(new Date(Date.now()-24*3600*1000));const isNew=dk>=yk;
+    const nw={id:uid(),extId,name:normWorkoutName(w.name),date:dk,durationMin:round(dur,1),avgHr:avgHr?Math.round(avgHr):null,maxHr:maxHr?Math.round(maxHr):null,calories:cal?Math.round(cal):null,rpe:null,painDuring:0,painAfter:0,detail:"",imported:true,needsLog:isNew,created:Date.now()};
     nw.trimp=trimp(nw);S.workouts.push(nw);added.workouts++;});
   S.settings.lastSync=Date.now();save();return added;}
 $("#fileInput").addEventListener("change",function(){const files=[...this.files];if(!files.length)return;let tot={m:0,d:new Set(),w:0};let done=0;
@@ -1428,7 +1492,8 @@ function buildContext(){const tk=Object.keys(S.days).sort().pop()||todayKey();co
   const recentDays=lastNDays(7).map(dk=>({date:dk,...(S.days[dk]||{})})).filter(d=>Object.keys(d).length>1);
   const recentW=[...S.workouts].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,10).map(w=>({date:w.date,nom:w.name,min:w.durationMin,fcMoy:w.avgHr,kcal:w.calories,rpe:w.rpe,douleurPendant:w.painDuring,douleurApres:w.painAfter,charge:w.trimp||trimp(w),detail:w.detail}));
   const supToday=S.supps.map(s=>({nom:s.name,dose:s.dosage,freq:s.freq,prisAujourdhui:!!(s.log&&s.log[todayKey()]),serie:suppStreak(s)}));
-  return{profil:{prenom:S.settings.userName,sexe:S.settings.sex,age:S.settings.age,fcMax:S.settings.hrMax||(220-(S.settings.age||30)),fcRepos:S.settings.hrRest,objectifSommeil:S.settings.sleepGoal},
+  return{profil:{prenom:S.settings.userName,sexe:S.settings.sex,age:S.settings.age,fcMax:S.settings.hrMax||(220-(S.settings.age||30)),fcRepos:S.settings.hrRest,objectifSommeil:S.settings.sleepGoal,mode:isInjured()?"blessé":"classique"},
+    ...(isInjured()?{douleur:{zones:painZones().map(z=>z.location),douleurAuReposAujourdhui:(S.days[todayKey()]||{}).restPain||{}}}:{}),
     recuperation:rec?{score:rec.score,composantes:rec.comps,date:tk}:null,
     surentrainement:ot?{risque:ot.band.t,acwr:ot.acwr,tsb:ot.tsb}:null,
     charge:last?{ctl_forme:last.ctl,atl_fatigue:last.atl,tsb_fraicheur:last.tsb,etat:formState(last.tsb).t}:null,
