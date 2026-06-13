@@ -190,12 +190,14 @@ header{padding:calc(var(--safe-t) + 16px) 22px 10px;display:flex;align-items:cen
 .note .pinbtn{position:absolute;top:12px;right:12px;color:var(--txt3);width:18px;height:18px;cursor:pointer}
 .note.pin{box-shadow:0 8px 24px rgba(6,182,212,.15)}
 .note.pin .pinbtn{color:var(--acc2)}
-.supitem{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:14px 15px;margin-bottom:10px;display:flex;align-items:center;gap:14px;box-shadow:var(--sh2)}
-.supcheck{width:46px;height:46px;border-radius:14px;border:2px solid var(--border2);display:grid;place-items:center;cursor:pointer;flex-shrink:0;transition:.18s;color:transparent}
+.supitem{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:9px 12px;margin-bottom:7px;display:flex;align-items:center;gap:12px;box-shadow:var(--sh2);cursor:pointer;transition:.14s}
+.supitem:hover{border-color:var(--border2)}
+.supcheck{width:34px;height:34px;border-radius:11px;border:2px solid var(--border2);display:grid;place-items:center;cursor:pointer;flex-shrink:0;transition:.18s;color:transparent}
+.rbadge{font-size:9.5px;font-weight:700;padding:1px 7px;border-radius:20px;background:rgba(6,182,212,.14);color:var(--acc2);white-space:nowrap}
 .supcheck.done{background:var(--grad);border-color:transparent;color:#fff}
-.supcheck svg{width:22px;height:22px}
-.supmeta{flex:1;min-width:0}.supmeta .sn{font-size:15px;font-weight:680}.supmeta .ss{font-size:12px;color:var(--txt3);margin-top:2px}
-.supstreak{font-size:11px;color:var(--txt2);text-align:right;flex-shrink:0}.supstreak b{font-size:18px;display:block;color:var(--acc)}
+.supcheck svg{width:18px;height:18px}
+.supmeta{flex:1;min-width:0}.supmeta .sn{font-size:14px;font-weight:680;display:flex;align-items:center;gap:7px;flex-wrap:wrap}.supmeta .ss{font-size:11.5px;color:var(--txt3);margin-top:1px}
+.supstreak{font-size:10px;color:var(--txt3);text-align:right;flex-shrink:0}.supstreak b{font-size:16px;display:block;color:var(--acc)}
 .deldot{color:var(--txt3);cursor:pointer;padding:6px}.deldot:hover{color:var(--bad)}.deldot svg{width:16px;height:16px;display:block}
 .tabbar{position:absolute;left:0;right:0;bottom:0;padding:8px 14px calc(8px + var(--safe-b));background:linear-gradient(to top,var(--bg) 60%,transparent);display:flex;justify-content:center;z-index:40}
 .tabbar .inner{display:flex;gap:3px;background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:22px;padding:6px;box-shadow:var(--sh)}
@@ -639,26 +641,58 @@ function renderTodayCard(root){const tk=todayKey();
    <div class="kv"><span>💊 Compléments</span><b style="color:${total&&taken===total?'var(--good)':'var(--txt)'}">${total?taken+"/"+total+" pris":"—"}</b></div>
    ${inc.length?`<button class="btn ghost full" style="margin-top:12px;color:var(--warn);border-color:var(--warn)" onclick="openQuickLog('${inc[0].id}')">⚡ ${inc.length} séance${inc.length>1?"s":""} à compléter (RPE${isInjured()?" + douleur":""})</button>`:""}`;
   root.appendChild(card);}
-/* Carte "Douleur au repos" — mode blessé uniquement : suivi quotidien par zone */
-function renderRestPainCard(root){if(!isInjured())return;
-  const tk=todayKey();const zones=painZones();
-  const card=el("div","card");
+/* Carte "Douleur au réveil" — mode blessé : à remplir chaque jour, disparaît une fois validée */
+function renderWakePainCard(root){if(!isInjured())return;
+  const tk=todayKey();const day=S.days[tk]||{};
+  if(day.wakePainDone)return;// déjà renseignée aujourd'hui → réapparaît demain
+  const zones=painZones();
+  const card=el("div","card glass");
   if(!zones.length){
-    card.innerHTML=`<h2><span class="dot" style="background:var(--acc3)"></span>🩹 Douleur au repos</h2>
-      <p class="muted" style="padding:6px 0">Crée d'abord tes zones de douleur (localisation) pour suivre ta douleur au repos chaque jour.</p>
+    card.innerHTML=`<h2><span class="dot" style="background:var(--acc3)"></span>🩹 Douleur au réveil</h2>
+      <p class="muted" style="padding:6px 0">Crée d'abord tes zones de douleur (localisation) pour suivre ta douleur au réveil chaque jour.</p>
       <button class="btn ghost full" onclick="openSettings()">Gérer mes zones de douleur</button>`;
     root.appendChild(card);return;}
-  const rp=(S.days[tk]||{}).restPain||{};
-  card.innerHTML=`<h2><span class="dot" style="background:var(--acc3)"></span>🩹 Douleur au repos · aujourd'hui</h2>`+
+  const rp=day.restPain||{};
+  card.innerHTML=`<h2><span class="dot" style="background:var(--acc3)"></span>🩹 Douleur au réveil · aujourd'hui</h2>`+
     zones.map(z=>{const v=rp[z.id]||0;
       return `<div style="margin-bottom:10px"><div style="font-weight:650;font-size:13.5px;margin-bottom:5px;display:flex;justify-content:space-between"><span>${escapeHtml(z.location)}</span><b style="color:${v>=4?'var(--bad)':v>=2?'var(--warn)':'var(--txt2)'}">${v}/10</b></div>
         <div class="rpe" id="rp_${z.id}">${[0,1,2,3,4,5,6,7,8,9,10].map(n=>`<button onclick="setRestPain('${z.id}',${n})" class="${v===n?'on':''}">${n}</button>`).join("")}</div></div>`;}).join("")
-    +`<p class="muted" style="font-size:11px;margin-top:4px">La douleur à froid au réveil est un bon indicateur de récupération tissulaire. Gère tes zones dans Réglages.</p>`;
+    +`<button class="btn primary full" style="margin-top:6px" onclick="validateWakePain()">✓ Valider ma douleur du réveil</button>
+      <p class="muted" style="font-size:11px;margin-top:8px">La douleur à froid au réveil est un bon indicateur de récupération tissulaire.</p>`;
   root.appendChild(card);}
 function setRestPain(zid,n){const tk=todayKey();S.days[tk]=S.days[tk]||{};S.days[tk].restPain=S.days[tk].restPain||{};S.days[tk].restPain[zid]=n;
   markRow("rp_"+zid,n);save();
-  // met à jour la pastille de valeur sans tout re-render
   const card=document.querySelector("#rp_"+zid);if(card){const b=card.parentElement.querySelector("b");if(b){b.textContent=n+"/10";b.style.color=n>=4?'var(--bad)':n>=2?'var(--warn)':'var(--txt2)';}}}
+function validateWakePain(){const tk=todayKey();S.days[tk]=S.days[tk]||{};S.days[tk].restPain=S.days[tk].restPain||{};
+  painZones().forEach(z=>{if(S.days[tk].restPain[z.id]==null)S.days[tk].restPain[z.id]=0;});
+  S.days[tk].wakePainDone=true;save();renderRecovery();toast("Douleur du réveil enregistrée ✓");}
+/* Carte "Suivi de la douleur" — courbe de la douleur (max repos + séances) dans le temps */
+function painDayValue(dk){let m=0;const rp=(S.days[dk]||{}).restPain||{};Object.values(rp).forEach(v=>{if(v>m)m=v;});
+  S.workouts.filter(w=>w.date===dk).forEach(w=>{m=Math.max(m,w.painDuring||0,w.painAfter||0);});return m;}
+function painHistory(nDays){return lastNDays(nDays).map(dk=>{const day=S.days[dk];
+  const hasRest=day&&day.restPain&&Object.keys(day.restPain).length;
+  const hasW=S.workouts.some(w=>w.date===dk&&((w.painDuring||0)||(w.painAfter||0)));
+  return{date:dk,value:(hasRest||hasW)?painDayValue(dk):null};});}
+function renderPainTrendCard(root){if(!isInjured())return;
+  const ser=painHistory(30);const vals=ser.filter(p=>p.value!=null);const last=vals.length?vals[vals.length-1].value:null;
+  const card=el("div","card statcard clickable");card.onclick=openPainDetail;
+  card.innerHTML=`<div class="stlabel"><span class="dot" style="background:var(--acc3)"></span>🩹 Suivi de la douleur</div>`+
+   (vals.length?`<div style="display:flex;align-items:center;gap:14px"><div class="bignum" style="color:${last>=4?'var(--bad)':last>=2?'var(--warn)':'var(--good)'}">${last}<small style="font-size:16px;color:var(--txt3)">/10</small></div><div style="flex:1">${spark(ser,'#fb7185',38)}</div></div><div class="ststate" style="color:var(--txt2)">Pic de douleur des 30 derniers jours</div>`
+    :`<p class="muted" style="padding:6px 0">Renseigne ta douleur (réveil ou séances) pour suivre son évolution.</p>`)+
+   `<div class="seelink" style="margin-top:auto">Voir la courbe →</div>`;
+  root.appendChild(card);}
+let painPeriod=30;
+function setPainPeriod(d){painPeriod=d;openPainDetail();}
+function openPainDetail(){const ser=painHistory(painPeriod);const vals=ser.filter(p=>p.value!=null).map(p=>p.value);
+  const avg=vals.length?round(vals.reduce((a,b)=>a+b,0)/vals.length,1):"—";const mx=vals.length?Math.max(...vals):"—";
+  const tk=todayKey();const rp=(S.days[tk]||{}).restPain||{};
+  openSheet(`<h3>Suivi de la douleur</h3><div class="sub">Pic quotidien (réveil + séances), sur 0–10</div>
+   ${periodChips(painPeriod,"setPainPeriod")}
+   ${lineChart(ser,"#fb7185",null,180)}
+   <div style="margin-top:14px"><div class="kv"><span>Douleur moyenne</span><b>${avg}/10</b></div>
+   <div class="kv"><span>Pic max</span><b style="color:${mx>=4?'var(--bad)':'var(--txt)'}">${mx}/10</b></div>
+   <div class="kv"><span>Jours renseignés</span><b>${vals.length}</b></div></div>
+   ${painZones().length?`<h3 style="font-size:16px;margin-top:18px">Douleur au réveil aujourd'hui</h3>${painZones().map(z=>`<div class="kv"><span>📍 ${escapeHtml(z.location)}</span><b style="color:${(rp[z.id]||0)>=4?'var(--bad)':(rp[z.id]||0)>=2?'var(--warn)':'var(--txt)'}">${rp[z.id]||0}/10</b></div>`).join("")}`:""}`);}
 /* Saisie post-séance express : RPE → douleur pendant → douleur après, enchaîne les séances en attente */
 function openQuickLog(id){const w=S.workouts.find(x=>x.id===id);if(!w)return;
   tmpRpe=w.rpe||0;
@@ -681,7 +715,8 @@ function renderRecovery(){
   const tk=latestVal("hrv")?latestVal("hrv").date:(Object.keys(S.days).sort().pop()||todayKey());
   const rec=hasData?recovery(tk):null;const ot=hasData?overtraining():null;
   renderTodayCard(root);
-  renderRestPainCard(root);
+  renderWakePainCard(root);
+  renderPainTrendCard(root);
 
   if(!rec){
     const recCard=el("div","card glass");
@@ -868,16 +903,57 @@ function renderTraining(){
         <text x="${round(x+bw2*0.35,1)}" y="${round(Math.max(10,150-22-h-5),1)}" text-anchor="middle" fill="var(--txt2)" font-size="10" font-weight="600">${(tw[k]/1000).toFixed(1)}t</text>
         <text x="${round(x+bw2*0.35,1)}" y="144" text-anchor="middle" fill="var(--txt3)" font-size="9.5">${k.slice(8,10)}/${k.slice(5,7)}</text>`;}).join("");
     const dT=prevT>0&&curT>0?Math.round((curT-prevT)/prevT*100):null;
-    const ton=el("div","card");
+    const ton=el("div","card clickable");ton.onclick=openTonnageDetail;
     ton.innerHTML=`<h2><span class="dot" style="background:#06b6d4"></span>Tonnage musculation · par semaine</h2>
      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px"><div style="font-size:28px;font-weight:740">${Math.round(curT).toLocaleString("fr-FR")} kg</div><div class="muted">cette semaine${dT!=null?` · <b style="color:${dT>30?'var(--bad)':dT>10?'var(--warn)':'var(--good)'}">${dT>0?"+":""}${dT} %</b> vs précédente`:""}</div></div>
      <svg viewBox="0 0 600 150" style="width:100%;height:150px" preserveAspectRatio="none">${bars}</svg>
-     <p class="muted" style="margin-top:8px;font-size:11.5px">Volume-charge = Σ kg × séries × reps des séances cochées ✓ dans ton plan de force — la mesure de référence du volume en musculation, indépendante de la fréquence cardiaque.</p>`;
+     <div class="seelink" style="margin-top:8px">Voir les séances comptées →</div>`;
     root.appendChild(ton);}
+
+  // ---- Évolution par type de séance (FC, calories, charge, durée dans le temps) ----
+  renderEvoCard(root);
 
   root.appendChild(el("div","",`<button class="addbtn" onclick="openWorkoutEdit()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ajouter un entraînement</button>`));
 
 }
+// Détail du tonnage : liste des séances cochées qui alimentent l'indicateur
+function tonnageSessions(){const out=[];
+  S.notes.filter(n=>n.type==="force").forEach(n=>{(n.rows||[]).forEach(r=>{
+    if(!r.done||!r.doneDate)return;let t=0;const lines=[];
+    (r.data||[]).forEach((dd,ei)=>{const kg=parseFloat(String(dd[0]).replace(",", "."));const se=parseFloat(dd[1]),reps=parseFloat(dd[2]);
+      if(!isNaN(kg)&&se>0&&reps>0){t+=Math.abs(kg)*se*reps;lines.push(((n.exos||[])[ei]||"")+" "+kg+"kg×"+se+"×"+reps);}});
+    if(t>0)out.push({date:r.doneDate,note:n.title,seance:r.seance,tonnage:Math.round(t),lines});});});
+  return out.sort((a,b)=>b.date.localeCompare(a.date));}
+function openTonnageDetail(){const list=tonnageSessions();const tot=list.reduce((a,s)=>a+s.tonnage,0);
+  openSheet(`<h3>Tonnage musculation</h3><div class="sub">Séances comptées : celles cochées ✓ dans tes cycles de force</div>
+   ${list.length?`<div class="kv"><span><b>Total cumulé (${list.length} séances)</b></span><b>${tot.toLocaleString("fr-FR")} kg</b></div>`+list.map(s=>`<div class="kv"><span>${s.date.split("-").reverse().slice(0,2).join("/")} · ${escapeHtml(s.seance||"Séance")}<br><small class="muted">${escapeHtml(s.lines.join(" · "))}</small></span><b style="white-space:nowrap">${s.tonnage.toLocaleString("fr-FR")} kg</b></div>`).join("")
+   :`<p class="muted" style="padding:18px 0;text-align:center">Aucune séance cochée. Dans l'onglet Notes, coche ✓ tes séances faites dans un cycle de force pour alimenter le tonnage.</p>`}`);}
+/* ---------- Évolution par type de séance : suivi FC / calories / charge / durée ---------- */
+let _evoTypes=[],evoType=null,evoMetric="trimp";
+const EVO_METRICS=[["trimp","Charge"],["avgHr","FC moy"],["calories","Calories"],["durationMin","Durée"]];
+function evoVal(w,k){if(k==="trimp")return w.trimp||trimp(w);return w[k]!=null?w[k]:null;}
+function setEvoType(i){evoType=_evoTypes[i];renderTraining();}
+function setEvoMetric(k){evoMetric=k;renderTraining();}
+function renderEvoCard(root){
+  _evoTypes=[...new Set(S.workouts.map(w=>w.name))];
+  if(_evoTypes.length<1||!S.workouts.length)return;
+  if(!evoType||!_evoTypes.includes(evoType))evoType=_evoTypes[0];
+  const ws=S.workouts.filter(w=>w.name===evoType).sort((a,b)=>a.date.localeCompare(b.date));
+  const ser=ws.map(w=>({date:w.date,value:evoVal(w,evoMetric)}));
+  const vals=ser.filter(p=>p.value!=null).map(p=>p.value);
+  const mlabel=(EVO_METRICS.find(m=>m[0]===evoMetric)||[])[1];
+  const fmtFn=evoMetric==="durationMin"?(v=>fmtMin(v)):null;
+  const unit=evoMetric==="avgHr"?"bpm":evoMetric==="calories"?"kcal":evoMetric==="trimp"?"UA":"";
+  const avg=vals.length?(fmtFn?fmtMin(vals.reduce((a,b)=>a+b,0)/vals.length):round(vals.reduce((a,b)=>a+b,0)/vals.length)):"—";
+  const col=workoutColor(evoType);
+  const card=el("div","card");
+  card.innerHTML=`<h2><span class="dot" style="background:${col}"></span>Évolution par type de séance</h2>
+   <div class="chips">${_evoTypes.map((t,i)=>`<div class="chip${t===evoType?' on':''}" onclick="setEvoType(${i})">${workoutIcon(t)} ${escapeHtml(t)}</div>`).join("")}</div>
+   <div class="chips">${EVO_METRICS.map(([k,l])=>`<div class="chip${k===evoMetric?' on':''}" onclick="setEvoMetric('${k}')">${l}</div>`).join("")}</div>
+   ${vals.length?lineChart(ser,col,fmtFn,180,unit):`<div class="bigchart" style="display:grid;place-items:center;color:var(--txt3);font-size:13px">Aucune donnée « ${mlabel} » pour ce type</div>`}
+   <div style="margin-top:12px"><div class="kv"><span>${escapeHtml(evoType)} · ${mlabel} moyenne</span><b>${avg}${unit&&!fmtFn?" "+unit:""}</b></div>
+   <div class="kv"><span>Nombre de séances</span><b>${ws.length}</b></div></div>`;
+  root.appendChild(card);}
 
 /* ---------- Onglet Calendrier : vue réelle (Apple Watch) + vue prévisionnelle ---------- */
 let calTypeFilter="all";
@@ -1224,19 +1300,26 @@ function renderSupps(){
   root.insertAdjacentHTML("beforeend",`<div class="chips">`+[[7,"7 j"],[14,"14 j"],[30,"1 mois"],[90,"3 mois"]].map(([d,l])=>`<div class="chip${suppPeriod===d?' on':''}" onclick="setSuppPeriod(${d})">${l}</div>`).join("")+`</div>`);
   root.appendChild(el("div","",`<button class="addbtn" onclick="openSupp()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ajouter un complément</button>`));
   if(!S.supps.length){root.appendChild(el("div","empty",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10.5 20.5L3.5 13.5a5 5 0 0 1 7-7l7 7a5 5 0 0 1-7 7z"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg><p>Ajoutez vos compléments puis cochez-les chaque jour. L'assiduité se calcule automatiquement.</p>`));return;}
-  S.supps.forEach(s=>{const done=s.log&&s.log[tk];const streak=suppStreak(s);const cdk=s.created?fmtKey(new Date(s.created)):"0000-00-00";
-    const strip=days.map(dk=>{const active=dk>=cdk;const isT=s.log&&s.log[dk];const col=!active?"transparent":isT?"var(--good)":"var(--border2)";return `<span title="${dk.split('-').reverse().join('/')}${isT?' · pris':active?' · non pris':''}" style="width:11px;height:11px;border-radius:3px;background:${col};${!active?'border:1px dashed var(--border2);box-sizing:border-box':''}"></span>`;}).join("");
-    const item=el("div","supitem");item.style.flexWrap="wrap";
-    item.innerHTML=`<div style="display:flex;align-items:center;gap:14px;width:100%">
-      <div class="supcheck${done?" done":""}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-      <div class="supmeta"><div class="sn">${escapeHtml(s.name)}${s.remindOn?` <span class="pill" style="font-size:10px;padding:1px 7px;background:rgba(6,182,212,.14);color:var(--acc2)">🔔 ${escapeHtml(s.remindAt||"")}</span>`:""}</div><div class="ss">${escapeHtml(s.dosage||"")}${s.dosage&&s.freq?" · ":""}${escapeHtml(s.freq||"")}</div></div>
-      <div class="supstreak"><b>${streak}</b>jours</div>
-      <div class="deldot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></div></div>
-      <div style="display:flex;gap:3px;flex-wrap:wrap;width:100%;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">${strip}</div>`;
-    item.querySelector(".supcheck").onclick=()=>{s.log=s.log||{};if(s.log[tk])delete s.log[tk];else s.log[tk]=true;s.updated=Date.now();save();renderSupps();};
+  S.supps.forEach(s=>{const done=s.log&&s.log[tk];const streak=suppStreak(s);
+    const item=el("div","supitem");
+    item.innerHTML=`<div class="supcheck${done?" done":""}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="supmeta"><div class="sn">${escapeHtml(s.name)}${s.remindOn?` <span class="rbadge">🔔 ${escapeHtml(s.remindAt||"")}</span>`:""}</div><div class="ss">${escapeHtml(s.dosage||"")}${s.dosage&&s.freq?" · ":""}${escapeHtml(s.freq||"")}</div></div>
+      <div class="supstreak"><b>${streak}</b>j</div>
+      <div class="deldot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></div>`;
+    item.querySelector(".supcheck").onclick=e=>{e.stopPropagation();s.log=s.log||{};if(s.log[tk])delete s.log[tk];else s.log[tk]=true;s.updated=Date.now();save();renderSupps();};
     item.querySelector(".deldot").onclick=e=>{e.stopPropagation();if(confirm("Supprimer "+s.name+" ?")){S.deleted.supps[s.id]=Date.now();S.supps=S.supps.filter(x=>x.id!==s.id);save();renderSupps();}};
-    item.querySelector(".supmeta").onclick=()=>openSupp(s.id);root.appendChild(item);});
+    item.querySelector(".supmeta").onclick=()=>openSuppDetail(s.id);root.appendChild(item);});
 }
+// Fiche détail d'un complément : historique 30 j + assiduité + édition (sort l'historique de la liste pour la garder compacte)
+function openSuppDetail(id){const s=S.supps.find(x=>x.id===id);if(!s)return;
+  const days=lastNDays(30);const cdk=s.created?fmtKey(new Date(s.created)):"0000-00-00";
+  let slots=0,taken=0;days.forEach(dk=>{if(dk>=cdk){slots++;if(s.log&&s.log[dk])taken++;}});const adh=slots?Math.round(taken/slots*100):0;
+  const strip=days.map(dk=>{const active=dk>=cdk;const isT=s.log&&s.log[dk];const col=!active?"transparent":isT?"var(--good)":"var(--border2)";return `<span title="${dk.split('-').reverse().join('/')}${isT?' · pris':active?' · non pris':''}" style="width:12px;height:12px;border-radius:3px;background:${col};${!active?'border:1px dashed var(--border2);box-sizing:border-box':''}"></span>`;}).join("");
+  openSheet(`<h3>${escapeHtml(s.name)}</h3><div class="sub">${escapeHtml(s.dosage||"")}${s.dosage&&s.freq?" · ":""}${escapeHtml(s.freq||"")}${s.remindOn?" · 🔔 "+escapeHtml(s.remindAt||""):""}</div>
+   <div class="kv"><span>Série en cours</span><b style="color:var(--acc)">${suppStreak(s)} jours</b></div>
+   <div class="kv"><span>Assiduité (30 j)</span><b style="color:${adh>=80?'var(--good)':adh>=50?'var(--warn)':'var(--bad)'}">${adh}%</b></div>
+   <div style="margin-top:14px"><div class="muted" style="font-size:11px;margin-bottom:7px">30 derniers jours (vert = pris)</div><div style="display:flex;gap:4px;flex-wrap:wrap">${strip}</div></div>
+   <div class="sheetbtns"><button class="btn ghost" onclick="delSupp('${s.id}')">Supprimer</button><button class="btn primary full" onclick="openSupp('${s.id}')">Modifier</button></div>`);}
 function suppStreak(s){if(!s.log)return 0;let c=0;const d=new Date();for(;;){if(s.log[fmtKey(d)]){c++;d.setDate(d.getDate()-1);}else break;if(c>999)break;}return c;}
 
 const ov=$("#overlay"),sheet=$("#sheet");
@@ -1298,8 +1381,11 @@ function openWorkoutView(id){const w=S.workouts.find(x=>x.id===id);if(!w)return;
   openSheet(`<div class="wvhead"><div class="ic" style="background:${hexA(col,.16)}">${workoutIcon(w.name)}</div><div><div class="t">${escapeHtml(w.name||"Séance")}</div><div class="d">${dStr}</div></div></div>
    <div class="statgrid">${tiles.map(([l,v])=>`<div class="stat"><div class="sv" style="color:${col}">${v}</div><div class="sl">${l}</div></div>`).join("")}</div>
    ${w.detail?`<div class="detailbox">${escapeHtml(w.detail)}</div>`:""}
+   <button class="btn ghost full" style="margin-top:12px" onclick="openTypeEvolution('${escapeHtml(w.name).replace(/'/g,"\\'")}')">📈 Évolution des séances « ${escapeHtml(w.name)} »</button>
    <div class="sheetbtns"><button class="btn ghost" onclick="delWorkout('${w.id}')">Supprimer</button><button class="btn primary full" onclick="openWorkoutEdit('${w.id}')">Modifier</button></div>`);
 }
+function openTypeEvolution(name){evoType=name;closeSheet();switchTab("training");
+  setTimeout(()=>{const cards=[...document.querySelectorAll("#tab-training .card h2")];const h=cards.find(x=>x.textContent.includes("Évolution par type"));if(h)h.scrollIntoView({behavior:"smooth",block:"start"});},80);}
 function openWorkoutEdit(id){const w=id?S.workouts.find(x=>x.id===id):null;
   tmpRpe=w?w.rpe||0:0;
   openSheet(`<h3>${w?"Modifier l'entraînement":"Nouvel entraînement"}</h3><div class="sub">Renseignez les éléments clés</div>
