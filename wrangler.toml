@@ -11,8 +11,9 @@ compatibility_date = "2026-01-01"
 binding = "HEALTH"
 id = "REMPLACER_PAR_VOTRE_KV_NAMESPACE_ID"
 
-# Notification du matin (UTC) : 05h30 UTC = 7h30 Paris en été, 6h30 en hiver.
+# Cron toutes les 15 min : digest du matin (~05h30 UTC = 7h30 Paris l'été) + rappels
+# de compléments envoyés à l'heure locale choisie pour chaque complément.
 # Si le Worker est collé manuellement dans le dashboard, ajoutez ce déclencheur
-# dans Settings → Triggers → Cron Triggers.
+# dans Settings → Triggers → Cron Triggers (valeur : */15 * * * *).
 [triggers]
-crons = ["30 5 * * *"]
+crons = ["*/15 * * * *"]

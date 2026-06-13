@@ -129,11 +129,67 @@ export default {
     return json({ error: "method not allowed" }, 405, cors);
   },
 
-  // Cron (configuré dans wrangler.toml ou le dashboard) : notification du matin
+  // Cron toutes les 15 min : digest du matin (~05h30 UTC) + rappels de compléments à l'heure.
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(sendDaily(env, false));
+    ctx.waitUntil(runScheduled(env));
   },
 };
+
+async function runScheduled(env) {
+  const now = new Date();
+  const utcMin = now.getUTCHours() * 60 + now.getUTCMinutes();
+  // digest quotidien autour de 05h30 UTC (fenêtre de 15 min alignée sur le cron)
+  if (utcMin >= 330 && utcMin < 345) await sendDaily(env, false);
+  await sendReminders(env);
+}
+
+// Rappels de prise : pour chaque complément avec un rappel activé, envoie une notif
+// à son heure locale s'il n'est pas encore coché ce jour-là. Dédoublonné par jour.
+async function sendReminders(env) {
+  const subs = JSON.parse((await env.HEALTH.get("subs")) || "[]");
+  if (!subs.length) return 0;
+  const state = JSON.parse((await env.HEALTH.get("appstate")) || "null");
+  if (!state || !Array.isArray(state.supps)) return 0;
+  const sentMap = JSON.parse((await env.HEALTH.get("remind_sent")) || "{}");
+  const now = new Date();
+  const utcMin = now.getUTCHours() * 60 + now.getUTCMinutes();
+  const due = [];
+  for (const s of state.supps) {
+    if (!s || !s.remindOn || !s.remindAt) continue;
+    const [h, m] = String(s.remindAt).split(":").map(Number);
+    if (isNaN(h) || isNaN(m)) continue;
+    const off = (typeof s.remindTz === "number") ? s.remindTz : 0; // minutes à l'est de UTC
+    const localNowMin = (utcMin + off + 1440) % 1440;
+    const localDate = new Date(now.getTime() + off * 60000).toISOString().slice(0, 10);
+    const targetMin = h * 60 + m;
+    let diff = localNowMin - targetMin;
+    if (diff < 0) diff += 1440;
+    if (diff >= 15) continue;                       // hors de la fenêtre de déclenchement
+    if (sentMap[s.id] === localDate) continue;      // déjà notifié aujourd'hui
+    if (s.log && s.log[localDate]) { sentMap[s.id] = localDate; continue; } // déjà pris
+    due.push(s); sentMap[s.id] = localDate;
+  }
+  await env.HEALTH.put("remind_sent", JSON.stringify(sentMap));
+  if (!due.length) return 0;
+  const keep = []; let sent = 0;
+  for (const sub of subs) {
+    let alive = true;
+    for (const s of due) {
+      try {
+        const st = await sendPush(env, sub, {
+          title: "Vitalis — rappel 💊",
+          body: "C'est l'heure de prendre : " + s.name + (s.dosage ? " (" + s.dosage + ")" : ""),
+          url: "./",
+        });
+        if (st === 404 || st === 410) { alive = false; break; }
+        if (st >= 200 && st < 300) sent++;
+      } catch (e) { /* on garde l'abonnement, réessai au prochain tick */ }
+    }
+    if (alive) keep.push(sub);
+  }
+  if (keep.length !== subs.length) await env.HEALTH.put("subs", JSON.stringify(keep));
+  return sent;
+}
 
 /* ==================== Web Push (RFC 8291 / VAPID) ==================== */
 
